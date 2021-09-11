@@ -1,4 +1,5 @@
 public interface DataExporter{
     public void writeToFile();
-    public Tournament readFromFile();
+    public Tournament readFromStarterFile();
+    public Tournament readFromInProgressFine(int number);
 }
