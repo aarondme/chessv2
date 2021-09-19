@@ -1,11 +1,8 @@
-enum Colour{
-    WHITE, BLACK
-}
 public class MatchResult {
     private int score;
     private Player opponent;
-    private Colour colour;
-    MatchResult(int score, Player opponent, Colour colour){
+    private int colour;
+    MatchResult(int score, Player opponent, int colour){
         this.score = score;
         this.opponent = opponent;
         this.colour = colour;
@@ -16,7 +13,7 @@ public class MatchResult {
     public Player getOpponent() {
         return opponent;
     }
-    public Colour getColour() {
+    public int getColour() {
         return colour;
     }
 }

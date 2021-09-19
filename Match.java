@@ -1,22 +1,34 @@
 public class Match{
-    Player whitePlayer;
-    Player blackPlayer;
+    Player white;
+    Player black;
 
-    Match(Player whitePlayer, Player blackPlayer){
-        this.whitePlayer = whitePlayer;
-        this.blackPlayer = blackPlayer;
+    Match(Player white, Player black){
+        this.white = white;
+        this.black = black;
     }
 
-    public void setResult(int result) {
-        sendWhitePlayerResult(result);
-        sendBlackPlayerResult(result);
+    public void setResult(int score) {
+        sendWhiteResult(score);
+        sendBlackResult(score);
     }
-    private void sendWhitePlayerResult(int result){
-        MatchResult whiteResult = new MatchResult(result, blackPlayer, Colour.WHITE);
-        whitePlayer.addMatchResults(whiteResult);
+    private void sendWhiteResult(int result){
+        if(white != null){
+            MatchResult whiteResult = new MatchResult(Result.getPointsForPlayer(Colour.WHITE, result), 
+                                                        black, Colour.WHITE);
+            white.addMatchResults(whiteResult);
+        }
     }
-    private void sendBlackPlayerResult(int result){
-        MatchResult blackResult = new MatchResult(2 - result, whitePlayer, Colour.BLACK);
-        blackPlayer.addMatchResults(blackResult);
+    private void sendBlackResult(int result){
+        if(black != null){
+            MatchResult blackResult = new MatchResult(Result.getPointsForPlayer(Colour.BLACK, result), 
+                                                        white, Colour.BLACK);
+            black.addMatchResults(blackResult);
+        }
+    }
+    public Player getWhitePlayer() {
+        return white;
+    }
+    public Player getBlackPlayer() {
+        return black;
     }
 }

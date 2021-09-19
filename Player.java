@@ -7,6 +7,7 @@ public class Player{
     private int gamesAsWhite, gamesAsBlack;
     private LinkedList<MatchResult> matchResults;
     private Tiebreaks tiebreaks;
+    private boolean isPaired;
 
     Player(String name, String organization){
         this.name = name;
@@ -42,7 +43,13 @@ public class Player{
         if (organization.trim().length() == 0)
           return name;
         return (name + " (" + organization + ")");
-      }
+    }
+    public boolean isPaired(){
+        return isPaired;
+    } 
+    public void setIsPaired(boolean isPaired){
+        this.isPaired = isPaired;
+    }
     public void setName(String name) {
         this.name = name;
     }
@@ -58,5 +65,19 @@ public class Player{
     }
     public void updateTiebreaks(LinkedList<MatchResult> matchResults){
         tiebreaks.updateTiebreaks(matchResults);
+    }
+    public boolean hasSatOut(){
+        for(MatchResult m : matchResults){
+            if(m.getOpponent() == null)
+                return true;
+        }
+        return false;
+    }
+    public boolean hasPlayedAgainst(Player opponent){
+        for(MatchResult m : matchResults){
+            if(m.getOpponent().equals(opponent))
+                return true;
+        }
+        return false;
     }
 }

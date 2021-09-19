@@ -20,8 +20,8 @@ public class ChessTournamentManager{
     }
 
     public static void runTournament(Tournament tournament){
-        while(!gui.wasCancelPressed() && tournament.getCurrentRound() < tournament.getNumberOfRounds()){
-            tournament.startNextRound();
+        while(!gui.wasCancelPressed() && tournament.hasRoundsRemaining()){
+            tournament.runNextRound(gui);
             if(!gui.wasCancelPressed()) break;
             gui.displayResults(tournament);
         }
