@@ -1,15 +1,15 @@
 package me.aarondmello.driver;
-public class MatchResult {
-    private int score;
+public class GameResult {
+    private int pointsEarned;
     private Player opponent;
     private int colour;
-    MatchResult(int score, Player opponent, int colour){
-        this.score = score;
+    public GameResult(int pointsEarned, Player opponent, int colour){
+        this.pointsEarned = pointsEarned;
         this.opponent = opponent;
         this.colour = colour;
     }
-    public int getScore() {
-        return score;
+    public int getPointsEarned() {
+        return pointsEarned;
     }
     public Player getOpponent() {
         return opponent;

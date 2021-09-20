@@ -3,7 +3,7 @@ import java.util.*;
 
 import javax.swing.*;
 
-import me.aarondmello.driver.Match;
+import me.aarondmello.driver.Game;
 import me.aarondmello.driver.Player;
 import me.aarondmello.driver.Round;
 
@@ -13,8 +13,8 @@ class RoundResultsPanel extends JPanel{
     JComboBox[] comboBoxes;
 
     RoundResultsPanel(Round round){
-        LinkedList<Match> matches = round.getMatches();
-        setPanelLayout(matches);
+        LinkedList<Game> games = round.getGames();
+        setPanelLayout(games);
      
      
     }
@@ -32,7 +32,7 @@ class RoundResultsPanel extends JPanel{
           }
     
           isInputValid = true;
-          for (int i = 0; i < matches.size(); i++) {
+          for (int i = 0; i < games.size(); i++) {
             String x = String.valueOf(options[i].getSelectedItem());
             if (x.equals((" ")))
               isInputValid = false;
@@ -43,24 +43,24 @@ class RoundResultsPanel extends JPanel{
         return results;
     }
     **/
-    private void setPanelLayout(LinkedList<Match> matches){
-        int numberOfMatches = matches.size();
+    private void setPanelLayout(LinkedList<Game> games){
+        int numberOfGames = games.size();
     
-        this.setLayout(new GridLayout(numberOfMatches + 1, 4, 20, 5));
+        this.setLayout(new GridLayout(numberOfGames + 1, 4, 20, 5));
     
         this.add(new JLabel("Board #"));
         this.add(new JLabel("White Player"));
         this.add(new JLabel(" "));
         this.add(new JLabel("Black Player"));
-        JComboBox[] options = new JComboBox[numberOfMatches];
+        JComboBox[] options = new JComboBox[numberOfGames];
         String[] choices = { " ", "White Win", "Draw", "Black Win" };
         
         
         int i = 1;
-        for (Match match : matches) {
+        for (Game game : games) {
             this.add(new JLabel("" + i));
-            Player white = match.getWhitePlayer();
-            Player black = match.getBlackPlayer();
+            Player white = game.getWhitePlayer();
+            Player black = game.getBlackPlayer();
 
             if (white != null)
                 this.add(new JLabel(white.getName()));

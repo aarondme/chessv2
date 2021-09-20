@@ -1,7 +1,7 @@
 package me.aarondmello.driver;
 import java.util.*;
 import java.util.function.BiFunction;
-class PlayerComparator implements Comparator<Player>{
+public class PlayerComparator implements Comparator<Player>{
     Comparator<Tiebreaks> tiebreakConfig;
     PlayerComparator(Comparator<Tiebreaks> tiebreakConfig){
         this.tiebreakConfig = tiebreakConfig;

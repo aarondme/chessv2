@@ -6,7 +6,7 @@ public class Player{
     private String organization;
     private int score;
     private int gamesAsWhite, gamesAsBlack;
-    private LinkedList<MatchResult> matchResults;
+    private LinkedList<GameResult> gameResults;
     private Tiebreaks tiebreaks;
     private boolean isPaired;
 
@@ -14,7 +14,7 @@ public class Player{
         this.name = name;
         this.organization = organization;
         this.score = 0;
-        this.matchResults = new LinkedList<MatchResult>();
+        this.gameResults = new LinkedList<GameResult>();
         this.tiebreaks = new Tiebreaks();
         this.gamesAsBlack = 0;
         this.gamesAsWhite = 0;
@@ -28,8 +28,8 @@ public class Player{
     public int getScore() {
         return score;
     }
-    public LinkedList<MatchResult> getMatchResults() {
-        return matchResults;
+    public LinkedList<GameResult> getGameResults() {
+        return gameResults;
     }
     public Tiebreaks getTiebreaks() {
         return tiebreaks;
@@ -60,22 +60,20 @@ public class Player{
     public void setScore(int score) {
         this.score = score;
     }
-    public void addMatchResults(MatchResult matchResult){
-        matchResults.add(matchResult);
-        score += matchResult.getScore();
+    public void addGameResults(GameResult gameResult){
+        gameResults.add(gameResult);
+        score += gameResult.getPointsEarned();
     }
-    public void updateTiebreaks(LinkedList<MatchResult> matchResults){
-        tiebreaks.updateTiebreaks(matchResults);
-    }
+    
     public boolean hasSatOut(){
-        for(MatchResult m : matchResults){
+        for(GameResult m : gameResults){
             if(m.getOpponent() == null)
                 return true;
         }
         return false;
     }
     public boolean hasPlayedAgainst(Player opponent){
-        for(MatchResult m : matchResults){
+        for(GameResult m : gameResults){
             if(m.getOpponent().equals(opponent))
                 return true;
         }

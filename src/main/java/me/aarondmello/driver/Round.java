@@ -1,9 +1,9 @@
 package me.aarondmello.driver;
 import java.util.*;
 public class Round{
-    private LinkedList<Match> matches;
+    private LinkedList<Game> games;
     Round(){
-        matches = new LinkedList<>();
+        games = new LinkedList<>();
     }
     public void pairFirstRound(ArrayList<Player> players){
         int frontPointer = 0;
@@ -11,11 +11,11 @@ public class Round{
         while(frontPointer < backPointer){
             Player white = players.get(frontPointer);
             Player black = players.get(backPointer);
-            matches.add(new Match(white, black));
+            games.add(new Game(white, black));
         }
     }
-    public LinkedList<Match> getMatches() {
-        return matches;
+    public LinkedList<Game> getGames() {
+        return games;
     }
 
     public void pairSubsequentRounds(ArrayList<Player> players){
@@ -54,7 +54,7 @@ public class Round{
             Player p = players.get(i);
             boolean didPairingWork;
             if(!p.hasSatOut()){
-                matches.add(new Match(p, null));
+                games.add(new Game(p, null));
                 p.setIsPaired(true);
                 didPairingWork = pairBruteForce(players, numPlayersLeft - 1);
                 
@@ -62,7 +62,7 @@ public class Round{
                     return true;
                 else{
                     p.setIsPaired(false);
-                    matches.pollLast(); 
+                    games.pollLast(); 
                 }
             }
         }
@@ -154,7 +154,7 @@ public class Round{
             Player p = lIterator.next();
             if(toPairWith.hasPlayedAgainst(p))
                 continue;
-            addMatch(toPairWith, p);
+            addGame(toPairWith, p);
             p.setIsPaired(true);
             didPairingSucceed = pairSublist(players);
             if(didPairingSucceed)
@@ -163,12 +163,12 @@ public class Round{
         }
         return false;
     }
-    private void addMatch(Player a, Player b){
+    private void addGame(Player a, Player b){
         int gamesA = a.getGamesAsBlack();
         int gamesB = b.getGamesAsBlack();
         if(gamesA > gamesB)
-            matches.add(new Match(a,b));
+            games.add(new Game(a,b));
         else
-            matches.add(new Match(b,a));
+            games.add(new Game(b,a));
     }
 }
