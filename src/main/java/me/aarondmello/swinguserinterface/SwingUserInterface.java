@@ -1,8 +1,8 @@
-package me.aarondmello.swinginterface;
+package me.aarondmello.swinguserinterface;
 import javax.swing.*;
 
-import me.aarondmello.driver.GUI;
-import me.aarondmello.driver.Tournament;
+import me.aarondmello.datatypes.Tournament;
+import me.aarondmello.maininterfaces.GUI;
 
 import java.awt.*;
 import java.util.HashMap;

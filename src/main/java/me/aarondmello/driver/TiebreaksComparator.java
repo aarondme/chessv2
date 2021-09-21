@@ -4,6 +4,9 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.function.ToIntBiFunction;
 
+import me.aarondmello.constants.TiebreakIndex;
+import me.aarondmello.datatypes.Tiebreaks;
+
 public class TiebreaksComparator implements Comparator<Tiebreaks> {
     private static HashMap<Integer, ToIntBiFunction<Tiebreaks, Tiebreaks>> comparisonMap = new HashMap<>(){{
         put(TiebreakIndex.BUCHHOLZ, (Tiebreaks q, Tiebreaks t) -> {return t.getBuchholz() - q.getBuchholz();});

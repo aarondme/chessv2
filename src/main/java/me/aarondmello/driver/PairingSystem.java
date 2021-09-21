@@ -1,21 +1,28 @@
 package me.aarondmello.driver;
-import java.util.*;
-public class Round{
-    private LinkedList<Game> games;
-    Round(){
-        games = new LinkedList<>();
-    }
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedList;
+
+import me.aarondmello.datatypes.Game;
+import me.aarondmello.datatypes.Player;
+import me.aarondmello.datatypes.Round;
+
+public class PairingSystem {
+    Round round;
+    
     public void pairFirstRound(ArrayList<Player> players){
         int frontPointer = 0;
         int backPointer = players.size() - 1;
         while(frontPointer < backPointer){
             Player white = players.get(frontPointer);
             Player black = players.get(backPointer);
-            games.add(new Game(white, black));
+            round.addGame(new Game(white, black));
+            frontPointer++;
+            backPointer--;
         }
-    }
-    public LinkedList<Game> getGames() {
-        return games;
+        if(frontPointer == backPointer)
+            round.addGame(new Game(players.get(frontPointer), null));
     }
 
     public void pairSubsequentRounds(ArrayList<Player> players){
@@ -50,7 +57,7 @@ public class Round{
             Player p = players.get(i);
             boolean didPairingWork;
             if(!p.hasSatOut()){
-                games.add(new Game(p, null)); //add a game with Player p sitting out and pair them
+                round.addGame(new Game(p, null)); //add a game with Player p sitting out and pair them
                 p.setIsPaired(true);
                 didPairingWork = pairBruteForce(players, numPlayersLeft - 1); //Attempt to pair other players
                 
@@ -58,7 +65,7 @@ public class Round{
                     return true; //If pairing worked, done
                 else{
                     p.setIsPaired(false); //If not, unpair the Player p, remove the game and continue
-                    games.pollLast(); 
+                    round.removeGame();
                 }
             }
         }
@@ -156,7 +163,7 @@ public class Round{
             if(didPairingSucceed)
                 return true;
             p.setIsPaired(false);
-            games.removeLast();
+            round.removeGame();
         }
         return false;
     }
@@ -164,8 +171,8 @@ public class Round{
         int gamesA = a.getGamesAsBlack();
         int gamesB = b.getGamesAsBlack();
         if(gamesA > gamesB)
-            games.add(new Game(a,b));
+            round.addGame(new Game(a,b));
         else
-            games.add(new Game(b,a));
+            round.addGame(new Game(b,a));
     }
 }

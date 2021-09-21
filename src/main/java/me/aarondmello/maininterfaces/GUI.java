@@ -1,5 +1,7 @@
-package me.aarondmello.driver;
+package me.aarondmello.maininterfaces;
 import java.util.HashMap;
+
+import me.aarondmello.datatypes.Tournament;
 
 public interface GUI{
     public void displayWelcomeScreen();

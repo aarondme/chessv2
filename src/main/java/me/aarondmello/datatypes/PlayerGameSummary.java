@@ -1,9 +1,10 @@
-package me.aarondmello.driver;
-public class GameResult {
+package me.aarondmello.datatypes;
+
+public class PlayerGameSummary {
     private int pointsEarned;
     private Player opponent;
     private int colour;
-    public GameResult(int pointsEarned, Player opponent, int colour){
+    public PlayerGameSummary(int pointsEarned, Player opponent, int colour){
         this.pointsEarned = pointsEarned;
         this.opponent = opponent;
         this.colour = colour;

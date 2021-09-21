@@ -1,4 +1,4 @@
-package me.aarondmello.driver;
+package me.aarondmello.constants;
 
 public final class TiebreakConfig {
     public final static int[] NO_RATING_SOLO = 

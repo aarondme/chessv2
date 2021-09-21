@@ -1,11 +1,11 @@
-package me.aarondmello.swinginterface;
+package me.aarondmello.swinguserinterface;
 import java.util.*;
 
 import javax.swing.*;
 
-import me.aarondmello.driver.Game;
-import me.aarondmello.driver.Player;
-import me.aarondmello.driver.Round;
+import me.aarondmello.datatypes.Game;
+import me.aarondmello.datatypes.Player;
+import me.aarondmello.datatypes.Round;
 
 import java.awt.*;
 

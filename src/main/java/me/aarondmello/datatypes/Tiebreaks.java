@@ -1,4 +1,4 @@
-package me.aarondmello.driver;
+package me.aarondmello.datatypes;
 
 public class Tiebreaks{
     private int buchholzCutOne = 0;

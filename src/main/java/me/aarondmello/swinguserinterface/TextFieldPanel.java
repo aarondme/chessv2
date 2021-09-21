@@ -1,8 +1,8 @@
-package me.aarondmello.swinginterface;
+package me.aarondmello.swinguserinterface;
 import java.util.HashMap;
 import javax.swing.*;
 
-import me.aarondmello.driver.Tournament;
+import me.aarondmello.datatypes.Tournament;
 class NewTournamentPanel extends JPanel{
     HashMap<String, JTextField> fieldNameToEnteredText;
     final static int EXIT_BUTTON_PRESSED = 1;

@@ -4,6 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 
 import org.junit.jupiter.api.RepeatedTest;
 
+import me.aarondmello.constants.TiebreakConfig;
+import me.aarondmello.constants.TiebreakIndex;
+import me.aarondmello.datatypes.Tiebreaks;
 import me.aarondmello.driver.*;
 
 import java.util.*;

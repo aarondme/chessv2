@@ -1,4 +1,4 @@
-package me.aarondmello.driver;
+package me.aarondmello.constants;
 public final class Colour{
     public final static int WHITE = 1;
     public final static int BLACK = 0;

@@ -1,6 +1,8 @@
-package me.aarondmello.driver;
+package me.aarondmello.datatypes;
 import java.util.ArrayList;
 import java.util.Collections;
+
+import me.aarondmello.driver.PlayerComparator;
 public class Division{
     private String name;
     private ArrayList<Player> players;
@@ -11,13 +13,7 @@ public class Division{
     public String getName() {
         return name;
     }
-    public void createRound(int roundNumber, int totalRounds){
-        currentRound = new Round();
-        if(roundNumber == 1)
-            currentRound.pairFirstRound(players);
-        else
-            currentRound.pairSubsequentRounds(players);
-    }
+
     public void sortPlayers(PlayerComparator comparator){
         Collections.sort(players, comparator);
     }

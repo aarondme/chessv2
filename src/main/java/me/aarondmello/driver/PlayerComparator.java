@@ -1,6 +1,9 @@
 package me.aarondmello.driver;
 import java.util.*;
 import java.util.function.BiFunction;
+
+import me.aarondmello.datatypes.Player;
+import me.aarondmello.datatypes.Tiebreaks;
 public class PlayerComparator implements Comparator<Player>{
     Comparator<Tiebreaks> tiebreakConfig;
     PlayerComparator(Comparator<Tiebreaks> tiebreakConfig){

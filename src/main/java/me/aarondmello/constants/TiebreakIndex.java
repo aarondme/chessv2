@@ -1,4 +1,4 @@
-package me.aarondmello.driver;
+package me.aarondmello.constants;
 
 public final class TiebreakIndex {
     public final static int BUCHHOLZ_CUT_ONE = 0;

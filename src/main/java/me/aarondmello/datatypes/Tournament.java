@@ -1,6 +1,9 @@
-package me.aarondmello.driver;
+package me.aarondmello.datatypes;
 import java.io.File;
 import java.util.*;
+
+import me.aarondmello.driver.PlayerComparator;
+
 public class Tournament{
     private String name;
     private LinkedList<Division> divisions;
@@ -13,20 +16,6 @@ public class Tournament{
         this.totalRounds = totalRounds;
         this.toSaveTo = toSaveTo;
         this.roundNumber = 1;
-    }
-
-    public void createDivision(String name){
-       //TODO
-    }
-    public void runNextRound(GUI gui){
-        startNextRound();
-    }
-
-    private void startNextRound(){
-        for(Division d : divisions){
-            d.sortPlayers(playerComparator);
-            d.createRound(roundNumber, totalRounds);
-        }
     }
 
     public String getTournamentName() {
