@@ -1,6 +1,5 @@
 package me.aarondmello.driver;
 
-import java.util.LinkedList;
 public class Tiebreaks{
     private int buchholzCutOne = 0;
     private int buchholz = 0;
@@ -9,9 +8,6 @@ public class Tiebreaks{
     private int directEncounter = 0; //needs to be implemented by tournament
     private int winCount = 0;
     private int winCountAsBlack = 0;
-
-    public Tiebreaks(){
-    }
     
     public int getBuchholzCutOne() {
         return buchholzCutOne;

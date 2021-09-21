@@ -5,8 +5,8 @@ import java.util.function.BiConsumer;
 
 public class TiebreakCalculator {
     private static HashMap<Integer, BiConsumer<LinkedList<GameResult>, Tiebreaks>> updateTiebreakMethods = new HashMap<>(){{
-        put(TiebreakIndex.BUCHOLZ, (LinkedList<GameResult> o, Tiebreaks t) -> updateBuchholz(o, t));
-        put(TiebreakIndex.BUCHOLZ_CUT_ONE, (LinkedList<GameResult> o, Tiebreaks t) -> updateBuchholzCutOne(o, t));
+        put(TiebreakIndex.BUCHHOLZ, (LinkedList<GameResult> o, Tiebreaks t) -> updateBuchholz(o, t));
+        put(TiebreakIndex.BUCHHOLZ_CUT_ONE, (LinkedList<GameResult> o, Tiebreaks t) -> updateBuchholzCutOne(o, t));
         put(TiebreakIndex.SONNEBORN_BERGER, (LinkedList<GameResult> o, Tiebreaks t) -> updateSonnebornBerger(o, t));
         put(TiebreakIndex.PROGRESSIVE_SCORES, (LinkedList<GameResult> o, Tiebreaks t) -> updateProgressiveScores(o, t));
         put(TiebreakIndex.WIN_COUNT, (LinkedList<GameResult> o, Tiebreaks t) -> updateWinCount(o, t));

@@ -26,24 +26,20 @@ public class Round{
         if(numPlayersLeft == 0)
             return true;
         if(numPlayersLeft % 2 == 1)
-            return pairPlayerToSitOut(players, numPlayersLeft);
+            return pairPlayerToSitOut(players, numPlayersLeft); //Sit out the worst player who hasn't already, repeat with better players if pairing fails
         
-        LinkedList<Player> sublist = extractSublist(players);
+        LinkedList<Player> sublist = extractSublist(players); //Return a sublist of even length of players with similar scores
         boolean didSublistPairingSucceed = false;
-        while(!didSublistPairingSucceed){
-            didSublistPairingSucceed = pairSublist(sublist);
-            if(!didSublistPairingSucceed){
+        boolean didRecursivePairingSucceed = false;
+        while(!didSublistPairingSucceed || !didRecursivePairingSucceed){
+            didSublistPairingSucceed = pairSublist(sublist); //Attempt to pair the sublist
+            if(didSublistPairingSucceed)
+                didRecursivePairingSucceed = pairBruteForce(players, numPlayersLeft - sublist.size()); //If succeeds, try to pair the remaining players (not in sublist)
+            
+            if(!didSublistPairingSucceed || !didRecursivePairingSucceed){ //If fails, scrap pairings, add two players and try again
                 boolean areThereTwoPlayers = addTwoPlayersToSublistIfExists(players, sublist);
                 if(!areThereTwoPlayers)
-                    return false;
-            }
-            else{
-                didSublistPairingSucceed = pairBruteForce(players, numPlayersLeft - sublist.size());
-                if(!didSublistPairingSucceed){
-                    boolean areThereTwoPlayers = addTwoPlayersToSublistIfExists(players, sublist);
-                    if(!areThereTwoPlayers)
-                        return false;
-                }
+                    return false; //If there are not two more players, the pairing fails
             }
         }
         return true;
@@ -54,14 +50,14 @@ public class Round{
             Player p = players.get(i);
             boolean didPairingWork;
             if(!p.hasSatOut()){
-                games.add(new Game(p, null));
+                games.add(new Game(p, null)); //add a game with Player p sitting out and pair them
                 p.setIsPaired(true);
-                didPairingWork = pairBruteForce(players, numPlayersLeft - 1);
+                didPairingWork = pairBruteForce(players, numPlayersLeft - 1); //Attempt to pair other players
                 
                 if(didPairingWork)
-                    return true;
+                    return true; //If pairing worked, done
                 else{
-                    p.setIsPaired(false);
+                    p.setIsPaired(false); //If not, unpair the Player p, remove the game and continue
                     games.pollLast(); 
                 }
             }
@@ -95,7 +91,7 @@ public class Round{
     }
 
     private boolean pairSublist(LinkedList<Player> players){
-        if(hasUnpairedPlayer(players))
+        if(!hasUnpairedPlayer(players))
             return true;
         boolean isPairingFirstPlayer = checkIfPairingFirstPlayer(players);
         Player p;
@@ -109,7 +105,7 @@ public class Round{
            
         boolean didPairingSucceed = pairWithWorstPlayer(players, p);
         if(!didPairingSucceed){
-            p.setIsPaired(false);
+            p.setIsPaired(false); //If no pairing works for this player, pairing will fail automatically
         }
         return didPairingSucceed;
     }
@@ -160,6 +156,7 @@ public class Round{
             if(didPairingSucceed)
                 return true;
             p.setIsPaired(false);
+            games.removeLast();
         }
         return false;
     }

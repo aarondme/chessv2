@@ -1,5 +1,6 @@
 package me.aarondmello;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
@@ -45,37 +46,20 @@ public class TiebreakCalculatorTest {
     }
 
     @Test
-    public void testBuchholzCutOne(){
-        TiebreakCalculator.updateTiebreaks(gameResults, new int[]{TiebreakIndex.BUCHOLZ_CUT_ONE}, tiebreaks);
+    public void testCalculator(){
+        TiebreakCalculator.updateTiebreaks(gameResults, new int[]{TiebreakIndex.BUCHHOLZ_CUT_ONE, 
+            TiebreakIndex.BUCHHOLZ, TiebreakIndex.WIN_COUNT,  TiebreakIndex.WIN_COUNT_AS_BLACK, TiebreakIndex.PROGRESSIVE_SCORES}, 
+            tiebreaks);
         
-        assertEquals(20, tiebreaks.getBuchholzCutOne());
+        assertAll(
+            "Test Calculations:",
+            () -> assertEquals(20, tiebreaks.getBuchholzCutOne()),
+            () -> assertEquals(21, tiebreaks.getBuchholz()),
+            () -> assertEquals(18, tiebreaks.getProgressiveScores()),
+            () -> assertEquals(2, tiebreaks.getWinCount()),
+            () -> assertEquals(1, tiebreaks.getWinCountAsBlack())
+        );
+        
     }
 
-    @Test
-    public void testBuchholz(){
-        TiebreakCalculator.updateTiebreaks(gameResults, new int[]{TiebreakIndex.BUCHOLZ}, tiebreaks);
-
-        assertEquals(21, tiebreaks.getBuchholz());
-    }
-
-    @Test
-    public void testProgressiveScores(){
-        TiebreakCalculator.updateTiebreaks(gameResults, new int[]{TiebreakIndex.PROGRESSIVE_SCORES}, tiebreaks);
-
-        assertEquals(18, tiebreaks.getProgressiveScores());
-    }
-
-    @Test
-    public void testWinCount(){
-        TiebreakCalculator.updateTiebreaks(gameResults, new int[]{TiebreakIndex.WIN_COUNT}, tiebreaks);
-
-        assertEquals(2, tiebreaks.getWinCount());
-    }
-
-    @Test
-    public void testWinCountAsBlack(){
-        TiebreakCalculator.updateTiebreaks(gameResults, new int[]{TiebreakIndex.WIN_COUNT_AS_BLACK}, tiebreaks);
-
-        assertEquals(1, tiebreaks.getWinCountAsBlack());
-    }
 }
