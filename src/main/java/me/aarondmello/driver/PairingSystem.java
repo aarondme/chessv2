@@ -1,6 +1,7 @@
 package me.aarondmello.driver;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 
@@ -10,8 +11,26 @@ import me.aarondmello.datatypes.Round;
 
 public class PairingSystem {
     Round round;
-    
-    public void pairFirstRound(ArrayList<Player> players){
+    HashSet<Player> playersPaired;
+
+    public PairingSystem(Round round){
+        this.round = round;
+        playersPaired = new HashSet<Player>();
+    }
+
+    /**
+     * Populates the round with the proper games. 
+     * @param players the list of players, expected to be sorted from highest to lowest
+     * @param roundNumber the round number
+     */
+    public void pairRound(ArrayList<Player> players, int roundNumber){
+        if(roundNumber == 1)
+            pairFirstRound(players);
+        else
+            pairSubsequentRounds(players);
+    }
+
+    private void pairFirstRound(ArrayList<Player> players){
         int frontPointer = 0;
         int backPointer = players.size() - 1;
         while(frontPointer < backPointer){
@@ -25,7 +44,7 @@ public class PairingSystem {
             round.addGame(new Game(players.get(frontPointer), null));
     }
 
-    public void pairSubsequentRounds(ArrayList<Player> players){
+    private void pairSubsequentRounds(ArrayList<Player> players){
         pairBruteForce(players, players.size());
     }
 
@@ -58,13 +77,13 @@ public class PairingSystem {
             boolean didPairingWork;
             if(!p.hasSatOut()){
                 round.addGame(new Game(p, null)); //add a game with Player p sitting out and pair them
-                p.setIsPaired(true);
+                playersPaired.add(p);
                 didPairingWork = pairBruteForce(players, numPlayersLeft - 1); //Attempt to pair other players
                 
                 if(didPairingWork)
                     return true; //If pairing worked, done
                 else{
-                    p.setIsPaired(false); //If not, unpair the Player p, remove the game and continue
+                    playersPaired.remove(p); //If not, unpair the Player p, remove the game and continue
                     round.removeGame();
                 }
             }
@@ -75,7 +94,7 @@ public class PairingSystem {
     private LinkedList<Player> extractSublist(ArrayList<Player> players){
         LinkedList<Player> out = new LinkedList<>();
         for(Player p : players){
-            if(p.isPaired()) continue;
+            if(playersPaired.contains(p)) continue;
             
             if(out.size() == 0 || out.get(0).getScore() == p.getScore() || out.size() % 2 == 1) 
                 out.add(p);
@@ -89,7 +108,7 @@ public class PairingSystem {
         for(Player p : players){
             if(numPlayersAdded == 2)
                 break;
-            if(!p.isPaired() && !sublist.contains(p)){
+            if(!playersPaired.contains(p) && !sublist.contains(p)){
                 numPlayersAdded++;
                 sublist.add(p);
             }
@@ -108,17 +127,17 @@ public class PairingSystem {
         else
             p = getLastUnpairedPlayerInSublist(players);
             
-        p.setIsPaired(true);
+        playersPaired.add(p);
            
         boolean didPairingSucceed = pairWithWorstPlayer(players, p);
         if(!didPairingSucceed){
-            p.setIsPaired(false); //If no pairing works for this player, pairing will fail automatically
+            playersPaired.remove(p); //If no pairing works for this player, pairing will fail automatically
         }
         return didPairingSucceed;
     }
     private Player getFirstUnpairedPlayerInSublist(LinkedList<Player> players){
         for(Player p : players){
-            if(!p.isPaired())
+            if(!playersPaired.contains(p))
                 return p;
         }
         return null;
@@ -127,14 +146,14 @@ public class PairingSystem {
         Iterator<Player> lIterator = players.descendingIterator();
         while(lIterator.hasNext()){
             Player p = lIterator.next();
-            if(!p.isPaired())
+            if(!playersPaired.contains(p))
                 return p;
         }
         return null;
     }
     private boolean hasUnpairedPlayer(LinkedList<Player> players){
         for(Player p : players){
-            if(!p.isPaired())
+            if(!playersPaired.contains(p))
                 return true;
         }
         return false;
@@ -143,9 +162,11 @@ public class PairingSystem {
         Player firstPlayer = null;
         Player lastPlayer = null;
         for(Player p : players){
-            if(firstPlayer == null && !p.isPaired())
+            if(playersPaired.contains(p))
+                continue;
+            if(firstPlayer == null)
                 firstPlayer = p;
-            if(!p.isPaired())
+            else
                 lastPlayer = p;
         }
         return firstPlayer.getScore() == lastPlayer.getScore();
@@ -155,14 +176,14 @@ public class PairingSystem {
         boolean didPairingSucceed;
         while(lIterator.hasNext()){
             Player p = lIterator.next();
-            if(toPairWith.hasPlayedAgainst(p))
+            if(toPairWith.hasPlayedAgainst(p) || playersPaired.contains(p))
                 continue;
             addGame(toPairWith, p);
-            p.setIsPaired(true);
+            playersPaired.add(p);
             didPairingSucceed = pairSublist(players);
             if(didPairingSucceed)
                 return true;
-            p.setIsPaired(false);
+            playersPaired.remove(p);
             round.removeGame();
         }
         return false;
@@ -174,5 +195,9 @@ public class PairingSystem {
             round.addGame(new Game(a,b));
         else
             round.addGame(new Game(b,a));
+    }
+
+    public Round getRound() {
+        return round;
     }
 }

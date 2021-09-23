@@ -8,7 +8,6 @@ public class Player{
     private int gamesAsWhite, gamesAsBlack;
     private LinkedList<PlayerGameSummary> PlayerGameSummarys;
     private Tiebreaks tiebreaks;
-    private boolean isPaired;
 
     Player(String name, String organization){
         this.name = name;
@@ -44,12 +43,6 @@ public class Player{
         if (organization.trim().length() == 0)
           return name;
         return (name + " (" + organization + ")");
-    }
-    public boolean isPaired(){
-        return isPaired;
-    } 
-    public void setIsPaired(boolean isPaired){
-        this.isPaired = isPaired;
     }
     public void setName(String name) {
         this.name = name;
