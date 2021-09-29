@@ -6,7 +6,7 @@ import me.aarondmello.driver.PlayerComparator;
 public class Division{
     private String name;
     private ArrayList<Player> players;
-    private Round currentRound;
+    
     Division(String name){
         this.name = name;
     }

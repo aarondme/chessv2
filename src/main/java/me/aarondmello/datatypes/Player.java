@@ -8,6 +8,11 @@ public class Player{
     private int gamesAsWhite, gamesAsBlack;
     private LinkedList<PlayerGameSummary> PlayerGameSummarys;
     private Tiebreaks tiebreaks;
+    /**
+     * IDs for players within a division are expected to be unique integers between 0 
+     * and the number of players-1 inclusive
+     */
+    private int id;
 
     Player(String name, String organization){
         this.name = name;
@@ -44,6 +49,9 @@ public class Player{
           return name;
         return (name + " (" + organization + ")");
     }
+    public int getID() {
+        return id;
+    }
     public void setName(String name) {
         this.name = name;
     }
@@ -52,6 +60,9 @@ public class Player{
     }
     public void setScore(int score) {
         this.score = score;
+    }
+    public void setID(int id){
+        this.id = id;
     }
     public void addPlayerGameSummarys(PlayerGameSummary PlayerGameSummary){
         PlayerGameSummarys.add(PlayerGameSummary);

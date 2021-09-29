@@ -11,17 +11,25 @@ import me.aarondmello.csvwriter.CsvWriter;
 import me.aarondmello.csvwriter.CsvWriter.InvalidFileException;
 
 public class CsvWriterTest {
+    static String pathToDataFolder = "./src/test/data/";
+    
+    File file;
+    CsvWriter csvWriter;
+
+    public void initCsvWriter(String fromDataFolderToFile){
+        file = new File(pathToDataFolder + fromDataFolderToFile);
+        csvWriter = new CsvWriter(file);
+    }
+
     @Test
     public void throwsErrorOnEmpty(){
-        File file = new File("./src/test/data/Invalid Format Tests/empty.csv");
-        CsvWriter csvWriter = new CsvWriter(file);
+        initCsvWriter("Invalid Format Tests/empty.csv");
         assertThrows(InvalidFileException.class,  () -> csvWriter.checkFile());
     }
 
     @Test
     public void throwsErrorWhenFileNotFound(){
-        File file = new File("invalidFile.csv");
-        CsvWriter csvWriter = new CsvWriter(file);
+        initCsvWriter("nonexistantFile.csv");
         assertThrows(FileNotFoundException.class, () -> csvWriter.checkFile());
     }
 }

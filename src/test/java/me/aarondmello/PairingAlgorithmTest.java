@@ -32,8 +32,10 @@ public class PairingAlgorithmTest {
     }
 
     private void initEmptyPlayerMocks(int numberOfPlayers){
-        for(int i = 0; i < numberOfPlayers; i++)
+        for(int i = 0; i < numberOfPlayers; i++){
             players.add(Mockito.mock(Player.class));
+            when(players.get(i).getID()).thenReturn(i);
+        }
     }
     private void initPlayerMockOpponents(boolean[][] opponents){
         for(int i = 0; i < players.size(); i++)
@@ -49,8 +51,8 @@ public class PairingAlgorithmTest {
     @ValueSource(ints = {5,6})
     public void pairPlayersFirstRound(int numPlayers){
         initEmptyPlayerMocks(numPlayers);
-
-        pairingSystem.pairRound(players, 1);
+        pairingSystem.setPlayers(players);
+        pairingSystem.pairRound(1);
         
         assertTrue(checkIfAllPlayersPaired());
     }
@@ -67,23 +69,29 @@ public class PairingAlgorithmTest {
 
         initPlayerMockOpponents(opponentMatrix);
         initPlayerMockScores(playerScores);
+        pairingSystem.setPlayers(players);
 
 
-        pairingSystem.pairRound(players, 3);
+        pairingSystem.pairRound(3);
 
         assertTrue(checkIfAllPlayersPaired());
         assertTrue(checkIfPairingValid());
     }
-    
+
     private boolean checkIfAllPlayersPaired(){
         LinkedList<Game> games = round.getGames();
-        HashSet<Player> uniquePairedPlayers = new HashSet<>();
+        HashSet<Integer> uniquePairedPlayers = new HashSet<>();
         boolean containsNullPlayerAsBlack = false;
         for(Game g : games){
-            uniquePairedPlayers.add(g.getWhitePlayer());
-            uniquePairedPlayers.add(g.getBlackPlayer());
-            if(g.getBlackPlayer() == null)
+            Player black = g.getBlackPlayer();
+            uniquePairedPlayers.add(g.getWhitePlayer().getID());
+            if(black == null){
                 containsNullPlayerAsBlack = true;
+                uniquePairedPlayers.add(-1);
+            }
+            else
+                uniquePairedPlayers.add(black.getID());
+                
         }
         boolean oddNumberOfPlayers = players.size() % 2 == 1;
         //An additional "null" player expected if odd
