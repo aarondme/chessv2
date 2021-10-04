@@ -11,10 +11,9 @@ public class Tournament{
     private int roundNumber, totalRounds;
     private File toSaveTo;
 
-    Tournament(String name, int totalRounds, File toSaveTo){
+    Tournament(String name, int totalRounds){
         this.name = name;
         this.totalRounds = totalRounds;
-        this.toSaveTo = toSaveTo;
         this.roundNumber = 1;
     }
 

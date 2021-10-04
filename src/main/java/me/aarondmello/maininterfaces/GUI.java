@@ -12,4 +12,5 @@ public interface GUI{
     public void displayResults(Tournament tournament);
     public boolean getIfSavingResults();
     public boolean wasCancelPressed();
+    public void displayconfigError();
 }

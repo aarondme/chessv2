@@ -23,7 +23,7 @@ public class CsvWriterTest {
 
     @Test
     public void throwsErrorOnEmpty(){
-        initCsvWriter("Invalid Format Tests/empty.csv");
+        initCsvWriter("Empty CSV Test/empty.csv");
         assertThrows(InvalidFileException.class,  () -> csvWriter.checkFile());
     }
 

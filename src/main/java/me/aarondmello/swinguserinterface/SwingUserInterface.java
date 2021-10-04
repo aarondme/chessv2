@@ -93,4 +93,9 @@ public class SwingUserInterface implements GUI{
         return wasCancelPressed;
     }
 
+    @Override
+    public void displayconfigError(){
+        
+    }
+
 }
