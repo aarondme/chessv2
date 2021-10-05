@@ -1,7 +1,6 @@
 tournament_name: ,,
 tournament_type: abcd
 number_of_rounds: qwe
-ui_type: asd
 data_in_format: ahtio
 data_out_format: hkds
  

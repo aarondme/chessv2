@@ -1,6 +1,7 @@
 package me.aarondmello;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.LinkedList;
 
@@ -11,6 +12,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import me.aarondmello.csv.CsvReader;
+import me.aarondmello.csv.CsvWriter;
 import me.aarondmello.datatypes.Tournament;
 import me.aarondmello.maininterfaces.*;
 import me.aarondmello.driver.ConfigReader;
@@ -18,13 +21,13 @@ import me.aarondmello.driver.ConfigReader;
 public class ConfigReaderTest {
     static String pathToDataFolder = "./src/test/data/";
     Tournament test;
-    GUI gui;
-    LinkedList<DataMapper> mappers;
+    LinkedList<DataReader> readers;
+    LinkedList<DataWriter> writers;
     public void initTournament(String pathToFolder) throws IOException{
         test = null;
-        gui = null;
-        mappers = null;
-        ConfigReader.init(new File(pathToDataFolder + pathToFolder), test, gui, mappers);
+        readers = null;
+        writers = null;
+        ConfigReader.init(new File(pathToDataFolder + pathToFolder), test, readers, writers);
     }
     @Test
     public void returnsNullOnInvalidDirectory() throws IOException{
@@ -53,7 +56,8 @@ public class ConfigReaderTest {
         initTournament("/Valid Config Test");
         assertEquals("myTournament", test.getTournamentName());
         assertEquals(5, test.getTotalRounds());
-
+        assertTrue(readers.getLast() instanceof CsvReader);
+        assertTrue(writers.getLast() instanceof CsvWriter); 
     }
 
 }
