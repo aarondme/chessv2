@@ -2,8 +2,7 @@ package me.aarondmello.maininterfaces;
 
 import me.aarondmello.datatypes.Tournament;
 
-public interface DataMapper{
-    public void writeToFile();
+public interface DataReader{
     /**
      * @return true iff successful
      */

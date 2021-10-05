@@ -1,11 +1,11 @@
-package me.aarondmello.csvwriter;
+package me.aarondmello.csv;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 
-public class CsvWriter {
+public class CsvReader {
     File file;
-    public CsvWriter(File file){
+    public CsvReader(File file){
         this.file = file;
     }
 

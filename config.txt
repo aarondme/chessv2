@@ -1,7 +1,13 @@
-tournament_name:
-tournament_type:
-number_of_rounds:
-ui_type:
-data_in_format:
-data_out_format:
+# Name of tournament
+tournament_name: myTournament
+# Type of tournament: currently supports NO_RATING_SOLO
+tournament_type: NO_RATING_SOLO
+# Number of rounds
+number_of_rounds: 5
+# UI type, currently supports SWING
+ui_type: SWING
+# Data in format, currently supports CSV
+data_in_format: CSV
+# Data out format, currently supports CSV
+data_out_format: CSV
  

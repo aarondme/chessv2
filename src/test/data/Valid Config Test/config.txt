@@ -8,6 +8,6 @@ number_of_rounds: 5
 ui_type: SWING
 # Data in format, currently supports CSV
 data_in_format: CSV
-# Data in format, currently supports CSV
+# Data out format, currently supports CSV
 data_out_format: CSV
  

@@ -7,18 +7,18 @@ import java.io.FileNotFoundException;
 
 import org.junit.jupiter.api.Test;
 
-import me.aarondmello.csvwriter.CsvWriter;
-import me.aarondmello.csvwriter.CsvWriter.InvalidFileException;
+import me.aarondmello.csv.CsvReader;
+import me.aarondmello.csv.CsvReader.InvalidFileException;
 
-public class CsvWriterTest {
+public class CsvReaderTest {
     static String pathToDataFolder = "./src/test/data/";
     
     File file;
-    CsvWriter csvWriter;
+    CsvReader csvWriter;
 
     public void initCsvWriter(String fromDataFolderToFile){
         file = new File(pathToDataFolder + fromDataFolderToFile);
-        csvWriter = new CsvWriter(file);
+        csvWriter = new CsvReader(file);
     }
 
     @Test
