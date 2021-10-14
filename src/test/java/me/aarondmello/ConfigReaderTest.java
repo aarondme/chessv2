@@ -24,9 +24,9 @@ public class ConfigReaderTest {
     LinkedList<DataReader> readers;
     LinkedList<DataWriter> writers;
     public void initTournament(String pathToFolder) throws IOException{
-        test = null;
-        readers = null;
-        writers = null;
+        test = new Tournament();
+        readers = new LinkedList<DataReader>();
+        writers = new LinkedList<DataWriter>();
         ConfigReader.init(new File(pathToDataFolder + pathToFolder), test, readers, writers);
     }
     @Test
