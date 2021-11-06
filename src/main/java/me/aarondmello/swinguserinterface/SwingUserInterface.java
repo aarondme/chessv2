@@ -7,15 +7,23 @@ import me.aarondmello.maininterfaces.GUI;
 import java.awt.*;
 import java.util.HashMap;
 
+import java.io.*;
+
 public class SwingUserInterface implements GUI{
     boolean wasCancelPressed = false;
+    SwingPanel currentPanel;
+    Tournament tournament;
+    File tournamentFolder;
     @Override
-    public void displayWelcomeScreen() {
-        // TODO Auto-generated method stub
-        
+    public void start(){
+        setCurrentPanel(new WelcomePanel());
     }
 
-    @Override
+    public void setCurrentPanel(SwingPanel panel){
+        currentPanel = panel;
+        currentPanel.run(this);
+    }
+
     public boolean getIfNewTournament() {
         String[] options = { "New Tournament", "Resume Tournament" };
         String prompt = "Choose whether to create a new tournament or to resume an existing tournament";
@@ -32,7 +40,6 @@ public class SwingUserInterface implements GUI{
         return (input == JOptionPane.OK_OPTION);
     }
 
-    @Override
     public Tournament getNewTournament() {
         if (wasCancelPressed)
             return null;
@@ -48,21 +55,17 @@ public class SwingUserInterface implements GUI{
         }
         return null;
     }
-    @Override
+    
     public Tournament getExistingTournament() {
         // TODO Auto-generated method stub
         return null;
     }
 
-    @Override
     public HashMap<String,int[]> getRoundResults(Tournament tournament) {
         //TODO make it so threads work
         return null;
     }
 
-     
-
-    @Override
     public void displayResults(Tournament tournament) {
         if (wasCancelPressed)
             return;
@@ -84,18 +87,7 @@ public class SwingUserInterface implements GUI{
             JOptionPane.PLAIN_MESSAGE);
         **/
     }
-    public boolean getIfSavingResults(){
-        //TODO
-        return false;
-    }
-    @Override
-    public boolean wasCancelPressed() {
-        return wasCancelPressed;
-    }
 
-    @Override
-    public void displayconfigError(){
-        
+    public void readFolder(File folder) {
     }
-
 }

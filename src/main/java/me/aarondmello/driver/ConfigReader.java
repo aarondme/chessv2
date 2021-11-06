@@ -12,62 +12,44 @@ import me.aarondmello.maininterfaces.DataWriter;
 
 public class ConfigReader {
     final static int CSV = 1;
-    /**
-     * Initializes all empty fields based on config data
-     * @param tournamentFolder points to the folder containing tournament data
-     * @param tournament tournament with no data
-     * @param readers empty list of readers
-     * @param writers empty list of writers
-     * @throws IOException
-     */
-    public static void init(File tournamentFolder, Tournament tournament, LinkedList<DataReader> readers, LinkedList<DataWriter> writers) throws IOException{
-        int[] dataTransferType = {-1, -1};
-        readConfig(tournamentFolder, tournament, dataTransferType);
-    }
-    private static void readConfig(File tournamentFolder, Tournament tournament, int[] dataTransferType) throws IOException{            
+   
+    private void readConfig(File tournamentFolder) throws IOException{            
         File configFile = getFileIfExists(tournamentFolder);
-        if(configFile == null){
-            setFieldsInvalid(tournament, dataTransferType);
-            return;
-        }
 
         BufferedReader input = new BufferedReader(new FileReader(configFile));
         String next = input.readLine();
-
+        Tournament tournament = new Tournament();
+        int dataInType = -1;
+        int dataOutType = -1;
+        boolean isConfigValid = false;
         while(next != null){
             next = next.trim();
             if(next.length() > 0 && next.charAt(0) != '#'){
-                String[] line = next.split("\\s+");
+                String[] line = next.split(":");
                 if(line.length != 2){
-                    setFieldsInvalid(tournament, dataTransferType);
                     input.close();
                     return;
                 }
-                if(line[0].equals("tournament_name:")){
+                if(line[0].equals("tournament_name")){
                     tournament.setName(line[1].trim());
                 }
-                else if(line[0].equals("tournament_type:")){
-                    tournament.setType(line[1].trim());
-                }
-                else if(line[0].equals("number_of_rounds:")){
+                else if(line[0].equals("number_of_rounds")){
                     try {
                         tournament.setTotalRounds(Integer.parseInt(line[1].trim()));
                     } catch (Exception e) {
-                        setFieldsInvalid(tournament, dataTransferType);
                         input.close();
                         return;
                     }
                 }
-                else if(line[0].equals("data_in_format:")){
+                else if(line[0].equals("data_in_format")){
                     if(line[1].trim().equals("CSV"))
-                        dataTransferType[0] = CSV;
+                        dataInType = CSV;
                 }
-                else if(line[0].equals("data_out_format:")){
+                else if(line[0].equals("data_out_format")){
                     if(line[1].trim().equals("CSV"))
-                        dataTransferType[1] = CSV;
+                        dataOutType = CSV;
                 }
                 else{
-                    setFieldsInvalid(tournament, dataTransferType);
                     input.close();
                     return;
                 }
@@ -84,11 +66,5 @@ public class ConfigReader {
         if(!configFile.exists())
             return null;
         return configFile;
-    }
-    private static void setFieldsInvalid(Tournament tournament, int[] dataTransferType){
-        tournament.setName(null);
-        tournament.setTotalRounds(-1);
-        dataTransferType[0] = -1;
-        dataTransferType[1] = -1;
     }
 }
