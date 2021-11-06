@@ -10,7 +10,7 @@ import me.aarondmello.datatypes.Tournament;
 import me.aarondmello.maininterfaces.DataReader;
 import me.aarondmello.maininterfaces.DataWriter;
 
-public class ConfigReader {
+public class Persister {
     final static int CSV = 1;
    
     private void readConfig(File tournamentFolder) throws IOException{            
