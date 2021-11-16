@@ -2,52 +2,51 @@ package me.aarondmello.swinguserinterface;
 import javax.swing.*;
 
 import me.aarondmello.datatypes.Tournament;
+import me.aarondmello.driver.TournamentManager;
+import me.aarondmello.driver.FileReadSummary;
 import me.aarondmello.maininterfaces.GUI;
 
 import java.awt.*;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 
 import java.io.*;
 
 public class SwingUserInterface implements GUI{
     boolean wasCancelPressed = false;
-    SwingPanel currentPanel;
     Tournament tournament;
     File tournamentFolder;
+    TournamentManager tournamentManager;
+    WelcomePanel welcomePanel = new WelcomePanel();
+    TournamentFolderPanel tournamentFolderPanel = new TournamentFolderPanel();
+    NewOrResumeTournamentPanel newOrResumeTournamentPanel = new NewOrResumeTournamentPanel();
+    NewTournamentPanel newTournamentpanel = new NewTournamentPanel();
     @Override
-    public void start(){
-        setCurrentPanel(new WelcomePanel());
+    public void start(TournamentManager tournamentManager){
+        this.tournamentManager = tournamentManager;
+        welcomePanel.displayWelcomeMessage();
+        getTournament();
     }
+    private void getTournament(){
+        if(wasCancelPressed)
+            return;
 
-    public void setCurrentPanel(SwingPanel panel){
-        currentPanel = panel;
-        currentPanel.run(this);
+        int input = newOrResumeTournamentPanel.getIfStartingNewTournament();
+        if (input == JOptionPane.CLOSED_OPTION) 
+            return;  
+        else if(input == JOptionPane.OK_OPTION)
+            tournament = tournamentManager.createTournament();
+        else
+            tournament = tournamentManager.resumeTournament();
     }
-
-    public boolean getIfNewTournament() {
-        String[] options = { "New Tournament", "Resume Tournament" };
-        String prompt = "Choose whether to create a new tournament or to resume an existing tournament";
-        String title = "Chess tournament Manager";
-    
-        int input = JOptionPane.showOptionDialog(null, prompt, title, JOptionPane.YES_NO_CANCEL_OPTION,
-            JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
-    
-        if (input == JOptionPane.CLOSED_OPTION) {
-          wasCancelPressed = true;
-          return false;
-        }
-    
-        return (input == JOptionPane.OK_OPTION);
-    }
-
     public Tournament getNewTournament() {
         if (wasCancelPressed)
             return null;
 
-        NewTournamentPanel panel = new NewTournamentPanel();
-        int inputCode = panel.promptForValidNewTournamentData();
+        int inputCode = newTournamentpanel.promptForValidNewTournamentData();
         if(inputCode == NewTournamentPanel.VALID_INPUT_ENTERED){
-            Tournament tournament = panel.createNewTournament();
+            Tournament tournament = newTournamentpanel.createNewTournament();
             return tournament;
         }
         else if(inputCode == NewTournamentPanel.EXIT_BUTTON_PRESSED){
@@ -87,7 +86,20 @@ public class SwingUserInterface implements GUI{
             JOptionPane.PLAIN_MESSAGE);
         **/
     }
+    @Override
+    public File getSaveLocation() {
+        return tournamentFolder = tournamentFolderPanel.getFolder();
+    }
 
-    public void readFolder(File folder) {
+    @Override
+    public Tournament confirmTournamentDetails(Tournament tournament, Iterator<FileReadSummary> iterator) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Tournament getTournamentDetails(Tournament tournament) {
+        // TODO Auto-generated method stub
+        return null;
     }
 }
