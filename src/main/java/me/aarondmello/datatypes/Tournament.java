@@ -1,15 +1,11 @@
 package me.aarondmello.datatypes;
-import java.io.File;
 import java.util.*;
 
-import me.aarondmello.driver.PlayerComparator;
 //TODO initialize by type.
 public class Tournament{
     private String name;
     private LinkedList<Division> divisions;
-    private PlayerComparator playerComparator;
     private int roundNumber, totalRounds;
-    private File toSaveTo;
 
     public Tournament(){
         this.roundNumber = 1;
@@ -37,14 +33,11 @@ public class Tournament{
         this.totalRounds = totalRounds;
     }
 
-    public void setType(String trim) {
-    }
-
     public void setName(String name) {
         this.name = name;
     }
 
     public boolean isDataValid(){
-        return name != null && totalRounds > 0;
+        return name != null && totalRounds > 0 && divisions.size() > 0;
     }
 }
