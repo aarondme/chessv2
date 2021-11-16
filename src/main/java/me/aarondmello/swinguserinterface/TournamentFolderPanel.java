@@ -4,18 +4,16 @@ import java.io.File;
 
 import javax.swing.JFileChooser;
 
-public class TournamentFolderPanel extends JFileChooser implements SwingPanel {
+public class TournamentFolderPanel extends JFileChooser{
 
-    @Override
-    public void run(SwingUserInterface gui) {
+    public File getFolder() {
         this.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         //TODO Fix this display.
         int option = this.showOpenDialog(null);
 
-        if(option == JFileChooser.APPROVE_OPTION){
-            File folder = this.getSelectedFile();
-            gui.readFolder(folder);
-        }
+        if(option == JFileChooser.APPROVE_OPTION)
+            return this.getSelectedFile();
+        return null;
     }
     
 }
