@@ -36,23 +36,9 @@ public class SwingUserInterface implements GUI{
         if (input == JOptionPane.CLOSED_OPTION) 
             return;  
         else if(input == JOptionPane.OK_OPTION)
-            tournament = tournamentManager.createTournament();
+            this.tournament = tournamentManager.createTournament();
         else
-            tournament = tournamentManager.resumeTournament();
-    }
-    public Tournament getNewTournament() {
-        if (wasCancelPressed)
-            return null;
-
-        int inputCode = newTournamentpanel.promptForValidNewTournamentData();
-        if(inputCode == NewTournamentPanel.VALID_INPUT_ENTERED){
-            Tournament tournament = newTournamentpanel.createNewTournament();
-            return tournament;
-        }
-        else if(inputCode == NewTournamentPanel.EXIT_BUTTON_PRESSED){
-            wasCancelPressed = true;
-        }
-        return null;
+            this.tournament = tournamentManager.resumeTournament();
     }
     
     public Tournament getExistingTournament() {
@@ -92,14 +78,19 @@ public class SwingUserInterface implements GUI{
     }
 
     @Override
-    public Tournament confirmTournamentDetails(Tournament tournament, Iterator<FileReadSummary> iterator) {
+    public void confirmTournamentDetails(Tournament tournament, Iterator<FileReadSummary> iterator) {
         // TODO Auto-generated method stub
-        return null;
     }
 
     @Override
-    public Tournament getTournamentDetails(Tournament tournament) {
-        // TODO Auto-generated method stub
-        return null;
+    public void getTournamentDetails(Tournament tournament) {
+        if (wasCancelPressed)
+            return;
+
+        int inputCode = newTournamentpanel.promptForValidNewTournamentData();
+        if(inputCode == NewTournamentPanel.VALID_INPUT_ENTERED)
+            tournament = newTournamentpanel.createNewTournament();
+        else if(inputCode == NewTournamentPanel.EXIT_BUTTON_PRESSED)
+            wasCancelPressed = true;
     }
 }

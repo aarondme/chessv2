@@ -27,9 +27,9 @@ public class ProgramRunner implements TournamentManager{
         
         Tournament tournament = persister.scanFolder(tournamentFolder);
         if(persister.wasFileReadSuccessfully("config.txt"))
-            tournament = gui.confirmTournamentDetails(tournament, persister.getFilesReadIterator());
+            gui.confirmTournamentDetails(tournament, persister.getFilesReadIterator());
         else
-            tournament = gui.getTournamentDetails(tournament);
+            gui.getTournamentDetails(tournament);
         
         return tournament;
     }
