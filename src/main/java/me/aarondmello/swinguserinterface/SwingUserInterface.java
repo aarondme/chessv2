@@ -9,7 +9,6 @@ import me.aarondmello.maininterfaces.GUI;
 import java.awt.*;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 
 import java.io.*;
 
@@ -27,6 +26,12 @@ public class SwingUserInterface implements GUI{
         this.tournamentManager = tournamentManager;
         welcomePanel.displayWelcomeMessage();
         getTournament();
+        runTournament();
+        saveTournament();
+    }
+    private void saveTournament() {
+    }
+    private void runTournament() {
     }
     private void getTournament(){
         if(wasCancelPressed)
@@ -78,19 +83,22 @@ public class SwingUserInterface implements GUI{
     }
 
     @Override
-    public void confirmTournamentDetails(Tournament tournament, Iterator<FileReadSummary> iterator) {
+    public Tournament confirmTournamentDetails(Tournament tournament, Iterator<FileReadSummary> iterator) {
         // TODO Auto-generated method stub
+        return tournament;
     }
 
     @Override
-    public void getTournamentDetails(Tournament tournament) {
+    public Tournament getTournamentDetails(Tournament tournament) {
         if (wasCancelPressed)
-            return;
+            return tournament;
 
         int inputCode = newTournamentpanel.promptForValidNewTournamentData();
         if(inputCode == NewTournamentPanel.VALID_INPUT_ENTERED)
             tournament = newTournamentpanel.createNewTournament();
         else if(inputCode == NewTournamentPanel.EXIT_BUTTON_PRESSED)
             wasCancelPressed = true;
+
+        return tournament;
     }
 }

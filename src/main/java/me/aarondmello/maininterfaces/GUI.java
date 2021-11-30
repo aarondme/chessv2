@@ -11,7 +11,7 @@ public interface GUI{
 
     public File getSaveLocation();
 
-    public void confirmTournamentDetails(Tournament tournament, Iterator<FileReadSummary> iterator);
+    public Tournament confirmTournamentDetails(Tournament tournament, Iterator<FileReadSummary> iterator);
 
-    public void getTournamentDetails(Tournament tournament);
+    public Tournament getTournamentDetails(Tournament tournament);
 }

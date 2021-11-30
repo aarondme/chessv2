@@ -3,20 +3,20 @@ package me.aarondmello.driver;
 import me.aarondmello.swinguserinterface.SwingUserInterface;
 
 import java.io.File;
-import java.util.List;
 
 import me.aarondmello.datatypes.Tournament;
 import me.aarondmello.maininterfaces.*;
 
 public class ProgramRunner implements TournamentManager{
     GUI gui;
-    Persister persister = new Persister();
-    ProgramRunner(GUI gui){
+    Persister persister; 
+    public ProgramRunner(GUI gui, Persister persister){
         this.gui = gui;
+        this.persister = persister;
     }
     public static void main(String[] args) {
         GUI gui = new SwingUserInterface();
-        gui.start(new ProgramRunner(gui));
+        gui.start(new ProgramRunner(gui, new Persister()));
     }
 
     @Override
@@ -26,10 +26,10 @@ public class ProgramRunner implements TournamentManager{
             return null;
         
         Tournament tournament = persister.scanFolder(tournamentFolder);
-        if(persister.wasFileReadSuccessfully("config.txt"))
-            gui.confirmTournamentDetails(tournament, persister.getFilesReadIterator());
+        if(persister.wasFileReadSuccessfully("config.txt") && tournament.isDataValid())
+            tournament = gui.confirmTournamentDetails(tournament, persister.getFilesReadIterator());
         else
-            gui.getTournamentDetails(tournament);
+            tournament = gui.getTournamentDetails(tournament);
         
         return tournament;
     }

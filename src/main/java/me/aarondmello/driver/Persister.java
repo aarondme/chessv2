@@ -5,31 +5,48 @@ import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 
 import me.aarondmello.datatypes.Tournament;
-import me.aarondmello.maininterfaces.DataReader;
-import me.aarondmello.maininterfaces.DataWriter;
 
 public class Persister {
     ArrayList<FileReadSummary> filesRead = new ArrayList<FileReadSummary>();
 
     public Tournament scanFolder(File tournamentFolder) {
         File configFile = new File(tournamentFolder, "/config.txt");
+        Tournament tournament = null;
         if(configFile.exists()){
             try {
                 FileReadSummary configSummary = new FileReadSummary("config.txt");
-                readConfig(new BufferedReader(new FileReader(configFile)), configSummary);
+                tournament = readConfig(new BufferedReader(new FileReader(configFile)), configSummary);
                 filesRead.add(configSummary); 
             } catch (Exception e) {
                 System.out.println("Error when reading file");
             }      
         }
-        return null;
+        return tournament;
     }
 
-    public void readConfig(BufferedReader reader, FileReadSummary summary) {
-        summary.setErrorOccured(true);
+    public Tournament readConfig(BufferedReader reader, FileReadSummary summary) {
+        Tournament tournament = new Tournament();
+        String line;
+        try {
+            while((line = reader.readLine()) != null){
+                String[] lineArgs = line.split("=");
+                if(lineArgs[0].trim().equals("tournament_name")){
+                    tournament.setName(lineArgs[1].trim());
+                }
+                else if(lineArgs[0].trim().equals("number_of_rounds")){
+                    tournament.setTotalRounds(Integer.parseInt(lineArgs[1].trim()));
+                }
+                else{
+                    throw new Exception();
+                }
+            } 
+        } catch (Exception e) {
+            summary.setErrorOccured(true);
+            return tournament;
+        }
+        return tournament;
     }
 
     public Iterator<FileReadSummary> getFilesReadIterator() {

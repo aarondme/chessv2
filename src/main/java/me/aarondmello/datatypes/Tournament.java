@@ -13,7 +13,7 @@ public class Tournament{
         this.name = null;
     }
 
-    public String getTournamentName() {
+    public String getName() {
         return name;
     }
     public LinkedList<Division> getDivisions() {
