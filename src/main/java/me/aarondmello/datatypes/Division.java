@@ -1,6 +1,7 @@
 package me.aarondmello.datatypes;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 import me.aarondmello.driver.PlayerComparator;
 public class Division{
@@ -19,5 +20,8 @@ public class Division{
     }
     public void addPlayer(Player p){
         players.add(p);
+    }
+    public void addPlayers(List<Player> players){
+        players.addAll(players);
     }
 }

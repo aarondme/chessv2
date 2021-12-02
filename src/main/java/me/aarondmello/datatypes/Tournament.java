@@ -11,6 +11,7 @@ public class Tournament{
         this.roundNumber = 1;
         this.totalRounds = -1;
         this.name = null;
+        this.divisions = new LinkedList<Division>();
     }
 
     public String getName() {
@@ -39,5 +40,22 @@ public class Tournament{
 
     public boolean isDataValid(){
         return name != null && totalRounds > 0 && divisions.size() > 0;
+    }
+
+    public void addPlayersToTournament(Map<String, List<Player>> divisionNameToPlayerListMap){
+        for (String divisionName : divisionNameToPlayerListMap.keySet()) {
+            Division division = getDivisionWithName(divisionName);
+            division.addPlayers(divisionNameToPlayerListMap.get(divisionName));
+        }
+    }
+
+    private Division getDivisionWithName(String name){
+        for (Division division : divisions) {
+            if(division.getName().equals(name))
+                return division;
+        }
+        Division division = new Division(name);
+        divisions.add(division);
+        return division;
     }
 }

@@ -14,7 +14,7 @@ public class Player{
      */
     private int id;
 
-    Player(String name, String organization){
+    public Player(String name, String organization){
         this.name = name;
         this.organization = organization;
         this.score = 0;
