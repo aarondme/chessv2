@@ -4,6 +4,7 @@ import me.aarondmello.swinguserinterface.SwingUserInterface;
 
 import java.io.File;
 
+import me.aarondmello.commandlineinterface.CommandLineInterface;
 import me.aarondmello.datatypes.Tournament;
 import me.aarondmello.maininterfaces.*;
 
@@ -15,7 +16,7 @@ public class ProgramRunner implements TournamentManager{
         this.persister = persister;
     }
     public static void main(String[] args) {
-        GUI gui = new SwingUserInterface();
+        GUI gui = new CommandLineInterface();
         gui.start(new ProgramRunner(gui, new Persister()));
     }
 
