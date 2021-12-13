@@ -96,4 +96,7 @@ public class Player implements Comparable<Player>{
 
         return getID() - o.getID();
     }
+    public void addTiebreak(Tiebreak t){
+        tiebreaks.add(t);
+    }
 }
