@@ -1,14 +1,17 @@
 package me.aarondmello.datatypes;
+import java.util.ArrayList;
 import java.util.LinkedList;
 
-public class Player{
+import me.aarondmello.tiebreaks.Tiebreak;
+
+public class Player implements Comparable<Player>{
     private String name;
     private String organization;
     private int score = 0;
     private int gamesAsWhite = 0;
     private int gamesAsBlack = 0;
     private LinkedList<PlayerGameSummary> PlayerGameSummarys = new LinkedList<PlayerGameSummary>();
-    private Tiebreaks tiebreaks = new Tiebreaks();
+    private ArrayList<Tiebreak> tiebreaks = new ArrayList<Tiebreak>();
     /**
      * IDs for players within a division are expected to be unique integers 
      */
@@ -30,7 +33,7 @@ public class Player{
     public LinkedList<PlayerGameSummary> getPlayerGameSummarys() {
         return PlayerGameSummarys;
     }
-    public Tiebreaks getTiebreaks() {
+    public ArrayList<Tiebreak> getTiebreaks() {
         return tiebreaks;
     }
     public int getGamesAsBlack() {
@@ -77,5 +80,20 @@ public class Player{
                 return true;
         }
         return false;
+    }
+    @Override
+    public int compareTo(Player o) {
+        int diff = score - o.getScore();
+        if(diff != 0)
+            return diff;
+
+        ArrayList<Tiebreak> oTiebreaks = o.getTiebreaks();
+        for(int i = 0; i < tiebreaks.size(); i++){
+            diff = tiebreaks.get(i).getScore() - oTiebreaks.get(i).getScore();
+            if(diff != 0)
+                return diff;
+        }
+
+        return getID() - o.getID();
     }
 }

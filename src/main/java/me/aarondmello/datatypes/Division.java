@@ -4,7 +4,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import me.aarondmello.driver.PlayerComparator;
 public class Division{
     private String name;
     private ArrayList<Player> players = new ArrayList<Player>();
@@ -17,8 +16,8 @@ public class Division{
         return name;
     }
 
-    public void sortPlayers(PlayerComparator comparator){
-        Collections.sort(players, comparator);
+    public void sortPlayers(){
+        Collections.sort(players);
     }
     public void addPlayer(Player p){
         p.setID(maxID++);
