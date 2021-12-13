@@ -3,15 +3,12 @@ import java.util.*;
 
 //TODO initialize by type.
 public class Tournament{
-    private String name;
-    private LinkedList<Division> divisions;
-    private int roundNumber, totalRounds;
+    private String name = null;
+    private LinkedList<Division> divisions = new LinkedList<Division>();
+    private int roundNumber = 1;
+    private int totalRounds = -1;
 
     public Tournament(){
-        this.roundNumber = 1;
-        this.totalRounds = -1;
-        this.name = null;
-        this.divisions = new LinkedList<Division>();
     }
 
     public String getName() {
@@ -42,20 +39,41 @@ public class Tournament{
         return name != null && totalRounds > 0 && divisions.size() > 0;
     }
 
-    public void addPlayersToTournament(Map<String, List<Player>> divisionNameToPlayerListMap){
+    public void addPlayers(Map<String, List<Player>> divisionNameToPlayerListMap){
         for (String divisionName : divisionNameToPlayerListMap.keySet()) {
-            Division division = getDivisionWithName(divisionName);
+            Division division = getDivisionWithName(divisionName, true);
             division.addPlayers(divisionNameToPlayerListMap.get(divisionName));
         }
     }
 
-    private Division getDivisionWithName(String name){
+    public void addPlayer(String divisionName, Player player){
+        Division division = getDivisionWithName(divisionName, true);
+        division.addPlayer(player);
+    }
+
+    private Division getDivisionWithName(String name, boolean createIfDoesntExist){
         for (Division division : divisions) {
             if(division.getName().equals(name))
                 return division;
         }
-        Division division = new Division(name);
-        divisions.add(division);
-        return division;
+        if(createIfDoesntExist){
+            Division division = new Division(name);
+            divisions.add(division);
+            return division;
+        }
+        return null;
+    }
+
+    public Player getPlayer(String divisionName, int playerID){
+        Division division = getDivisionWithName(divisionName, false);
+        if(division == null)
+            return null;
+        return division.getPlayerById(playerID);
+    }
+
+    public void removePlayer(String divisionName, int playerID){
+        Division division = getDivisionWithName(divisionName, false);
+        if(division != null)
+            division.removePlayer(playerID);
     }
 }

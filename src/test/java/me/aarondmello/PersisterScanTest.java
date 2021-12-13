@@ -2,6 +2,7 @@ package me.aarondmello;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
@@ -24,6 +25,10 @@ public class PersisterScanTest {
         p.scanFolder(tournamentFolder);
         assertEquals(1, p.getNumberOfFilesRead());
         assertTrue(p.wasFileRead("config.txt"));
-        assertFalse(p.wasFileReadSuccessfully("config.txt"));
+        assertTrue(p.wasFileReadSuccessfully("config.txt"));
+    }
+    @Test
+    public void returnsNullOnNullFile(){
+        assertNull(p.scanFolder(null));
     }
 }

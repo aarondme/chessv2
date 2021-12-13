@@ -49,6 +49,10 @@ public class Persister {
         return tournament;
     }
 
+    public void addPlayersInFileToTournament(BufferedReader reader, Tournament tournament){
+        //TODO
+    }
+
     public Iterator<FileReadSummary> getFilesReadIterator() {
         return filesRead.iterator();
     }

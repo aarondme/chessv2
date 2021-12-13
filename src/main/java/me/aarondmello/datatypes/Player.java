@@ -4,24 +4,19 @@ import java.util.LinkedList;
 public class Player{
     private String name;
     private String organization;
-    private int score;
-    private int gamesAsWhite, gamesAsBlack;
-    private LinkedList<PlayerGameSummary> PlayerGameSummarys;
-    private Tiebreaks tiebreaks;
+    private int score = 0;
+    private int gamesAsWhite = 0;
+    private int gamesAsBlack = 0;
+    private LinkedList<PlayerGameSummary> PlayerGameSummarys = new LinkedList<PlayerGameSummary>();
+    private Tiebreaks tiebreaks = new Tiebreaks();
     /**
-     * IDs for players within a division are expected to be unique integers between 0 
-     * and the number of players-1 inclusive
+     * IDs for players within a division are expected to be unique integers 
      */
     private int id;
 
     public Player(String name, String organization){
         this.name = name;
         this.organization = organization;
-        this.score = 0;
-        this.PlayerGameSummarys = new LinkedList<PlayerGameSummary>();
-        this.tiebreaks = new Tiebreaks();
-        this.gamesAsBlack = 0;
-        this.gamesAsWhite = 0;
     }
     public String getName() {
         return name;

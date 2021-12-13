@@ -2,7 +2,7 @@ package me.aarondmello.swinguserinterface;
 import javax.swing.*;
 
 import me.aarondmello.datatypes.Tournament;
-import me.aarondmello.driver.TournamentManager;
+import me.aarondmello.driver.PersisterFactory;
 import me.aarondmello.driver.FileReadSummary;
 import me.aarondmello.maininterfaces.GUI;
 
@@ -16,13 +16,13 @@ public class SwingUserInterface implements GUI{
     boolean wasCancelPressed = false;
     Tournament tournament;
     File tournamentFolder;
-    TournamentManager tournamentManager;
+    PersisterFactory tournamentManager;
     WelcomePanel welcomePanel = new WelcomePanel();
     TournamentFolderPanel tournamentFolderPanel = new TournamentFolderPanel();
     NewOrResumeTournamentPanel newOrResumeTournamentPanel = new NewOrResumeTournamentPanel();
     NewTournamentPanel newTournamentpanel = new NewTournamentPanel();
     @Override
-    public void start(TournamentManager tournamentManager){
+    public void start(PersisterFactory tournamentManager){
         this.tournamentManager = tournamentManager;
         welcomePanel.displayWelcomeMessage();
         getTournament();
@@ -40,10 +40,10 @@ public class SwingUserInterface implements GUI{
         int input = newOrResumeTournamentPanel.getIfStartingNewTournament();
         if (input == JOptionPane.CLOSED_OPTION) 
             return;  
-        else if(input == JOptionPane.OK_OPTION)
-            this.tournament = tournamentManager.createTournament();
-        else
-            this.tournament = tournamentManager.resumeTournament();
+        //else if(input == JOptionPane.OK_OPTION)
+          //  this.tournament = tournamentManager.createTournament();
+        //else
+          //  this.tournament = tournamentManager.resumeTournament();
     }
     
     public Tournament getExistingTournament() {
@@ -77,19 +77,19 @@ public class SwingUserInterface implements GUI{
             JOptionPane.PLAIN_MESSAGE);
         **/
     }
-    @Override
+  
     public File getSaveLocation() {
         return tournamentFolder = tournamentFolderPanel.getFolder();
     }
 
-    @Override
-    public Tournament confirmTournamentDetails(Tournament tournament, Iterator<FileReadSummary> iterator) {
+    
+    public Tournament confirmTournamentDetails(Tournament tournament) {
         // TODO Auto-generated method stub
         return tournament;
     }
 
-    @Override
-    public Tournament getTournamentDetails(Tournament tournament) {
+    
+    public Tournament getNewTournamentDetails(Tournament tournament) {
         if (wasCancelPressed)
             return tournament;
 
