@@ -24,7 +24,7 @@ public class Tournament{
         return totalRounds;
     }
     public boolean hasRoundsRemaining(){
-        return (roundNumber < totalRounds);
+        return (roundNumber <= totalRounds);
     }
 
     public void setTotalRounds(int totalRounds) {
@@ -75,5 +75,33 @@ public class Tournament{
         Division division = getDivisionWithName(divisionName, false);
         if(division != null)
             division.removePlayer(playerID);
+    }
+
+    public void initialize() {
+        for(Division division : divisions)
+            division.initialize();
+    }
+
+    public void createRound() {
+        for(Division division : divisions)
+            division.pairRound(roundNumber);
+    }
+
+    public boolean confirmRoundResults() {
+        for(Division division : divisions){
+            if(!division.validateRoundResults())
+                return false;
+        }
+        for(Division division : divisions){
+            division.confirmRoundResults();
+        }    
+        roundNumber++;
+        return true;
+    }
+
+    public void setResultByDivisionAndGameID(String divisionName, int id, int result) {
+        Division division = getDivisionWithName(divisionName, false);
+        if(division != null)
+            division.setGameResultByID(id, result);
     }
 }

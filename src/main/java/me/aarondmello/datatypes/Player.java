@@ -2,6 +2,7 @@ package me.aarondmello.datatypes;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
+import me.aarondmello.tiebreaks.RankingIndependantTiebreak;
 import me.aarondmello.tiebreaks.Tiebreak;
 
 public class Player implements Comparable<Player>{
@@ -98,5 +99,22 @@ public class Player implements Comparable<Player>{
     }
     public void addTiebreak(Tiebreak t){
         tiebreaks.add(t);
+    }
+    public void update() {
+        updateScore();
+        updateTiebreaks();
+    }
+    private void updateTiebreaks() {
+        for(Tiebreak t : tiebreaks){
+            if(t instanceof RankingIndependantTiebreak){
+                RankingIndependantTiebreak tiebreak = (RankingIndependantTiebreak) t;
+                tiebreak.calculateScore(PlayerGameSummarys); 
+            }   
+        }
+    }
+    private void updateScore() {
+        score = 0;
+        for(PlayerGameSummary m : PlayerGameSummarys)
+            score += m.getPointsEarned();
     }
 }

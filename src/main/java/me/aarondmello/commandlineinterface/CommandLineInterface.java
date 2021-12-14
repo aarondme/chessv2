@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.Scanner;
 
 import me.aarondmello.datatypes.Division;
+import me.aarondmello.datatypes.Game;
 import me.aarondmello.datatypes.Player;
 import me.aarondmello.datatypes.Tournament;
 import me.aarondmello.driver.FileReadSummary;
@@ -30,6 +31,87 @@ public class CommandLineInterface implements GUI {
     }
 
     private void runTournament(Tournament tournament) {
+        boolean shouldContinue = true;
+        tournament.initialize();
+        while(tournament.hasRoundsRemaining() && shouldContinue){
+            tournament.createRound();
+            
+            getRoundResults(tournament);
+            shouldContinue = tournament.confirmRoundResults(); 
+
+            printStandings(tournament);
+        }
+    }
+
+    private void printStandings(Tournament tournament) {
+        System.out.println("--- Tournament standings ---");
+        System.out.println("Tournament name " + tournament.getName());
+        System.out.println("Round " + tournament.getRoundNumber() + " of " + tournament.getTotalRounds());
+        for(Division division : tournament.getDivisions()){
+            System.out.println("  Division name " + division.getName());
+            System.out.println("    Player ID | Player name | Organization | Score");
+            for(Player player : division.getPlayers()){
+                System.out.println("    " + player.getID() + " | " + player.getName() + " | " + player.getOrganization() + " | " + player.getScore());
+            }
+        }
+    }
+
+    private void getRoundResults(Tournament tournament) {
+        while(true){
+            printPairing(tournament);
+            String in = getResultFromInput();
+            if(in == null)
+                return;
+            String[] split = in.split("\\s+");
+            tournament.setResultByDivisionAndGameID(split[0], Integer.parseInt(split[1]), Integer.parseInt(split[2]));
+        }  
+    }
+
+    private void printPairing(Tournament tournament) {
+        System.out.println("--- Pairing details ---");
+        System.out.println("Tournament name " + tournament.getName());
+        System.out.println("Round " + tournament.getRoundNumber() + " of " + tournament.getTotalRounds());
+        for(Division division : tournament.getDivisions()){
+            System.out.println("  Division name " + division.getName());
+            System.out.println("    Game ID | White Player | Black Player | result");
+            int id = 0;
+            for(Game game : division.getPairing()){
+                System.out.println("    " + id + " | " + formatPlayer(game.getWhitePlayer()) + " | " + formatPlayer(game.getBlackPlayer()) + " | " + game.getResult());
+                id++;
+            }
+            
+        }
+    }
+
+    private String formatPlayer(Player player) {
+        //TODO move null handling into main program
+        if(player == null)
+            return "";
+        return player.getName() + "(" + player.getOrganization() + ") [" + player.getScore() + "]";
+    }
+
+    private String getResultFromInput() {
+        while(true){
+            System.out.println("Enter \"division\" \"game number\" \"game result\", where round result is 2 if white win, 1 if draw, 0 if black win. Enter \"0\" to exit");
+            String in = input.nextLine();
+            if(in.equals("0"))
+                return null;
+            if(validateResultFromInput(in))
+                return in;
+            System.out.println("Invalid input provided.");
+        }
+    }
+
+    private boolean validateResultFromInput(String line){
+        try {
+            String[] split = line.split("\\s+");
+            Integer.parseInt(split[1]);
+            Integer.parseInt(split[2]);
+            return true;
+        } catch (Exception e) {
+
+            return false;
+        }
     }
 
     private Tournament getTournament(Persister persister) {
@@ -167,11 +249,11 @@ public class CommandLineInterface implements GUI {
     private void editPlayerInTournament(Tournament tournament) {
         System.out.println("Enter the division of the player");
         String division = input.nextLine().trim();
-        int id = promptForInt("Enter the player id", new String[]{}, 0, 2000);
+        int id = promptForInt("Enter the player id to edit", new String[]{}, 0, 2000);
         Player player = tournament.getPlayer(division, id);
-        System.out.println("Enter the player name");
+        System.out.println("Enter the corrected player name");
         String playerName = input.nextLine().trim();
-        System.out.println("Enter the player organization");
+        System.out.println("Enter the corrected player organization");
         String playerOrganization = input.nextLine().trim();
         player.setName(playerName);
         player.setOrganization(playerOrganization);

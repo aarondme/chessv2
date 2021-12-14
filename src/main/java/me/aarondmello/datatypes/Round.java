@@ -17,5 +17,11 @@ public class Round{
     public void removeGame(){
         games.pollLast();
     }
-   
+
+    public void setResultByID(int id, int result) {
+        try {
+            games.get(id).setResult(result);
+        } catch (Exception e) {
+        }
+    }
 }

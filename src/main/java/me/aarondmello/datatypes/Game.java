@@ -6,15 +6,24 @@ import me.aarondmello.constants.GameResult;
 public class Game{
     Player white;
     Player black;
-
+    int result = -1;
     public Game(Player white, Player black){
         this.white = white;
         this.black = black;
     }
 
-    public void setResult(int score) {
-        sendWhiteResult(score);
-        sendBlackResult(score);
+    public void setResult(int result){
+        if(0 <= result && result <= 2)
+            this.result = result;
+    }
+
+    public int getResult() {
+        return result;
+    }
+
+    public void confirmResult() {
+        sendWhiteResult(result);
+        sendBlackResult(result);
     }
     private void sendWhiteResult(int result){
         if(white != null){
@@ -35,5 +44,9 @@ public class Game{
     }
     public Player getBlackPlayer() {
         return black;
+    }
+
+    public boolean isResultValid() {
+        return (0 <= result && result <= 2);
     }
 }

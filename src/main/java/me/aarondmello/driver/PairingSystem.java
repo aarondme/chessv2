@@ -13,30 +13,18 @@ public class PairingSystem {
     PlayerIDSet playersPaired;
     ArrayList<Player> players;
 
-    public PairingSystem(Round round, ArrayList<Player> players){
-        this.round = round;
+    public PairingSystem(){
+    }
+
+    public Round pairRound(int roundNumber, ArrayList<Player> players){
         this.players = players;
-        playersPaired = new PlayerIDSet(players.size());
-    }
-
-    public PairingSystem(Round round){
-        this.round = round;
-    }
-
-    public void setPlayers(ArrayList<Player> players){
-        this.players = players;
-        playersPaired = new PlayerIDSet(players.size());
-    }
-
-    /**
-     * Populates the round with the proper games. 
-     * @param roundNumber the round number
-     */
-    public void pairRound(int roundNumber){
+        round = new Round();
+        playersPaired = new PlayerIDSet(players.size()); 
         if(roundNumber == 1)
             pairFirstRound();
         else
             pairBruteForce(players.size());
+        return round;
     }
 
     private void pairFirstRound(){
@@ -202,7 +190,4 @@ public class PairingSystem {
             round.addGame(new Game(b,a));
     }
 
-    public Round getRound() {
-        return round;
-    }
 }

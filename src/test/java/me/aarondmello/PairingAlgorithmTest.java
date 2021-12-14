@@ -20,14 +20,12 @@ import me.aarondmello.driver.PairingSystem;
 
 public class PairingAlgorithmTest {
     
-    Round round;
     PairingSystem pairingSystem;
     ArrayList<Player> players;
 
     @BeforeEach
     public void setup(){
-        round = new Round();
-        pairingSystem = new PairingSystem(round);
+        pairingSystem = new PairingSystem();
         players = new ArrayList<>();
     }
 
@@ -51,10 +49,9 @@ public class PairingAlgorithmTest {
     @ValueSource(ints = {5,6})
     public void pairPlayersFirstRound(int numPlayers){
         initEmptyPlayerMocks(numPlayers);
-        pairingSystem.setPlayers(players);
-        pairingSystem.pairRound(1);
+        Round r = pairingSystem.pairRound(1, players);
         
-        assertTrue(checkIfAllPlayersPaired());
+        assertTrue(checkIfAllPlayersPaired(r));
     }
 
     @Test
@@ -69,16 +66,14 @@ public class PairingAlgorithmTest {
 
         initPlayerMockOpponents(opponentMatrix);
         initPlayerMockScores(playerScores);
-        pairingSystem.setPlayers(players);
 
+        Round r = pairingSystem.pairRound(3, players);
 
-        pairingSystem.pairRound(3);
-
-        assertTrue(checkIfAllPlayersPaired());
-        assertTrue(checkIfPairingValid());
+        assertTrue(checkIfAllPlayersPaired(r));
+        assertTrue(checkIfPairingValid(r));
     }
 
-    private boolean checkIfAllPlayersPaired(){
+    private boolean checkIfAllPlayersPaired(Round round){
         LinkedList<Game> games = round.getGames();
         HashSet<Integer> uniquePairedPlayers = new HashSet<>();
         boolean containsNullPlayerAsBlack = false;
@@ -103,7 +98,7 @@ public class PairingAlgorithmTest {
 
         return allPlayersPaired && (!oddNumberOfPlayers ^ nullPlayerPaired) && areCorrectNumberOfGames;
     } 
-    private boolean checkIfPairingValid(){
+    private boolean checkIfPairingValid(Round round){
         LinkedList<Game> games = round.getGames();
         for(Game g : games){
             if(!checkIfGameValid(g))
