@@ -69,11 +69,7 @@ public class Player implements Comparable<Player>{
     }
     
     public boolean hasSatOut(){
-        for(PlayerGameSummary m : PlayerGameSummarys){
-            if(m.getOpponent() == null)
-                return true;
-        }
-        return false;
+        return hasPlayedAgainst(NullPlayer.getInstance());
     }
     public boolean hasPlayedAgainst(Player opponent){
         for(PlayerGameSummary m : PlayerGameSummarys){

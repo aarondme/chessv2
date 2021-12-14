@@ -14,6 +14,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mockito;
 
 import me.aarondmello.datatypes.Game;
+import me.aarondmello.datatypes.NullPlayer;
 import me.aarondmello.datatypes.Player;
 import me.aarondmello.datatypes.Round;
 import me.aarondmello.driver.PairingSystem;
@@ -80,12 +81,10 @@ public class PairingAlgorithmTest {
         for(Game g : games){
             Player black = g.getBlackPlayer();
             uniquePairedPlayers.add(g.getWhitePlayer().getID());
-            if(black == null){
+            if(black instanceof NullPlayer)
                 containsNullPlayerAsBlack = true;
-                uniquePairedPlayers.add(-1);
-            }
-            else
-                uniquePairedPlayers.add(black.getID());
+               
+            uniquePairedPlayers.add(black.getID());
                 
         }
         boolean oddNumberOfPlayers = players.size() % 2 == 1;
@@ -110,9 +109,7 @@ public class PairingAlgorithmTest {
     private boolean checkIfGameValid(Game g){
         Player white = g.getWhitePlayer();
         Player black = g.getBlackPlayer();
-        if(black == null)
-            return !white.hasSatOut();
-        else
-            return !white.hasPlayedAgainst(black) && !black.hasPlayedAgainst(white); 
+        
+        return !white.hasPlayedAgainst(black) && !black.hasPlayedAgainst(white); 
     }
 }

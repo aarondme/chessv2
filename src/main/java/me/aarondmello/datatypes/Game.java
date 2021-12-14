@@ -26,18 +26,14 @@ public class Game{
         sendBlackResult(result);
     }
     private void sendWhiteResult(int result){
-        if(white != null){
-            PlayerGameSummary whiteResult = new PlayerGameSummary(GameResult.getPointsForPlayer(Colour.WHITE, result), 
-                                                        black, Colour.WHITE);
-            white.addPlayerGameSummarys(whiteResult);
-        }
+        PlayerGameSummary whiteResult = new PlayerGameSummary(GameResult.getPointsForPlayer(Colour.WHITE, result), 
+                                                    black, Colour.WHITE);
+        white.addPlayerGameSummarys(whiteResult);
     }
     private void sendBlackResult(int result){
-        if(black != null){
-            PlayerGameSummary blackResult = new PlayerGameSummary(GameResult.getPointsForPlayer(Colour.BLACK, result), 
-                                                        white, Colour.BLACK);
-            black.addPlayerGameSummarys(blackResult);
-        }
+        PlayerGameSummary blackResult = new PlayerGameSummary(GameResult.getPointsForPlayer(Colour.BLACK, result), 
+                                                    white, Colour.BLACK);
+        black.addPlayerGameSummarys(blackResult);  
     }
     public Player getWhitePlayer() {
         return white;

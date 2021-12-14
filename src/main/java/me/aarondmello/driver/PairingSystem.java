@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 
 import me.aarondmello.datatypes.Game;
+import me.aarondmello.datatypes.NullPlayer;
 import me.aarondmello.datatypes.Player;
 import me.aarondmello.datatypes.Round;
 
@@ -38,7 +39,7 @@ public class PairingSystem {
             backPointer--;
         }
         if(frontPointer == backPointer)
-            round.addGame(new Game(players.get(frontPointer), null));
+            round.addGame(new Game(players.get(frontPointer), NullPlayer.getInstance()));
     }
 
     private boolean pairBruteForce(int numPlayersLeft){
@@ -69,7 +70,7 @@ public class PairingSystem {
             Player p = players.get(i);
             boolean didPairingWork;
             if(!p.hasSatOut()){
-                round.addGame(new Game(p, null)); //add a game with Player p sitting out and pair them
+                round.addGame(new Game(p, NullPlayer.getInstance())); //add a game with Player p sitting out and pair them
                 playersPaired.add(p);
                 didPairingWork = pairBruteForce(numPlayersLeft - 1); //Attempt to pair other players
                 

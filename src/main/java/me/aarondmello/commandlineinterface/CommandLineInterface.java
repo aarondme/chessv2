@@ -84,9 +84,6 @@ public class CommandLineInterface implements GUI {
     }
 
     private String formatPlayer(Player player) {
-        //TODO move null handling into main program
-        if(player == null)
-            return "";
         return player.getName() + "(" + player.getOrganization() + ") [" + player.getScore() + "]";
     }
 
