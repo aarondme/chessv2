@@ -10,12 +10,16 @@ public class Round{
         return games;
     }
 
+    public int getNumberOfGames(){return games.size();}
+
+    public void addAllGames(Collection<Game> toAdd){games.addAll(toAdd);}
+
     public void addGame(Game g){
         games.addLast(g);
     }
 
-    public void removeGame(){
-        games.pollLast();
+    public Game removeGame(){
+        return games.pollLast();
     }
 
     public void setResultByID(int id, int result) {

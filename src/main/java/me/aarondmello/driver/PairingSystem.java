@@ -1,7 +1,6 @@
 package me.aarondmello.driver;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.LinkedList;
 
 import me.aarondmello.datatypes.Game;
@@ -11,7 +10,6 @@ import me.aarondmello.datatypes.Round;
 
 public class PairingSystem {
     Round round;
-    PlayerIDSet playersPaired;
     ArrayList<Player> players;
 
     public PairingSystem(){
@@ -20,11 +18,10 @@ public class PairingSystem {
     public Round pairRound(int roundNumber, ArrayList<Player> players){
         this.players = players;
         round = new Round();
-        playersPaired = new PlayerIDSet(players.size()); 
         if(roundNumber == 1)
             pairFirstRound();
         else
-            pairBruteForce(players.size());
+            determineMatches();
         return round;
     }
 
@@ -42,153 +39,137 @@ public class PairingSystem {
             round.addGame(new Game(players.get(frontPointer), NullPlayer.getInstance()));
     }
 
-    private boolean pairBruteForce(int numPlayersLeft){
-        if(numPlayersLeft == 0)
-            return true;
-        if(numPlayersLeft % 2 == 1)
-            return pairPlayerToSitOut(numPlayersLeft); //Sit out the worst player who hasn't already, repeat with better players if pairing fails
-        
-        LinkedList<Player> sublist = extractSublist(players); //Return a sublist of even length of players with similar scores
-        boolean didSublistPairingSucceed = false;
-        boolean didRecursivePairingSucceed = false;
-        while(!didSublistPairingSucceed || !didRecursivePairingSucceed){
-            didSublistPairingSucceed = pairSublist(sublist); //Attempt to pair the sublist
-            if(didSublistPairingSucceed)
-                didRecursivePairingSucceed = pairBruteForce(numPlayersLeft - sublist.size()); //If succeeds, try to pair the remaining players (not in sublist)
-            
-            if(!didSublistPairingSucceed || !didRecursivePairingSucceed){ //If fails, scrap pairings, add two players and try again
-                boolean areThereTwoPlayers = addTwoPlayersToSublistIfExists(players, sublist);
-                if(!areThereTwoPlayers)
-                    return false; //If there are not two more players, the pairing fails
+    /**
+     * Determines the matches
+     */
+    public boolean determineMatches() {
+        int indexOfSittingOut = players.size();
+        Game bye = null;
+
+        // Loops until break condition is hit; successful combination found or all
+        // combinations tried
+        while (true) {
+            LinkedList<Player> playersLeft = new LinkedList<Player>(players);
+            round = new Round();
+
+            // If odd number of players, this sits out the worst ranked player that hasn't
+            // already sat out
+            // If this is not the first loop, it sits out the worst player that was not
+            // tried that hasn't already sat out
+            if (playersLeft.size() % 2 == 1) {
+                indexOfSittingOut = findIndexOfSittingOut(indexOfSittingOut, players);
+                if(indexOfSittingOut == -1)
+                    break;
+                Player z = playersLeft.remove(indexOfSittingOut);
+                bye = new Game(z, NullPlayer.getInstance());
             }
+
+            // Loops until all players are matched, or until all combinations are tried
+            while (playersLeft.size() > 0) {
+                ArrayList<Player> sublist = getEvenLengthSublistOfTopPlayers(playersLeft);
+
+                // Loops until a set of matches for the temporary list is found
+                while (true) {
+                    ArrayList<Game> m = pairSublist(sublist);
+                    //If the sublist was paired, add them all to the list.
+                    if(m != null){
+                        round.addAllGames(m);
+                        break;
+                    }
+
+                    // If no match is found, tries to add more players to the temporary list
+                    // If there are 2 or more players left, add them and try again
+                    if (playersLeft.size() >= 2) {
+                        sublist.add(playersLeft.pollFirst());
+                        sublist.add(playersLeft.pollFirst());
+                        continue;
+                    }
+                    // If all but one, or all players are already on the list, break
+                    if (sublist.size() >= players.size() - 1)
+                        break;
+
+                    // Remove the match with the weakest players, and add the players involved to
+                    // the temporary list and try again
+                    Game q = round.removeGame();
+                    Player a = q.getWhitePlayer();
+                    Player b = q.getBlackPlayer();
+                    if (a == NullPlayer.getInstance())
+                        break;
+
+                    sublist.add(a);
+                    sublist.add(b);
+                }
+            }
+            // If this is true, all players are paired, so break
+            if (round.getNumberOfGames() == players.size() / 2)
+                break;
+            // If there are an even number of players, all combinations were tried in the
+            // worst case, so break from the loop
+            if (players.size() % 2 == 0)
+                break;
         }
+        // If this is true, not all players were paired
+        if (round.getNumberOfGames() != players.size() / 2)
+            return false;
+        // Add the odd player's match
+        if (bye != null)
+            round.addGame(bye);
         return true;
     }
 
-    private boolean pairPlayerToSitOut(int numPlayersLeft){
-        for(int i = players.size() - 1; i >= 0; i--){
-            Player p = players.get(i);
-            boolean didPairingWork;
-            if(!p.hasSatOut()){
-                round.addGame(new Game(p, NullPlayer.getInstance())); //add a game with Player p sitting out and pair them
-                playersPaired.add(p);
-                didPairingWork = pairBruteForce(numPlayersLeft - 1); //Attempt to pair other players
-                
-                if(didPairingWork)
-                    return true; //If pairing worked, done
-                else{
-                    playersPaired.remove(p); //If not, unpair the Player p, remove the game and continue
-                    round.removeGame();
+    private ArrayList<Player> getEvenLengthSublistOfTopPlayers(LinkedList<Player> playersLeft) {
+        ArrayList<Player> temp = new ArrayList<Player>();
+        int score = playersLeft.get(0).getScore();
+
+        while (playersLeft.size() > 1 && playersLeft.get(0).getScore() == score) {
+            temp.add(playersLeft.pollFirst());
+            temp.add(playersLeft.pollFirst());
+        }
+
+        return temp;
+    }
+
+    private int findIndexOfSittingOut(int maxIndex, ArrayList<Player> p) {
+        for (int i = maxIndex - 1; i >= 0; i--) {
+            if (!p.get(i).hasSatOut())
+                return i;
+        }
+        return -1;
+    }
+
+    private ArrayList<Game> pairSublist(ArrayList<Player> sub) {
+        if (sub.size() == 0)
+            return new ArrayList<>();
+        // True if the first and last player's score are the same
+        boolean isPairingFirstPlayer = (sub.get(0).getScore() == sub.get(sub.size() - 1).getScore());
+        // Loops through all players on the list to partner with player p
+        for (int i = sub.size() - 2; i >= 0; i--) {
+            ArrayList<Player> temp = new ArrayList<Player>(sub);
+
+            Player p = temp.remove((isPairingFirstPlayer) ? 0 : sub.size() - 1);
+
+            Player q = temp.remove(i);
+
+            if(p.hasPlayedAgainst(q))
+                continue;
+
+            ArrayList<Game> mat = pairSublist(temp);
+            if (mat != null){
+                // Has the player with more games as black play as white
+                // If the games are equal, has the player with the better standing play as white
+                if (p.getGamesAsBlack() > q.getGamesAsBlack()) {
+                    mat.add(new Game(p, q));
+                } else if (p.getGamesAsBlack() < q.getGamesAsBlack()) {
+                    mat.add(new Game(q, p));
+                } else if (isPairingFirstPlayer) {
+                    mat.add(new Game(p, q));
+                } else {
+                    mat.add(new Game(q, p));
                 }
+                return mat;
             }
-        }
-        return false;
-    }
 
-    private LinkedList<Player> extractSublist(ArrayList<Player> players){
-        LinkedList<Player> out = new LinkedList<>();
-        for(Player p : players){
-            if(playersPaired.contains(p)) continue;
-            
-            if(out.size() == 0 || out.get(0).getScore() == p.getScore() || out.size() % 2 == 1) 
-                out.add(p);
-            else break;
-        }
-        return out;
-    }
-
-    private boolean addTwoPlayersToSublistIfExists(ArrayList<Player> players, LinkedList<Player> sublist){
-        int numPlayersAdded = 0;
-        for(Player p : players){
-            if(numPlayersAdded == 2)
-                break;
-            if(!playersPaired.contains(p) && !sublist.contains(p)){
-                numPlayersAdded++;
-                sublist.add(p);
-            }
-        }
-        return (numPlayersAdded == 2);
-    }
-
-    private boolean pairSublist(LinkedList<Player> sublist){
-        if(!hasUnpairedPlayer(sublist))
-            return true;
-        boolean isPairingFirstPlayer = checkIfPairingFirstPlayer(sublist);
-        Player p;
-        if(isPairingFirstPlayer)
-            p = getFirstUnpairedPlayerInSublist(sublist);
-        
-        else
-            p = getLastUnpairedPlayerInSublist(sublist);
-            
-        playersPaired.add(p);
-           
-        boolean didPairingSucceed = pairWithWorstPlayer(sublist, p);
-        if(!didPairingSucceed){
-            playersPaired.remove(p); //If no pairing works for this player, pairing will fail automatically
-        }
-        return didPairingSucceed;
-    }
-    private Player getFirstUnpairedPlayerInSublist(LinkedList<Player> sublist){
-        for(Player p : sublist){
-            if(!playersPaired.contains(p))
-                return p;
         }
         return null;
     }
-    private Player getLastUnpairedPlayerInSublist(LinkedList<Player> sublist){
-        Iterator<Player> lIterator = sublist.descendingIterator();
-        while(lIterator.hasNext()){
-            Player p = lIterator.next();
-            if(!playersPaired.contains(p))
-                return p;
-        }
-        return null;
-    }
-    private boolean hasUnpairedPlayer(LinkedList<Player> sublist){
-        for(Player p : sublist){
-            if(!playersPaired.contains(p))
-                return true;
-        }
-        return false;
-    }
-    private boolean checkIfPairingFirstPlayer(LinkedList<Player> sublist){
-        Player firstPlayer = null;
-        Player lastPlayer = null;
-        for(Player p : sublist){
-            if(playersPaired.contains(p))
-                continue;
-            if(firstPlayer == null)
-                firstPlayer = p;
-            else
-                lastPlayer = p;
-        }
-        return firstPlayer.getScore() == lastPlayer.getScore();
-    }
-    private boolean pairWithWorstPlayer(LinkedList<Player> sublist, Player toPairWith){
-        Iterator<Player> lIterator = sublist.descendingIterator();
-        boolean didPairingSucceed;
-        while(lIterator.hasNext()){
-            Player p = lIterator.next();
-            if(toPairWith.hasPlayedAgainst(p) || playersPaired.contains(p))
-                continue;
-            addGame(toPairWith, p);
-            playersPaired.add(p);
-            didPairingSucceed = pairSublist(sublist);
-            if(didPairingSucceed)
-                return true;
-            playersPaired.remove(p);
-            round.removeGame();
-        }
-        return false;
-    }
-    private void addGame(Player a, Player b){
-        int gamesA = a.getGamesAsBlack();
-        int gamesB = b.getGamesAsBlack();
-        if(gamesA > gamesB)
-            round.addGame(new Game(a,b));
-        else
-            round.addGame(new Game(b,a));
-    }
-
 }
