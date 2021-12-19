@@ -1,6 +1,8 @@
 package me.aarondmello.commandlineinterface;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.util.Scanner;
 
 import me.aarondmello.datatypes.Division;
@@ -220,7 +222,11 @@ public class CommandLineInterface implements GUI {
             else if(in == 2)
                 tournament.setTotalRounds(getNewTournamentTotalRounds());
             else if(in == 3){
-                //TODO
+                try {
+                    persister.addPlayersInFileToTournament(new BufferedReader(new FileReader(getFile())), tournament);
+                }catch (Exception e) {
+
+                }
             }
             else if(in == 4)
                 addPlayerToTournament(tournament);
@@ -234,6 +240,11 @@ public class CommandLineInterface implements GUI {
                 return null;
             }
         }  
+    }
+
+    private File getFile() {
+        System.out.println("Enter the file to read");
+        return new File(input.nextLine().trim());
     }
 
     private void removePlayerInTournament(Tournament tournament) {

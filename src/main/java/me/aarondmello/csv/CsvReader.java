@@ -7,13 +7,11 @@ import java.util.HashMap;
 import me.aarondmello.datatypes.Player;
 
 public class CsvReader {
-    BufferedReader reader;
     String organizationName;
-    HashMap<String, ArrayList<Player>> divisionToPlayerList = new HashMap<>();
-    public CsvReader(BufferedReader reader){
-        this.reader = reader;
-    }
-    public void read(){
+    HashMap<String, ArrayList<Player>> divisionToPlayerList;
+    public CsvReader(){}
+    public HashMap<String, ArrayList<Player>> read(BufferedReader reader){
+        divisionToPlayerList = new HashMap<>();
         try {
             organizationName = reader.readLine();
             reader.readLine();
@@ -23,13 +21,11 @@ public class CsvReader {
                 addPlayerToList(splitRow[0].trim(), splitRow[1].trim());
             } while ((row = reader.readLine()) != null);
         } catch (Exception e) {
-            //TODO: handle exception
-        }   
+           return null;
+        }
+        return divisionToPlayerList;
     }
 
-    public ArrayList<Player> getDivisionList(String division) {
-        return divisionToPlayerList.get(division);
-    }
     private void addPlayerToList(String playerName, String division){
         ArrayList<Player> players;
         if(divisionToPlayerList.containsKey(division))

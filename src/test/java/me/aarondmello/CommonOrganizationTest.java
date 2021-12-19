@@ -7,6 +7,7 @@ import static org.mockito.Mockito.when;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -18,7 +19,7 @@ import me.aarondmello.datatypes.Player;
 
 public class CommonOrganizationTest {
     BufferedReader reader = Mockito.mock(BufferedReader.class);
-    CsvReader csvReader = new CsvReader(reader);
+    CsvReader csvReader = new CsvReader();
 
     @ParameterizedTest
     @ValueSource(strings = {"testOrganization","otherOrganization"})
@@ -27,9 +28,9 @@ public class CommonOrganizationTest {
                                 .thenReturn("Player,Division")
                                 .thenReturn("abc,firstdivision")
                                 .thenReturn(null);
-        
-        csvReader.read();
-        ArrayList<Player> playerList = csvReader.getDivisionList("firstdivision");
+
+        HashMap<String, ArrayList<Player>> playersRead = csvReader.read(reader);
+        ArrayList<Player> playerList = playersRead.get("firstdivision");
 
         assertEquals(1, playerList.size());
         assertEquals(orgName, playerList.get(0).getOrganization());
@@ -42,25 +43,12 @@ public class CommonOrganizationTest {
                                 .thenReturn("Player,Division")
                                 .thenReturn(playerName + ",firstdivision")
                                 .thenReturn(null);
-        
-        csvReader.read();
-        ArrayList<Player> playerList = csvReader.getDivisionList("firstdivision");
+
+        HashMap<String, ArrayList<Player>> playersRead = csvReader.read(reader);
+        ArrayList<Player> playerList = playersRead.get("firstdivision");
 
         assertEquals(1, playerList.size());
         assertEquals(playerName, playerList.get(0).getName());
-    }
-
-    @Test
-    public void fileWithOnePlayerReturnsListInCorrectDivision() throws IOException{
-        when(reader.readLine()).thenReturn("testOrganization")
-                                .thenReturn("Player,Division")
-                                .thenReturn("def,divisionone")
-                                .thenReturn(null);
-        
-        csvReader.read();
-
-        assertEquals(1, csvReader.getDivisionList("divisionone").size());
-        assertNull(csvReader.getDivisionList("firstdivision"));
     }
 
     @Test
@@ -70,9 +58,9 @@ public class CommonOrganizationTest {
                                 .thenReturn("def,divisionone")
                                 .thenReturn("ghi,divisionone")
                                 .thenReturn(null);
-        
-        csvReader.read();
-        ArrayList<Player> playerList = csvReader.getDivisionList("divisionone");
+
+        HashMap<String, ArrayList<Player>> playersRead = csvReader.read(reader);
+        ArrayList<Player> playerList = playersRead.get("divisionone");
 
         assertEquals(2, playerList.size());
         assertEquals("def", playerList.get(0).getName());
@@ -86,10 +74,10 @@ public class CommonOrganizationTest {
                                 .thenReturn("def,divisionone")
                                 .thenReturn("ghi,divisiontwo")
                                 .thenReturn(null);
-        
-        csvReader.read();
-        ArrayList<Player> divisionOnePlayers = csvReader.getDivisionList("divisionone");
-        ArrayList<Player> divisionTwoPlayers = csvReader.getDivisionList("divisiontwo");
+
+        HashMap<String, ArrayList<Player>> playersRead = csvReader.read(reader);
+        ArrayList<Player> divisionOnePlayers = playersRead.get("divisionone");
+        ArrayList<Player>  divisionTwoPlayers= playersRead.get("divisiontwo");
 
         assertEquals(1, divisionOnePlayers.size());
         assertEquals("def", divisionOnePlayers.get(0).getName());

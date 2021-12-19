@@ -39,7 +39,7 @@ public class Tournament{
         return name != null && totalRounds > 0 && divisions.size() > 0;
     }
 
-    public void addPlayers(Map<String, List<Player>> divisionNameToPlayerListMap){
+    public void addPlayers(HashMap<String, ArrayList<Player>> divisionNameToPlayerListMap){
         for (String divisionName : divisionNameToPlayerListMap.keySet()) {
             Division division = getDivisionWithName(divisionName, true);
             division.addPlayers(divisionNameToPlayerListMap.get(divisionName));

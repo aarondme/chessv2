@@ -4,8 +4,11 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 
+import me.aarondmello.csv.CsvReader;
+import me.aarondmello.datatypes.Player;
 import me.aarondmello.datatypes.Tournament;
 
 public class Persister {
@@ -50,6 +53,9 @@ public class Persister {
     }
 
     public void addPlayersInFileToTournament(BufferedReader reader, Tournament tournament){
+        CsvReader csvReader = new CsvReader();
+        HashMap<String, ArrayList<Player>> players = csvReader.read(reader);
+        tournament.addPlayers(players);
         //TODO
     }
 

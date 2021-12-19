@@ -30,8 +30,10 @@ public class Division{
         p.setID(maxID++);
         players.add(p);
     }
-    public void addPlayers(List<Player> players){
-        players.addAll(players);
+    public void addPlayers(List<Player> toAdd){
+        for (Player p: toAdd) {
+            addPlayer(p);
+        }
     }
     public List<Player> getPlayers(){
         return players;
