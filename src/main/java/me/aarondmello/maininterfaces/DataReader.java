@@ -6,9 +6,9 @@ public interface DataReader{
     /**
      * @return true iff successful
      */
-    public boolean readFromStarterFile(Tournament tournament);
+    boolean readFromStarterFile(Tournament tournament);
     /**
      * @return true iff successful
      */
-    public boolean readFromInProgressFile(Tournament tournament, int roundNumber);
+    boolean readFromInProgressFile(Tournament tournament, int roundNumber);
 }

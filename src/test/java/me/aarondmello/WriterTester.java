@@ -5,12 +5,10 @@ import me.aarondmello.csv.CsvWriter;
 import me.aarondmello.datatypes.*;
 import me.aarondmello.tiebreaks.TiebreakType;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
-import java.util.LinkedList;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
