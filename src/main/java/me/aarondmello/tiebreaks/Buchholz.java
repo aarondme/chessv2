@@ -6,16 +6,9 @@ import me.aarondmello.datatypes.PlayerGameSummary;
 
 public class Buchholz implements RankingIndependantTiebreak {
     private int score = 0;
-    private String name = "BUCHHOLZ";
-
     @Override
     public int getScore() {
         return score;
-    }
-
-    @Override
-    public String getName() {
-        return name;
     }
 
     @Override

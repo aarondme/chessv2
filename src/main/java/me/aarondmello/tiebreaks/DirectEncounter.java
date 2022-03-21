@@ -9,12 +9,6 @@ public class DirectEncounter implements RankingDependantTiebreak {
     }
 
     @Override
-    public String getName() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
     public void setScore() {
         // TODO Auto-generated method stub
         

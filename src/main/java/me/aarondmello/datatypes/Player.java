@@ -11,7 +11,7 @@ public class Player implements Comparable<Player>{
     private int score = 0;
     private int gamesAsWhite = 0;
     private int gamesAsBlack = 0;
-    private LinkedList<PlayerGameSummary> PlayerGameSummarys = new LinkedList<PlayerGameSummary>();
+    private LinkedList<PlayerGameSummary> summaries = new LinkedList<PlayerGameSummary>();
     private ArrayList<Tiebreak> tiebreaks = new ArrayList<Tiebreak>();
     /**
      * IDs for players within a division are expected to be unique integers 
@@ -32,7 +32,7 @@ public class Player implements Comparable<Player>{
         return score;
     }
     public LinkedList<PlayerGameSummary> getPlayerGameSummarys() {
-        return PlayerGameSummarys;
+        return summaries;
     }
     public ArrayList<Tiebreak> getTiebreaks() {
         return tiebreaks;
@@ -63,16 +63,16 @@ public class Player implements Comparable<Player>{
     public void setID(int id){
         this.id = id;
     }
-    public void addPlayerGameSummarys(PlayerGameSummary PlayerGameSummary){
-        PlayerGameSummarys.add(PlayerGameSummary);
-        score += PlayerGameSummary.getPointsEarned();
+    public void addPlayerGameSummary(PlayerGameSummary playerGameSummary){
+        summaries.add(playerGameSummary);
+        score += playerGameSummary.getPointsEarned();
     }
     
     public boolean hasSatOut(){
         return hasPlayedAgainst(NullPlayer.getInstance());
     }
     public boolean hasPlayedAgainst(Player opponent){
-        for(PlayerGameSummary m : PlayerGameSummarys){
+        for(PlayerGameSummary m : summaries){
             if(m.getOpponent().equals(opponent))
                 return true;
         }
@@ -104,13 +104,13 @@ public class Player implements Comparable<Player>{
         for(Tiebreak t : tiebreaks){
             if(t instanceof RankingIndependantTiebreak){
                 RankingIndependantTiebreak tiebreak = (RankingIndependantTiebreak) t;
-                tiebreak.calculateScore(PlayerGameSummarys); 
+                tiebreak.calculateScore(summaries);
             }   
         }
     }
     private void updateScore() {
         score = 0;
-        for(PlayerGameSummary m : PlayerGameSummarys)
+        for(PlayerGameSummary m : summaries)
             score += m.getPointsEarned();
     }
 }

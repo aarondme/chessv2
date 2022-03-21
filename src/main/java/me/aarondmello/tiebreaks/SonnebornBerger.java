@@ -6,15 +6,9 @@ import me.aarondmello.datatypes.PlayerGameSummary;
 
 public class SonnebornBerger implements RankingIndependantTiebreak {
     private int score = 0;
-    private String name = "SONNEBORN_BERGER";
     @Override
     public int getScore() {
         return score;
-    }
-
-    @Override
-    public String getName() {
-        return name;
     }
 
     @Override

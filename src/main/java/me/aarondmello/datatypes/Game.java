@@ -28,12 +28,12 @@ public class Game{
     private void sendWhiteResult(int result){
         PlayerGameSummary whiteResult = new PlayerGameSummary(GameResult.getPointsForPlayer(Colour.WHITE, result), 
                                                     black, Colour.WHITE);
-        white.addPlayerGameSummarys(whiteResult);
+        white.addPlayerGameSummary(whiteResult);
     }
     private void sendBlackResult(int result){
         PlayerGameSummary blackResult = new PlayerGameSummary(GameResult.getPointsForPlayer(Colour.BLACK, result), 
                                                     white, Colour.BLACK);
-        black.addPlayerGameSummarys(blackResult);  
+        black.addPlayerGameSummary(blackResult);
     }
     public Player getWhitePlayer() {
         return white;

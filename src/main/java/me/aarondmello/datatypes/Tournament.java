@@ -51,7 +51,7 @@ public class Tournament{
         division.addPlayer(player);
     }
 
-    private Division getDivisionWithName(String name, boolean createIfDoesntExist){
+    public Division getDivisionWithName(String name, boolean createIfDoesntExist){
         for (Division division : divisions) {
             if(division.getName().equals(name))
                 return division;

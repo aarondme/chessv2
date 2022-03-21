@@ -18,7 +18,7 @@ public class NullPlayer extends Player{
     }
 
     @Override
-    public void addPlayerGameSummarys(PlayerGameSummary PlayerGameSummary) {}
+    public void addPlayerGameSummary(PlayerGameSummary PlayerGameSummary) {}
 
     @Override
     public void update() {}

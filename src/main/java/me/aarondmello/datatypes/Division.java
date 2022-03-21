@@ -7,6 +7,7 @@ import java.util.List;
 
 import me.aarondmello.driver.PairingSystem;
 import me.aarondmello.tiebreaks.TiebreakInitializer;
+import me.aarondmello.tiebreaks.TiebreakType;
 
 public class Division{
     private String name;
@@ -46,11 +47,7 @@ public class Division{
         return null;
     }
     public void removePlayer(int playerID) {
-        Iterator<Player> lIterator = players.iterator();
-        while(lIterator.hasNext()){
-            if(lIterator.next().getID() == playerID)
-                lIterator.remove();
-        }
+        players.removeIf(player -> player.getID() == playerID);
     }
     public void initialize() {
         ArrayList<Integer> ids = new ArrayList<>();
@@ -96,5 +93,13 @@ public class Division{
     }
     public LinkedList<Game> getPairing() {
         return currentRound.getGames();
+    }
+
+    public String getTiebreaks() {
+        return tiebreakInitializer.getTiebreakNames();
+    }
+
+    public void setTiebreaks(TiebreakType[] tiebreaks){
+        tiebreakInitializer.setTiebreaks(tiebreaks);
     }
 }

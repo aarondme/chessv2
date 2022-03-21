@@ -6,16 +6,10 @@ import me.aarondmello.datatypes.PlayerGameSummary;
 
 public class WinCount implements RankingIndependantTiebreak {
     private int score = 0;
-    private String name = "WIN_COUNT";
 
     @Override
     public int getScore() {
         return score;
-    }
-
-    @Override
-    public String getName() {
-        return name;
     }
 
     @Override

@@ -7,15 +7,9 @@ import me.aarondmello.datatypes.PlayerGameSummary;
 
 public class WinCountAsBlack implements RankingIndependantTiebreak {
     private int score = 0;
-    private String name = "WIN_COUNT_AS_BLACK";
     @Override
     public int getScore() {
         return score;
-    }
-
-    @Override
-    public String getName() {
-        return name;
     }
 
     @Override

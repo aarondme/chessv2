@@ -3,10 +3,8 @@ package me.aarondmello.driver;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
-import me.aarondmello.datatypes.Game;
-import me.aarondmello.datatypes.NullPlayer;
-import me.aarondmello.datatypes.Player;
-import me.aarondmello.datatypes.Round;
+import me.aarondmello.datatypes.*;
+import me.aarondmello.tiebreaks.TiebreakType;
 
 public class PairingSystem {
     Round round;
@@ -137,6 +135,8 @@ public class PairingSystem {
         return -1;
     }
 
+
+
     private ArrayList<Game> pairSublist(ArrayList<Player> sub) {
         if (sub.size() == 0)
             return new ArrayList<>();
@@ -155,21 +155,24 @@ public class PairingSystem {
 
             ArrayList<Game> mat = pairSublist(temp);
             if (mat != null){
-                // Has the player with more games as black play as white
-                // If the games are equal, has the player with the better standing play as white
-                if (p.getGamesAsBlack() > q.getGamesAsBlack()) {
-                    mat.add(new Game(p, q));
-                } else if (p.getGamesAsBlack() < q.getGamesAsBlack()) {
-                    mat.add(new Game(q, p));
-                } else if (isPairingFirstPlayer) {
-                    mat.add(new Game(p, q));
-                } else {
-                    mat.add(new Game(q, p));
-                }
+                Game g = pairPlayers(isPairingFirstPlayer, p, q);
+                mat.add(g);
                 return mat;
             }
 
         }
         return null;
+    }
+
+    private Game pairPlayers(boolean isPairingFirstPlayer, Player p, Player q) {
+        if (p.getGamesAsBlack() > q.getGamesAsBlack()) {
+            return new Game(p, q);
+        } else if (p.getGamesAsBlack() < q.getGamesAsBlack()) {
+            return new Game(q, p);
+        } else if (isPairingFirstPlayer) {
+            return new Game(p, q);
+        } else {
+            return new Game(q, p);
+        }
     }
 }
