@@ -13,7 +13,12 @@ public class CsvWriter {
 
     public void saveTournament(Tournament tournament, PrintWriter printWriter) {
         printWriter.println("Tournament Name:," + tournament.getName());
-        printWriter.println("Round " + tournament.getRoundNumber() + " of " + tournament.getTotalRounds());
+
+        if(tournament.getTotalRounds() < tournament.getRoundNumber())
+            printWriter.println(tournament.getTotalRounds() + "-Round Tournament Complete");
+        else
+            printWriter.println("Round " + tournament.getRoundNumber() + " of " + tournament.getTotalRounds());
+
         for(Division division : tournament.getDivisions()){
             saveDivision(division, printWriter, tournament.getRoundNumber());
         }

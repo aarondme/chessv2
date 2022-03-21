@@ -6,50 +6,67 @@ import me.aarondmello.datatypes.*;
 import me.aarondmello.tiebreaks.TiebreakType;
 import org.junit.jupiter.api.Test;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class WriterTester {
     CsvWriter writer = new CsvWriter();
-    TestablePrintWriter printWriter = new TestablePrintWriter();
+    String root = "src/test/data/Save Files/";
+    String name;
+    String expected;
+    String actual;
+    PrintWriter out;
 
-    public WriterTester() throws FileNotFoundException {
+    public WriterTester() {
+    }
+    private void setup(String r) throws IOException {
+        name = r;
+        expected = root + name + ".csv";
+        actual = root + name + "_actual.csv";
+        out = new PrintWriter(new FileWriter(actual));
     }
 
     @Test
-    public void tournamentWithNoDivisions(){
+    public void tournamentWithNoDivisions() throws IOException {
+        setup("tournament_with_no_divisions");
+
         Tournament t = TournamentBuilder.createTournament()
                     .withName("myTournament")
                     .withNRounds(5)
                     .execute();
 
-        writer.saveTournament(t, printWriter);
+        writer.saveTournament(t, out);
+        out.close();
 
-        assertEquals("Tournament Name:,myTournament\n" +
-                "Round 1 of 5\n", printWriter.getAsString());
+        long mismatch = filesCompareByLine(Path.of(expected), Path.of(actual));
+        assertEquals(-1, mismatch);
+        Files.delete(Path.of(actual));
     }
 
+
     @Test
-    public void tournamentWithOneEmptyDivision(){
+    public void tournamentWithOneEmptyDivision() throws IOException {
+        setup("tournament_with_one_empty_division");
         Tournament t = TournamentBuilder.createTournament()
                 .withName("tournament")
                 .withNRounds(7)
                 .withDivisionTiebreaks("a", new TiebreakType[]{})
                 .execute();
 
-        writer.saveTournament(t, printWriter);
+        writer.saveTournament(t, out);
+        out.close();
 
-        assertEquals("Tournament Name:,tournament\n" +
-                "Round 1 of 7\n" +
-                "\nDivision a\n" +
-                "ID,Name,Organization,Score\n", printWriter.getAsString());
+        long mismatch = filesCompareByLine(Path.of(expected), Path.of(actual));
+        assertEquals(-1, mismatch);
+        Files.delete(Path.of(actual));
     }
 
     @Test
-    public void tournamentWithOneDivisionAndOnePlayerWithNoTiebreaksOrGames(){
+    public void tournamentWithOneDivisionAndOnePlayerWithNoTiebreaksOrGames() throws IOException {
+        setup("tournament_with_one_division_and_one_player_with_no_tiebreaks_or_games");
         Tournament t = TournamentBuilder.createTournament()
                 .withName("myTournament")
                 .withNRounds(3)
@@ -57,17 +74,17 @@ public class WriterTester {
                 .withDivisionTiebreaks("div1", new TiebreakType[]{})
                 .execute();
 
-        writer.saveTournament(t, printWriter);
+        writer.saveTournament(t, out);
+        out.close();
 
-        assertEquals("Tournament Name:,myTournament\n" +
-                "Round 1 of 3\n" +
-                "\nDivision div1\n" +
-                "ID,Name,Organization,Score\n" +
-                "0,player1,org1,0\n", printWriter.getAsString());
+        long mismatch = filesCompareByLine(Path.of(expected), Path.of(actual));
+        assertEquals(-1, mismatch);
+        Files.delete(Path.of(actual));
     }
 
     @Test
-    public void tournamentWithOneDivisionAndOnePlayerWithSomeTiebreaksNoGames(){
+    public void tournamentWithOneDivisionAndOnePlayerWithSomeTiebreaksNoGames() throws IOException {
+        setup("tournament_with_one_division_and_one_player_with_some_tiebreaks_no_games");
         Tournament t = TournamentBuilder.createTournament()
                 .withName("myTournament")
                 .withNRounds(2)
@@ -77,18 +94,17 @@ public class WriterTester {
         Division division = t.getDivisionWithName("div2", false);
         division.initialize();
 
-        writer.saveTournament(t, printWriter);
+        writer.saveTournament(t, out);
+        out.close();
 
-        assertEquals("Tournament Name:,myTournament\n" +
-                "Round 1 of 2\n"+
-                "\nDivision div2\n" +
-                "ID,Name,Organization,Score,BuchholzCutOne,Buchholz,SonnebornBerger,ProgressiveScores,DirectEncounter," +
-                "WinCount,WinCountAsBlack\n" +
-                "0,player,org,0,0,0,0,0,0,0,0\n", printWriter.getAsString());
+        long mismatch = filesCompareByLine(Path.of(expected), Path.of(actual));
+        assertEquals(-1, mismatch);
+        Files.delete(Path.of(actual));
     }
 
     @Test
-    public void tournamentWithTwoDivisionsAndOnePlayerInEach(){
+    public void tournamentWithTwoDivisionsAndOnePlayerInEach() throws IOException {
+        setup("tournament_with_two_divisions_and_one_player_in_each");
         Tournament t = TournamentBuilder.createTournament()
                 .withName("myTournament")
                 .withNRounds(3)
@@ -98,23 +114,19 @@ public class WriterTester {
                 .withDivisionTiebreaks("div2", new TiebreakType[]{})
                 .execute();
 
-        writer.saveTournament(t, printWriter);
+        writer.saveTournament(t, out);
+        out.close();
 
-        assertEquals("Tournament Name:,myTournament\n" +
-                "Round 1 of 3\n" +
-                "\nDivision div1\n" +
-                "ID,Name,Organization,Score\n" +
-                "0,p1,org,0\n" +
-                "\nDivision div2\n" +
-                "ID,Name,Organization,Score\n" +
-                "0,p2,org,0\n", printWriter.getAsString());
+        long mismatch = filesCompareByLine(Path.of(expected), Path.of(actual));
+        assertEquals(-1, mismatch);
+        Files.delete(Path.of(actual));
     }
 
     @Test
-    public void tournamentWithOneDivisionAndOneGame(){
+    public void tournamentWithOneDivisionAndOneGame() throws IOException {
+        setup("tournament_with_one_division_and_one_game");
         Player p1 = new Player("p1", "org");
         Player p2 =  new Player("p2", "org");
-
 
         Round r = new Round();
         Game g = new Game(p1, p2);
@@ -132,40 +144,63 @@ public class WriterTester {
         p1.setID(1);
         p2.setID(2);
 
-        writer.saveTournament(t, printWriter);
+        writer.saveTournament(t, out);
+        out.close();
 
-        assertEquals("Tournament Name:,tournament\n" +
-                "Round 2 of 3\n" +
-                "\nDivision div1\n" +
-                "ID,Name,Organization,Score,Game 1\n" +
-                "1,p1,org,2,Ww2\n" +
-                "2,p2,org,0,Lb1\n", printWriter.getAsString());
+        long mismatch = filesCompareByLine(Path.of(expected), Path.of(actual));
+        assertEquals(-1, mismatch);
+        Files.delete(Path.of(actual));
     }
 
-    private class TestablePrintWriter extends PrintWriter {
-        String out = "";
+    @Test
+    public void completeTournamentWithOneDivision() throws IOException {
+        setup("complete_tournament_with_one_division");
+        Player p1 = new Player("p1", "org");
+        Player p2 =  new Player("p2", "org");
 
-        public TestablePrintWriter() throws FileNotFoundException {
-            super(new File("src/test/java/me/aarondmello/WriterTester"));
-        }
+        Round r = new Round();
+        Game g = new Game(p1, p2);
+        r.addGame(g);
+        g.setResult(GameResult.WHITE_WIN);
 
-        @Override
-        public void print(String s){
-            out += s;
-        }
-        @Override
-        public void print(int x){out += "" + x;}
-        @Override
-        public void print(char x){
-            out += x;
-        }
-        @Override
-        public void println(String s){
-            out += s + '\n';
-        }
+        Tournament t = TournamentBuilder.createTournament()
+                .withName("tournament")
+                .withNRounds(1)
+                .withPlayer("div1", p1)
+                .withPlayer("div1", p2)
+                .withDivisionTiebreaks("div1", new TiebreakType[]{})
+                .withRound("div1", r)
+                .execute();
+        p1.setID(1);
+        p2.setID(2);
 
-        public String getAsString(){
-            return out;
+        writer.saveTournament(t, out);
+        out.close();
+
+        long mismatch = filesCompareByLine(Path.of(expected), Path.of(actual));
+        assertEquals(-1, mismatch);
+        Files.delete(Path.of(actual));
+    }
+
+    public static long filesCompareByLine(Path path1, Path path2) throws IOException {
+        try (BufferedReader bf1 = Files.newBufferedReader(path1);
+             BufferedReader bf2 = Files.newBufferedReader(path2)) {
+
+            long lineNumber = 1;
+            String line1, line2;
+            while ((line1 = bf1.readLine()) != null) {
+                line2 = bf2.readLine();
+                if (!line1.equals(line2)) {
+                    return lineNumber;
+                }
+                lineNumber++;
+            }
+            if (bf2.readLine() == null) {
+                return -1;
+            }
+            else {
+                return lineNumber;
+            }
         }
     }
 
