@@ -2,9 +2,9 @@ package me.aarondmello.driver;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.ListIterator;
 
 import me.aarondmello.datatypes.*;
-import me.aarondmello.tiebreaks.TiebreakType;
 
 public class PairingSystem {
     Round round;
@@ -50,12 +50,8 @@ public class PairingSystem {
             LinkedList<Player> playersLeft = new LinkedList<Player>(players);
             round = new Round();
 
-            // If odd number of players, this sits out the worst ranked player that hasn't
-            // already sat out
-            // If this is not the first loop, it sits out the worst player that was not
-            // tried that hasn't already sat out
             if (playersLeft.size() % 2 == 1) {
-                indexOfSittingOut = findIndexOfSittingOut(indexOfSittingOut, players);
+                indexOfSittingOut = indexOfWorstPlayerWhoCanSitOutBefore(indexOfSittingOut, players);
                 if(indexOfSittingOut == -1)
                     break;
                 Player z = playersLeft.remove(indexOfSittingOut);
@@ -127,7 +123,7 @@ public class PairingSystem {
         return temp;
     }
 
-    private int findIndexOfSittingOut(int maxIndex, ArrayList<Player> p) {
+    private int indexOfWorstPlayerWhoCanSitOutBefore(int maxIndex, ArrayList<Player> p) {
         for (int i = maxIndex - 1; i >= 0; i--) {
             if (!p.get(i).hasSatOut())
                 return i;
@@ -142,24 +138,21 @@ public class PairingSystem {
             return new ArrayList<>();
         // True if the first and last player's score are the same
         boolean isPairingFirstPlayer = (sub.get(0).getScore() == sub.get(sub.size() - 1).getScore());
-        // Loops through all players on the list to partner with player p
-        for (int i = sub.size() - 2; i >= 0; i--) {
-            ArrayList<Player> temp = new ArrayList<Player>(sub);
-
-            Player p = temp.remove((isPairingFirstPlayer) ? 0 : sub.size() - 1);
-
-            Player q = temp.remove(i);
-
+        ArrayList<Player> temp = new ArrayList<Player>(sub);
+        Player p = temp.remove((isPairingFirstPlayer) ? 0 : sub.size() - 1);
+        ListIterator<Player> iterator = temp.listIterator(temp.size());
+        while (iterator.hasPrevious()){
+            Player q = iterator.previous();
             if(p.hasPlayedAgainst(q))
                 continue;
-
+            iterator.remove();
             ArrayList<Game> mat = pairSublist(temp);
             if (mat != null){
                 Game g = pairPlayers(isPairingFirstPlayer, p, q);
                 mat.add(g);
                 return mat;
             }
-
+            iterator.add(p);
         }
         return null;
     }
