@@ -117,7 +117,6 @@ public class PairingAlgorithmTest {
         Collections.sort(players, Collections.reverseOrder());
         Round r = pairingSystem.pairRound(3, players);
 
-
         assertTrue(checkIfAllPlayersPaired(r));
         assertTrue(checkIfPairingValid(r));
         assertTrue(scoreDifference(r) <= 4);
@@ -134,12 +133,12 @@ public class PairingAlgorithmTest {
     private boolean checkIfAllPlayersPaired(Round round){
         LinkedList<Game> games = round.getGames();
         HashSet<Integer> uniquePairedPlayers = new HashSet<>();
-        boolean containsNullPlayerAsBlack = false;
+        boolean nullPlayerPaired = false;
         for(Game g : games){
             Player black = g.getBlackPlayer();
             uniquePairedPlayers.add(g.getWhitePlayer().getID());
             if(black instanceof NullPlayer)
-                containsNullPlayerAsBlack = true;
+                nullPlayerPaired = true;
                
             uniquePairedPlayers.add(black.getID());
                 
@@ -149,8 +148,7 @@ public class PairingAlgorithmTest {
         int numberOfUniquePlayersExpected = players.size() + ((oddNumberOfPlayers)? 1:0);
         int numberOfGamesExpected = numberOfUniquePlayersExpected/2;
         boolean areCorrectNumberOfGames = games.size() == numberOfGamesExpected;  
-        boolean allPlayersPaired = numberOfUniquePlayersExpected == uniquePairedPlayers.size(); 
-        boolean nullPlayerPaired = containsNullPlayerAsBlack;  
+        boolean allPlayersPaired = numberOfUniquePlayersExpected == uniquePairedPlayers.size();
 
         return allPlayersPaired && (!oddNumberOfPlayers ^ nullPlayerPaired) && areCorrectNumberOfGames;
     } 

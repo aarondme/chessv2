@@ -1,9 +1,8 @@
 package me.aarondmello;
 
+import me.aarondmello.constants.GameResult;
 import me.aarondmello.csv.CsvWriter;
-import me.aarondmello.datatypes.Division;
-import me.aarondmello.datatypes.Player;
-import me.aarondmello.datatypes.Tournament;
+import me.aarondmello.datatypes.*;
 import me.aarondmello.tiebreaks.TiebreakType;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -115,7 +114,34 @@ public class WriterTester {
 
     @Test
     public void tournamentWithOneDivisionAndOneGame(){
+        Player p1 = new Player("p1", "org");
+        Player p2 =  new Player("p2", "org");
 
+
+        Round r = new Round();
+        Game g = new Game(p1, p2);
+        r.addGame(g);
+        g.setResult(GameResult.WHITE_WIN);
+
+        Tournament t = TournamentBuilder.createTournament()
+                .withName("tournament")
+                .withNRounds(3)
+                .withPlayer("div1", p1)
+                .withPlayer("div1", p2)
+                .withDivisionTiebreaks("div1", new TiebreakType[]{})
+                .withRound("div1", r)
+                .execute();
+        p1.setID(1);
+        p2.setID(2);
+
+        writer.saveTournament(t, printWriter);
+
+        assertEquals("Tournament Name:,tournament\n" +
+                "Round 2 of 3\n" +
+                "\nDivision div1\n" +
+                "ID,Name,Organization,Score,Game 1\n" +
+                "1,p1,org,2,Ww2\n" +
+                "2,p2,org,0,Lb1\n", printWriter.getAsString());
     }
 
     private class TestablePrintWriter extends PrintWriter {
@@ -131,7 +157,10 @@ public class WriterTester {
         }
         @Override
         public void print(int x){out += "" + x;}
-
+        @Override
+        public void print(char x){
+            out += x;
+        }
         @Override
         public void println(String s){
             out += s + '\n';
@@ -173,6 +202,14 @@ public class WriterTester {
         }
         public Tournament execute(){
             return t;
+        }
+
+        public TournamentBuilder withRound(String division, Round r) {
+            Division d = t.getDivisionWithName(division, true);
+            t.setRoundNumber(t.getRoundNumber() + 1);
+            d.setCurrentRound(r);
+            d.confirmRoundResults();
+            return this;
         }
     }
 }

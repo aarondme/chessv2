@@ -10,14 +10,10 @@ public class TiebreakInitializer {
                         TiebreakType.DirectEncounter, TiebreakType.WinCount,
                         TiebreakType.WinCountAsBlack};
     TiebreakType[] tiebreaksTypes = defaultTiebreaks;
-    public void initialize(Player p){
-        //TODO add enum for different settings
-        ArrayList<Tiebreak> tiebreaks = p.getTiebreaks();
-        initialize(tiebreaks);
-    }
 
-    private void initialize(ArrayList<Tiebreak> tiebreaks){
-        tiebreaks.clear();
+
+    public void initialize(Player p){
+        ArrayList<Tiebreak> tiebreaks = new ArrayList<>();
         for(TiebreakType tiebreakType : tiebreaksTypes){
             switch (tiebreakType){
                 case WinCountAsBlack -> tiebreaks.add(new WinCountAsBlack());
@@ -29,6 +25,7 @@ public class TiebreakInitializer {
                 case BuchholzCutOne -> tiebreaks.add(new BuchholzCutOne());
             }
         }
+        p.setTiebreaks(tiebreaks);
     }
 
     public void setTiebreaks(TiebreakType[] tiebreaks){

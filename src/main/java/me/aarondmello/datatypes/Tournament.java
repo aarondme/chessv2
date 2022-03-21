@@ -35,6 +35,10 @@ public class Tournament{
         this.name = name;
     }
 
+    public void setRoundNumber(int roundNumber) {
+        this.roundNumber = roundNumber;
+    }
+
     public boolean isDataValid(){
         return name != null && totalRounds > 0 && divisions.size() > 0;
     }

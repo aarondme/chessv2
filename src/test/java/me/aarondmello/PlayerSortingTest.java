@@ -11,19 +11,26 @@ import org.mockito.Mockito;
 
 import me.aarondmello.datatypes.Player;
 import me.aarondmello.tiebreaks.Tiebreak;
-
+class TestTiebreak implements Tiebreak{
+    int score;
+    TestTiebreak(int score){
+        this.score = score;
+    }
+    @Override
+    public int getScore() {
+        return score;
+    }
+}
 public class PlayerSortingTest {
     ArrayList<Player> players = new ArrayList<Player>();
     Player player0 = new Player("a", "b");
     Player player1 = new Player("a", "b");
-    Tiebreak tiebreakReturns1 = Mockito.mock(Tiebreak.class);
-    Tiebreak tiebreakReturns2 = Mockito.mock(Tiebreak.class);
+    Tiebreak tiebreakReturns1 = new TestTiebreak(1);
+    Tiebreak tiebreakReturns2 = new TestTiebreak(2);
     
     public void init(){
         players.add(player0);
-        players.add(player1);  
-        when(tiebreakReturns1.getScore()).thenReturn(1);
-        when(tiebreakReturns2.getScore()).thenReturn(2);
+        players.add(player1);
     }
 
     @Test
