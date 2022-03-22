@@ -2,30 +2,25 @@ package me.aarondmello;
 
 import me.aarondmello.csv.CsvReader;
 import me.aarondmello.datatypes.Division;
-import me.aarondmello.datatypes.Player;
 import me.aarondmello.datatypes.Tournament;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
-import org.mockito.Mockito;
 
 import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class ResumeTournamentTest {
     CsvReader csvReader = new CsvReader();
-    BufferedReader reader = Mockito.mock(BufferedReader.class);
+    String root = "src/test/data/Save Files/";
+    BufferedReader reader;
 
     @Test
     public void tournamentWithNoDivisions() throws IOException {
-        when(reader.readLine()).thenReturn("Tournament Name:,myTournament")
-                        .thenReturn("Round 1 of 5")
-                        .thenReturn(null);
+        String name = "tournament_with_no_divisions.csv";
+        reader = new BufferedReader(new FileReader(root + name));
 
         Tournament t = csvReader.resumeTournament(reader);
 
@@ -36,12 +31,8 @@ public class ResumeTournamentTest {
 
     @Test
     public void tournamentWithOneEmptyDivision() throws IOException{
-        when(reader.readLine()).thenReturn("Tournament Name:,tournament")
-                .thenReturn("Round 1 of 7")
-                .thenReturn("")
-                .thenReturn("Division a")
-                .thenReturn("ID,Name,Organization,Score")
-                .thenReturn(null);
+        String name = "tournament_with_one_empty_division.csv";
+        reader = new BufferedReader(new FileReader(root + name));
 
         Tournament t = csvReader.resumeTournament(reader);
         Division d = t.getDivisionWithName("a", false);
