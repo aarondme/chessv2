@@ -1,18 +1,19 @@
 package me.aarondmello.datatypes;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map;
 
-import me.aarondmello.tiebreaks.RankingIndependantTiebreak;
 import me.aarondmello.tiebreaks.Tiebreak;
 
-public class Player implements Comparable<Player>{
+public class Player {
     private String name;
     private String organization;
     private int score = 0;
     private int gamesAsWhite = 0;
     private int gamesAsBlack = 0;
-    private LinkedList<PlayerGameSummary> summaries = new LinkedList<PlayerGameSummary>();
-    private ArrayList<Tiebreak> tiebreaks = new ArrayList<Tiebreak>();
+    private LinkedList<PlayerGameSummary> summaries = new LinkedList<>();
+    private HashMap<String, Integer> tiebreaks = new HashMap<>();
     /**
      * IDs for players within a division are expected to be unique integers 
      */
@@ -31,10 +32,10 @@ public class Player implements Comparable<Player>{
     public int getScore() {
         return score;
     }
-    public LinkedList<PlayerGameSummary> getPlayerGameSummarys() {
+    public LinkedList<PlayerGameSummary> getPlayerGameSummaries() {
         return summaries;
     }
-    public ArrayList<Tiebreak> getTiebreaks() {
+    public Map<String, Integer> getTiebreaks() {
         return tiebreaks;
     }
     public int getGamesAsBlack() {
@@ -78,42 +79,17 @@ public class Player implements Comparable<Player>{
         }
         return false;
     }
-    @Override
-    public int compareTo(Player o) {
-        int diff = score - o.getScore();
-        if(diff != 0)
-            return diff;
 
-        ArrayList<Tiebreak> oTiebreaks = o.getTiebreaks();
-        for(int i = 0; i < tiebreaks.size(); i++){
-            diff = tiebreaks.get(i).getScore() - oTiebreaks.get(i).getScore();
-            if(diff != 0)
-                return diff;
-        }
+    public void clearTiebreaks() {
+    }
 
-        return getID() - o.getID();
+    public void setTiebreak(String name, int value) {
+        tiebreaks.put(name, value);
     }
-    public void setTiebreaks(ArrayList<Tiebreak> tiebreaks){
-        this.tiebreaks = tiebreaks;
-    }
-    public void addTiebreak(Tiebreak t){
-        tiebreaks.add(t);
-    }
-    public void update() {
-        updateScore();
-        updateTiebreaks();
-    }
-    private void updateTiebreaks() {
-        for(Tiebreak t : tiebreaks){
-            if(t instanceof RankingIndependantTiebreak){
-                RankingIndependantTiebreak tiebreak = (RankingIndependantTiebreak) t;
-                tiebreak.calculateScore(summaries);
-            }   
-        }
-    }
-    private void updateScore() {
-        score = 0;
-        for(PlayerGameSummary m : summaries)
-            score += m.getPointsEarned();
+
+    public int getTiebreakScore(String name) {
+        Integer a = tiebreaks.get(name);
+        if(a == null) return 0;
+        else return a;
     }
 }

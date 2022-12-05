@@ -21,9 +21,6 @@ public class NullPlayer extends Player{
     public void addPlayerGameSummary(PlayerGameSummary PlayerGameSummary) {}
 
     @Override
-    public void update() {}
-
-    @Override
     public int getID() {
         return -1;
     }
@@ -32,5 +29,8 @@ public class NullPlayer extends Player{
     public boolean hasPlayedAgainst(Player opponent) {
         return false;
     }
+
+    @Override
+    public int getTiebreakScore(String name){return 0;}
 
 }
