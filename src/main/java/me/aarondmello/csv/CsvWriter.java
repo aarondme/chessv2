@@ -30,7 +30,7 @@ public class CsvWriter {
         saveHeader(division, printWriter, numRounds);
 
         for(Player p : division.getPlayers()){
-            savePlayer(p, printWriter);
+            savePlayer(p, printWriter, division);
         }
     }
 
@@ -39,20 +39,27 @@ public class CsvWriter {
         for(int i = 1; i < numRounds; i++){
             printWriter.print(",Game " + i);
         }
-        printWriter.print(division.getTiebreaks());
+        printWriter.print(getTiebreakAsString(division.getTiebreaks()));
         printWriter.print("\n");
     }
 
-    private void savePlayer(Player p, PrintWriter printWriter) {
+    private String getTiebreakAsString(Tiebreak[] tiebreaks) {
+        String out = "";
+        for(Tiebreak t:tiebreaks)
+            out += "," + t.name();
+        return out;
+    }
+
+    private void savePlayer(Player p, PrintWriter printWriter, Division division) {
         printWriter.print(p.getID());
         printWriter.print("," + p.getName());
         printWriter.print("," + p.getOrganization());
         printWriter.print("," + p.getScore());
-        for(PlayerGameSummary g: p.getPlayerGameSummarys()){
+        for(PlayerGameSummary g: p.getPlayerGameSummaries()){
             saveGame(g, printWriter);
         }
-        for (Tiebreak t : p.getTiebreaks()){
-            printWriter.print("," + t.getScore());
+        for (Tiebreak t : division.getTiebreaks()){
+            printWriter.print("," + p.getTiebreakScore(t.name()));
         }
         printWriter.print("\n");
     }

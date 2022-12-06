@@ -1,17 +1,20 @@
 package me.aarondmello.tiebreaks;
 
-public class DirectEncounter implements RankingDependantTiebreak {
+import me.aarondmello.datatypes.Player;
+
+import java.util.Collection;
+import java.util.Comparator;
+
+public class DirectEncounter implements Tiebreak {
+//TODO implement this class
 
     @Override
-    public int getScore() {
-        // TODO Auto-generated method stub
-        return 0;
+    public String name() {
+        return TiebreakType.DirectEncounter.name();
     }
 
     @Override
-    public void setScore() {
-        // TODO Auto-generated method stub
-        
+    public void computeTiebreak(Collection<Player> players, Comparator<Player> playerComparator) {
+
     }
-    
 }

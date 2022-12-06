@@ -4,7 +4,7 @@ import java.util.*;
 //TODO initialize by type.
 public class Tournament{
     private String name = null;
-    private LinkedList<Division> divisions = new LinkedList<Division>();
+    private LinkedList<Division> divisions = new LinkedList<>();
     private int roundNumber = 1;
     private int totalRounds = -1;
 
@@ -81,9 +81,11 @@ public class Tournament{
             division.removePlayer(playerID);
     }
 
-    public void initialize() {
-        for(Division division : divisions)
+    public void initialize(boolean shouldRandomize) {
+        for(Division division : divisions){
+            if (shouldRandomize) division.randomizeIds();
             division.initialize();
+        }
     }
 
     public void createRound() {

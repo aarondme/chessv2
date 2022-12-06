@@ -92,6 +92,10 @@ public class WriterTester {
                 .execute();
 
         Division division = t.getDivisionWithName("div2", false);
+        division.setTiebreaks(new TiebreakType[]{TiebreakType.BuchholzCutOne, TiebreakType.Buchholz,
+                TiebreakType.SonnebornBerger, TiebreakType.ProgressiveScores,
+                TiebreakType.DirectEncounter, TiebreakType.WinCount,
+                TiebreakType.WinCountAsBlack});
         division.initialize();
 
         writer.saveTournament(t, out);
@@ -141,8 +145,8 @@ public class WriterTester {
                 .withDivisionTiebreaks("div1", new TiebreakType[]{})
                 .withRound("div1", r)
                 .execute();
-        p1.setID(1);
-        p2.setID(2);
+        p1.setID(0);
+        p2.setID(1);
 
         writer.saveTournament(t, out);
         out.close();
@@ -171,8 +175,38 @@ public class WriterTester {
                 .withDivisionTiebreaks("div1", new TiebreakType[]{})
                 .withRound("div1", r)
                 .execute();
-        p1.setID(1);
-        p2.setID(2);
+        p1.setID(0);
+        p2.setID(1);
+
+        writer.saveTournament(t, out);
+        out.close();
+
+        long mismatch = filesCompareByLine(Path.of(expected), Path.of(actual));
+        assertEquals(-1, mismatch);
+        Files.delete(Path.of(actual));
+    }
+
+    @Test
+    public void completeTournamentWithOneDivisionAndTiebreaks() throws IOException {
+        setup("complete_tournament_with_one_division_and_tiebreaks");
+        Player p1 = new Player("p1", "org");
+        Player p2 =  new Player("p2", "org");
+
+        Round r = new Round();
+        Game g = new Game(p1, p2);
+        r.addGame(g);
+        g.setResult(GameResult.WHITE_WIN);
+
+        Tournament t = TournamentBuilder.createTournament()
+                .withName("tournament")
+                .withNRounds(1)
+                .withPlayer("div1", p1)
+                .withPlayer("div1", p2)
+                .withDivisionTiebreaks("div1", new TiebreakType[]{TiebreakType.WinCount})
+                .withRound("div1", r)
+                .execute();
+        p1.setID(0);
+        p2.setID(1);
 
         writer.saveTournament(t, out);
         out.close();
@@ -201,48 +235,6 @@ public class WriterTester {
             else {
                 return lineNumber;
             }
-        }
-    }
-
-    private static class TournamentBuilder {
-        Tournament t;
-        TournamentBuilder(){
-            t = new Tournament();
-        }
-        public static TournamentBuilder createTournament(){
-            return new TournamentBuilder();
-        }
-
-        public TournamentBuilder withName(String s){
-            t.setName(s);
-            return this;
-        }
-
-        public TournamentBuilder withNRounds(int n){
-            t.setTotalRounds(n);
-            return this;
-        }
-
-        public TournamentBuilder withPlayer(String division, Player player){
-            t.addPlayer(division, player);
-            return this;
-        }
-
-        public TournamentBuilder withDivisionTiebreaks(String division, TiebreakType[] tiebreaks){
-            Division d = t.getDivisionWithName(division, true);
-            d.setTiebreaks(tiebreaks);
-            return this;
-        }
-        public Tournament execute(){
-            return t;
-        }
-
-        public TournamentBuilder withRound(String division, Round r) {
-            Division d = t.getDivisionWithName(division, true);
-            t.setRoundNumber(t.getRoundNumber() + 1);
-            d.setCurrentRound(r);
-            d.confirmRoundResults();
-            return this;
         }
     }
 }

@@ -1,10 +1,9 @@
 package me.aarondmello.commandlineinterface;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
+import java.io.*;
 import java.util.Scanner;
 
+import me.aarondmello.csv.CsvWriter;
 import me.aarondmello.datatypes.Division;
 import me.aarondmello.datatypes.Game;
 import me.aarondmello.datatypes.Player;
@@ -30,11 +29,27 @@ public class CommandLineInterface implements GUI {
     }
 
     private void saveTournament(Tournament tournament) {
+        if(tournament == null) return;
+        CsvWriter writer = new CsvWriter();
+        while (true){
+            try {
+                System.out.println("Enter the path to save the tournament, or \"0\" to exit");
+                String x = input.nextLine();
+                if(x.equals("0")) return;
+                PrintWriter p = new PrintWriter(x);
+                writer.saveTournament(tournament, p);
+                return;
+            } catch (FileNotFoundException e) {
+                System.out.println("file not found");
+            }
+        }
     }
 
     private void runTournament(Tournament tournament) {
+        if(tournament == null) return;
+
         boolean shouldContinue = true;
-        tournament.initialize();
+        tournament.initialize(true);
         while(tournament.hasRoundsRemaining() && shouldContinue){
             tournament.createRound();
             
@@ -154,9 +169,8 @@ public class CommandLineInterface implements GUI {
                 if(min <= out && out <= max)
                     return out;
             } catch (Exception e) {
-      
+                System.out.println("Invalid input provided");
             }
-            System.out.println("Invalid input provided");
         }
     }
 
@@ -181,18 +195,19 @@ public class CommandLineInterface implements GUI {
     }
 
     private Tournament confirmTournamentDetails(Tournament tournament, Persister persister) {
-        while(true){
-            printPlayerList(tournament);
-            int in = promptForInt("--- Confirming tournament details ---", new String[]{"0: close program", "1: continue", "2: edit tournament details"}, 
-                        0, 2);
+
+        printPlayerList(tournament);
+        int in = promptForInt("--- Confirming tournament details ---",
+                new String[]{"0: close program", "1: continue", "2: edit tournament details"},
+                0, 2);
             
-            if(in == 0)
-                return null;
-            else if(in == 1)
-                return tournament;
-            else
-                return editNewTournamentDetails(tournament, persister);
-        }
+        if(in == 0)
+            return null;
+        else if(in == 1)
+            return tournament;
+        else
+            return editNewTournamentDetails(tournament, persister);
+
     }
 
     private void printPlayerList(Tournament tournament) {
@@ -237,7 +252,7 @@ public class CommandLineInterface implements GUI {
             else if(in == 7){
                 if(tournament.isDataValid())
                     return confirmTournamentDetails(tournament, persister);
-                return null;
+                System.out.println("Tournament data is invalid");
             }
         }  
     }
