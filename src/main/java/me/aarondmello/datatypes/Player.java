@@ -81,6 +81,7 @@ public class Player {
     }
 
     public void clearTiebreaks() {
+        tiebreaks.clear();
     }
 
     public void setTiebreak(String name, int value) {

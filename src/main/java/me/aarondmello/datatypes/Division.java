@@ -31,6 +31,7 @@ public class Division{
 
     Division(String name){
         this.name = name;
+        setTiebreaks(null);
     }
     public String getName() {
         return name;
@@ -76,12 +77,10 @@ public class Division{
         }
     }
     public void initialize() {
-        if(tiebreaks == null)
-            setTiebreaks(null);
-
         for(Player p : players)
             p.clearTiebreaks();
-
+        for(Tiebreak t: tiebreaks)
+            t.computeTiebreak(players, getPlayerComparator());
         sortPlayers();
     }
     public void pairRound(int roundNumber) {
@@ -98,16 +97,9 @@ public class Division{
     public void confirmRoundResults() {
         for(Game game : currentRound.getGames())
             game.confirmResult();
-        for(Player p : players)
-            p.clearTiebreaks();
-        computeTiebreaks();
-        sortPlayers();
-        //TODO update ranking-dependant tiebreaks
-        //sortPlayers();
+        initialize();
     }
 
-    private void computeTiebreaks() {
-    }
 
     public boolean validateRoundResults() {
         for(Game game : currentRound.getGames()){

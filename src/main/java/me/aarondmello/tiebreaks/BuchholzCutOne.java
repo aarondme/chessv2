@@ -9,7 +9,7 @@ import me.aarondmello.datatypes.PlayerGameSummary;
 
 public class BuchholzCutOne implements Tiebreak{
     private int calculateScore(LinkedList<PlayerGameSummary> games) {
-        int minOpponentScore = Integer.MAX_VALUE;
+        int minOpponentScore = 0;
         int score = 0;
         for(PlayerGameSummary game : games){
             int opponentScore = game.getOpponent().getScore();

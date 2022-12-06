@@ -10,7 +10,7 @@ public class DirectEncounter implements Tiebreak {
 
     @Override
     public String name() {
-        return null;
+        return TiebreakType.DirectEncounter.name();
     }
 
     @Override

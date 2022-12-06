@@ -29,11 +29,19 @@ public class TournamentComparer {
                 addToResult("missing division " + d.getName());
                 continue;
             }
-
-            if(Arrays.equals(d.getTiebreaks(), db.getTiebreaks())){
+            Tiebreak[] dtb = d.getTiebreaks();
+            Tiebreak[] dbtb = db.getTiebreaks();
+            if(dtb.length != dbtb.length){
                 addToResult("division " + d.getName() + " inconsistent tiebreaks");
                 continue;
             }
+            for(int i = 0; i < dtb.length; i++){
+                if(!dtb[i].name().equals(dbtb[i].name())){
+                    addToResult("division " + d.getName() + " inconsistent tiebreaks");
+                    break;
+                }
+            }
+
 
             comparePlayers(d, db);
         }

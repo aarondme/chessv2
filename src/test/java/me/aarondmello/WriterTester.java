@@ -208,7 +208,6 @@ public class WriterTester {
         p1.setID(0);
         p2.setID(1);
 
-
         writer.saveTournament(t, out);
         out.close();
 

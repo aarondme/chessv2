@@ -7,6 +7,7 @@ import java.util.*;
 
 import me.aarondmello.constants.Colour;
 import me.aarondmello.datatypes.*;
+import me.aarondmello.tiebreaks.Tiebreak;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -16,7 +17,12 @@ import org.mockito.Mockito;
 import me.aarondmello.driver.PairingSystem;
 
 public class PairingAlgorithmTest {
-    
+    class PlayerComparator implements Comparator<Player>{
+        @Override
+        public int compare(Player o1, Player o2) {
+          return o1.getScore() - o2.getScore();
+        }
+    }
     PairingSystem pairingSystem;
     ArrayList<Player> players;
     final int WHITE = 8;
@@ -94,7 +100,7 @@ public class PairingAlgorithmTest {
         };
         initPlayers(5, matches);
         players.get(4).addPlayerGameSummary(new PlayerGameSummary(2, NullPlayer.getInstance(), Colour.WHITE));
-        Collections.sort(players, Collections.reverseOrder());
+        players.sort(new PlayerComparator().reversed());
 
         Round r = pairingSystem.pairRound(2, players);
 
@@ -114,7 +120,7 @@ public class PairingAlgorithmTest {
                 {NOPLAY,BLACK+WIN,NOPLAY,NOPLAY,NOPLAY}
         };
         initPlayers(5, matches);
-        Collections.sort(players, Collections.reverseOrder());
+        players.sort(new PlayerComparator().reversed());
         Round r = pairingSystem.pairRound(3, players);
 
         assertTrue(checkIfAllPlayersPaired(r));
