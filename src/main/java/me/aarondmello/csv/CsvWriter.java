@@ -44,10 +44,12 @@ public class CsvWriter {
     }
 
     private String getTiebreakAsString(Tiebreak[] tiebreaks) {
-        String out = "";
-        for(Tiebreak t:tiebreaks)
-            out += "," + t.name();
-        return out;
+        StringBuilder out = new StringBuilder();
+        for(Tiebreak t:tiebreaks){
+            out.append(",");
+            out.append(t.name());
+        }
+        return out.toString();
     }
 
     private void savePlayer(Player p, PrintWriter printWriter, Division division) {
