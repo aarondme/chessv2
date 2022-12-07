@@ -2,6 +2,7 @@ package me.aarondmello;
 
 import me.aarondmello.datatypes.*;
 import me.aarondmello.tiebreaks.Tiebreak;
+import me.aarondmello.tiebreaks.TiebreakType;
 
 import java.util.Arrays;
 import java.util.List;
@@ -90,8 +91,8 @@ public class TournamentComparer {
     }
 
     private void compareTiebreaks(Player p, Player pq) {
-        Map<String, Integer> tb1 = p.getTiebreaks();
-        Map<String, Integer> tb2 = pq.getTiebreaks();
+        Map<TiebreakType, Integer> tb1 = p.getTiebreaks();
+        Map<TiebreakType, Integer> tb2 = pq.getTiebreaks();
         if (!tb1.keySet().equals(tb2.keySet())){
             addToResult("Tiebreaks on player " + p.getID() + " not matching");
         }

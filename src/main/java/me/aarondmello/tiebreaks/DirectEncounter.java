@@ -14,6 +14,9 @@ public class DirectEncounter implements Tiebreak {
     }
 
     @Override
+    public TiebreakType type(){return TiebreakType.DirectEncounter;}
+
+    @Override
     public void computeTiebreak(Collection<Player> players, Comparator<Player> playerComparator) {
 
     }

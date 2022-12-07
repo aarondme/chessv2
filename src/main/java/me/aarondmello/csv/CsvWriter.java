@@ -59,7 +59,7 @@ public class CsvWriter {
             saveGame(g, printWriter);
         }
         for (Tiebreak t : division.getTiebreaks()){
-            printWriter.print("," + p.getTiebreakScore(t.name()));
+            printWriter.print("," + p.getTiebreakScore(t.type()));
         }
         printWriter.print("\n");
     }

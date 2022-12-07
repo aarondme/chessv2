@@ -5,6 +5,7 @@ import java.util.LinkedList;
 import java.util.Map;
 
 import me.aarondmello.tiebreaks.Tiebreak;
+import me.aarondmello.tiebreaks.TiebreakType;
 
 public class Player {
     private String name;
@@ -13,7 +14,7 @@ public class Player {
     private int gamesAsWhite = 0;
     private int gamesAsBlack = 0;
     private LinkedList<PlayerGameSummary> summaries = new LinkedList<>();
-    private HashMap<String, Integer> tiebreaks = new HashMap<>();
+    private HashMap<TiebreakType, Integer> tiebreaks = new HashMap<>();
     /**
      * IDs for players within a division are expected to be unique integers 
      */
@@ -35,7 +36,7 @@ public class Player {
     public LinkedList<PlayerGameSummary> getPlayerGameSummaries() {
         return summaries;
     }
-    public Map<String, Integer> getTiebreaks() {
+    public Map<TiebreakType, Integer> getTiebreaks() {
         return tiebreaks;
     }
     public int getGamesAsBlack() {
@@ -84,12 +85,12 @@ public class Player {
         tiebreaks.clear();
     }
 
-    public void setTiebreak(String name, int value) {
-        tiebreaks.put(name, value);
+    public void setTiebreak(TiebreakType tiebreakType, int value) {
+        tiebreaks.put(tiebreakType, value);
     }
 
-    public int getTiebreakScore(String name) {
-        Integer a = tiebreaks.get(name);
+    public int getTiebreakScore(TiebreakType type) {
+        Integer a = tiebreaks.get(type);
         if(a == null) return 0;
         else return a;
     }

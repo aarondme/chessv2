@@ -14,8 +14,8 @@ public class Division{
         public int compare(Player o1, Player o2) {
             if(o1.getScore() != o2.getScore()) return o1.getScore() - o2.getScore();
             for(Tiebreak t : tiebreaks){
-                if(o1.getTiebreakScore(t.name()) != o2.getTiebreakScore(t.name()))
-                    return o1.getTiebreakScore(t.name()) - o2.getTiebreakScore(t.name());
+                if(o1.getTiebreakScore(t.type()) != o2.getTiebreakScore(t.type()))
+                    return o1.getTiebreakScore(t.type()) - o2.getTiebreakScore(t.type());
             }
             return 0;
         }
@@ -132,13 +132,13 @@ public class Division{
         Tiebreak[] tbs = new Tiebreak[tiebreakTypes.length];
         for(int i = 0; i < tiebreakTypes.length; i++){
             switch (tiebreakTypes[i]){
-                case Buchholz -> tbs[i] = new Buchholz();
-                case BuchholzCutOne -> tbs[i] = new BuchholzCutOne();
+                case Buchholz -> tbs[i] = new SimpleTiebreak(new Buchholz());
+                case BuchholzCutOne -> tbs[i] = new SimpleTiebreak(new BuchholzCutOne());
                 case DirectEncounter -> tbs[i] = new DirectEncounter();
-                case SonnebornBerger -> tbs[i] = new SonnebornBerger();
-                case ProgressiveScores -> tbs[i] = new ProgressiveScores();
-                case WinCount -> tbs[i] = new WinCount();
-                case WinCountAsBlack -> tbs[i] = new WinCountAsBlack();
+                case SonnebornBerger -> tbs[i] = new SimpleTiebreak(new SonnebornBerger());
+                case ProgressiveScores -> tbs[i] = new SimpleTiebreak(new ProgressiveScores());
+                case WinCount -> tbs[i] = new SimpleTiebreak(new WinCount());
+                case WinCountAsBlack -> tbs[i] = new SimpleTiebreak(new WinCountAsBlack());
             }
         }
         tiebreaks = tbs;
