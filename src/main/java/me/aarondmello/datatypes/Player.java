@@ -81,6 +81,14 @@ public class Player {
         return false;
     }
 
+    public int getScoreAgainst(Player opponent){
+        for(PlayerGameSummary m : summaries){
+            if(m.getOpponent().equals(opponent))
+                return m.getPointsEarned();
+        }
+        return -1;
+    }
+
     public void clearTiebreaks() {
         tiebreaks.clear();
     }

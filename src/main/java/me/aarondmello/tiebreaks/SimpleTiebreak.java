@@ -2,8 +2,8 @@ package me.aarondmello.tiebreaks;
 
 import me.aarondmello.datatypes.Player;
 
-import java.util.Collection;
 import java.util.Comparator;
+import java.util.List;
 
 public class SimpleTiebreak implements Tiebreak{
     ICalculateSimpleTiebreak calculator;
@@ -20,7 +20,7 @@ public class SimpleTiebreak implements Tiebreak{
     public TiebreakType type(){return calculator.type();}
 
     @Override
-    public void computeTiebreak(Collection<Player> players, Comparator<Player> playerComparator) {
+    public void computeTiebreak(List<Player> players, Comparator<Player> playerComparator) {
         for(Player p : players)
             p.setTiebreak(calculator.type(), calculator.calculateScore(p.getPlayerGameSummaries()));
     }
