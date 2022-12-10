@@ -1,5 +1,7 @@
 package me.aarondmello.datatypes;
 
+import me.aarondmello.tiebreaks.TiebreakType;
+
 public class NullPlayer extends Player{
 
     static NullPlayer instanceNullPlayer = new NullPlayer();
@@ -31,6 +33,6 @@ public class NullPlayer extends Player{
     }
 
     @Override
-    public int getTiebreakScore(String name){return 0;}
+    public int getTiebreakScore(TiebreakType type){return 0;}
 
 }
