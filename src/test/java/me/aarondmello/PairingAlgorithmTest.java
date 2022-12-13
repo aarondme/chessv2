@@ -22,12 +22,6 @@ import me.aarondmello.driver.PairingSystem;
 public class PairingAlgorithmTest {
     PairingSystem pairingSystem;
     ArrayList<Player> players;
-    final int WHITE = 8;
-    final int BLACK = 0;
-    final int WIN = 3;
-    final int LOSS = 0;
-    final int NOPLAY = -1;
-
 
     @BeforeEach
     public void setup(){
@@ -56,14 +50,17 @@ public class PairingAlgorithmTest {
     }
 
 
-//    @Test
-//    public void stressTest() throws InterruptedException{
-//        assertTimeoutPreemptively(Duration.ofSeconds(60), () -> {
-//            initPlayers(30);
-//            Round r = pairingSystem.pairRound(1, players, 6);
-//            assertTrue(checkIfAllPlayersPaired(r));
-//        });
-//    }
+    @Test
+    public void stressTest() {
+        assertTimeoutPreemptively(Duration.ofSeconds(60), () -> {
+            initPlayers(30);
+            Round r = pairingSystem.pairRound(1, players, 6);
+            for (Game g:r.getGames()) {
+                System.out.println(g.getWhitePlayer().getID() + " " + g.getBlackPlayer().getID());
+            }
+            assertTrue(checkIfAllPlayersPaired(r));
+        });
+    }
 
     @Test
     public void pairLastOption(){
@@ -87,7 +84,9 @@ public class PairingAlgorithmTest {
 
 
         Round r = pairingSystem.pairRound(3, players, 3);
-
+        for (Game g : r.getGames()) {
+            System.out.println(g.getWhitePlayer().getID() + " " + g.getBlackPlayer().getID());
+        }
         assertTrue(checkIfAllPlayersPaired(r));
         assertTrue(checkIfPairingValid(r));
     }
@@ -113,7 +112,9 @@ public class PairingAlgorithmTest {
 
 
         Round r = pairingSystem.pairRound(2, players, 4);
-
+        for (Game g : r.getGames()) {
+            System.out.println(g.getWhitePlayer().getID() + " " + g.getBlackPlayer().getID());
+        }
         assertTrue(checkIfAllPlayersPaired(r));
         assertTrue(checkIfPairingValid(r));
     }
@@ -143,7 +144,9 @@ public class PairingAlgorithmTest {
                 new PlayerGameSummary(2, players.get(1), Colour.BLACK)
         );
         Round r = pairingSystem.pairRound(3, players, 4);
-
+        for (Game g : r.getGames()) {
+            System.out.println(g.getWhitePlayer().getID() + " " + g.getBlackPlayer().getID());
+        }
         assertTrue(checkIfAllPlayersPaired(r));
         assertTrue(checkIfPairingValid(r));
     }

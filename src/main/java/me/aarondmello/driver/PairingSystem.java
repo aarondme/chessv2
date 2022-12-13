@@ -31,8 +31,8 @@ public class PairingSystem {
         if(index == null)
             return myState;
 
-        for(int pos : vars.getVar(index[0], index[1]).getDomain()){
-            myState.setVar(index[0], index[1], pos);
+        for(VarAssignment pos : vars.getVar(index[0], index[1]).getDomain()){
+            myState.setVar(index[0], index[1], pos.var);
 
             LinkedList<Constraint> constraints = getConstraintsForVar(index[0], index[1]);
             HashSet<String> constraintName = new HashSet<>();
@@ -100,18 +100,20 @@ public class PairingSystem {
             for(int i = 0; i < players.size(); i++){
                 LinkedList<PlayerGameSummary> summaries = players.get(i).getPlayerGameSummaries();
                 for(int j = 0; j < summaries.size(); j++){
-                    variables[i][j] = new Variable(0);
+                    variables[i][j] = new Variable(players.size(), i, j);
                     int opponentIndex = -1;
+                    int opponentId = summaries.get(j).getOpponent().getID();
                     for (int k = 0; k < players.size(); k++) {
-                        if(players.get(k).getID() == summaries.get(j).getOpponent().getID())
+                        if(players.get(k).getID() == opponentId){
                             opponentIndex = k;
+                            break;
+                        }
                     }
 
                     variables[i][j].setValue(opponentIndex);
                 }
                 for (int j = summaries.size(); j < totalRounds; j++){
-                    variables[i][j] = new Variable(players.size());
-                    variables[i][j].removeValue(i);
+                    variables[i][j] = new Variable(players.size(), i, j);
                 }
             }
         }
@@ -167,24 +169,9 @@ public class PairingSystem {
 
         public int getWeight() {
             int weight = 0;
-            for (int i = 0; i < variables.length; i++) {
-                for (int j = 0; j < variables[i].length; j++) {
-                    Variable w = getVar(i, j);
-                    int minWeight = Integer.MAX_VALUE;
-                    for(int index : w.getDomain()){
-                        int x = 0;
-                        if(index == -1)
-                            x += ((players.get(i).hasSatOut())? 2_000_000: 1_000_000);
-                        if(j == roundNumber - 1){
-                            if(index == -1)
-                                x += 5 * players.get(i).getScore() * players.get(i).getScore();
-                            else
-                                x += (players.get(i).getScore() - players.get(index).getScore()) *
-                                        (players.get(i).getScore() - players.get(index).getScore());
-                        }
-                        if(x < minWeight) minWeight = x;
-                    }
-                    weight += minWeight;
+            for (Variable[] variable : variables) {
+                for (Variable value : variable) {
+                    weight += value.values.get(0).weight;
                 }
             }
             return weight;
@@ -194,38 +181,55 @@ public class PairingSystem {
             variables[index][index1].setValue(pos);
         }
 
+        public int getWeightOf(int i, int j) {
+            return variables[i][j].values.get(0).weight;
+        }
     }
 
-    private static class Variable {
-        LinkedList<Integer> values;
+    private class Variable {
+        LinkedList<VarAssignment> values;
         public Variable(Variable x){
             values = new LinkedList<>();
             values.addAll(x.values);
         }
 
-        public Variable(int numPlayers) {
+        public Variable(int numPlayers, int player, int rounds) {
             values = new LinkedList<>();
             for(int x = 0; x < numPlayers; x++){
-                values.add(x);
+                if(x == player) continue;
+                values.add(new VarAssignment(x, calculateWeight(x, player, rounds)));
             }
-            values.add(-1);
+            values.add(new VarAssignment(-1,
+                    players.get(player).hasSatOut()? 2_000_000:1_000_000 + players.get(player).getScore() * players.get(player).getScore() * 5));
+            values.sort(Comparator.comparing(varAssignment -> varAssignment.weight));
         }
 
-        public LinkedList<Integer> getDomain() {
+        private int calculateWeight(int x, int player, int rounds) {
+            if (rounds == roundNumber - 1) {
+                return (players.get(player).getScore() - players.get(x).getScore()) *
+                            (players.get(player).getScore() - players.get(x).getScore());
+            }
+            return 0;
+        }
+
+
+        public LinkedList<VarAssignment> getDomain() {
             return values;
         }
 
         public void setValue(int pos) {
-            values.clear();
-            values.add(pos);
+            values.removeIf(varAssignment -> varAssignment.var != pos);
         }
 
         public boolean contains(int pos){
-            return values.contains(pos);
+            for (VarAssignment v: values)
+                if(v.var == pos)
+                    return true;
+            return false;
         }
 
         public void removeValue(int pos) {
-            values.removeIf(value -> value == pos);
+            values.removeIf(varAssignment -> varAssignment.var == pos);
         }
 
         public boolean isSingleton() {
@@ -234,9 +238,7 @@ public class PairingSystem {
 
         public int getValue(){
             if(isSingleton()){
-                for(int v : values){
-                    return v;
-                }
+                return values.get(0).var;
             }
             return -1;
         }
@@ -248,11 +250,15 @@ public class PairingSystem {
         public boolean isEmpty() {
             return values.isEmpty();
         }
+
+
     }
 
+    private record VarAssignment(int var, int weight) {
+    }
     private interface Constraint {
         int[][] scope();
-        boolean hasAssignment(State state, Variable v, int pos);
+        boolean hasAssignment(State state, Variable v, VarAssignment pos);
         String name();
     }
 
@@ -272,8 +278,8 @@ public class PairingSystem {
         }
 
         @Override
-        public boolean hasAssignment(State state, Variable v, int pos) {
-            int numSitOuts = (pos == -1)? 1:0;
+        public boolean hasAssignment(State state, Variable v, VarAssignment pos) {
+            int numSitOuts = (pos.var == -1)? 1:0;
 
             for (int i = 0; i < totalRounds; i++) {
                 Variable w = state.getVar(x, i);
@@ -281,7 +287,7 @@ public class PairingSystem {
 
                 if(w.contains(-1))
                     numSitOuts++;
-                else if(w.contains(pos))
+                else if(w.contains(pos.var))
                     return false;
             }
             return numSitOuts <= (totalRounds + 1)/2;
@@ -310,8 +316,8 @@ public class PairingSystem {
         }
 
         @Override
-        public boolean hasAssignment(State state, Variable v, int pos) {
-            int numSitOuts = (pos == -1)? 1:0;
+        public boolean hasAssignment(State state, Variable v, VarAssignment pos) {
+            int numSitOuts = (pos.var == -1)? 1:0;
             int indexOfV = -2;
             for(int i = 0; i < players.size(); i++){
                 if(state.getVar(i, y).equals(v)){
@@ -322,11 +328,11 @@ public class PairingSystem {
 
             for (int i = 0; i < players.size(); i++) {
                 Variable w = state.getVar(i, y);
-                if(i == pos && !w.contains(indexOfV)) return false;
+                if(i == pos.var && !w.contains(indexOfV)) return false;
                 if(i == indexOfV || !w.isSingleton()) continue;
 
                 if(w.contains(-1)) numSitOuts++;
-                else if(w.contains(pos)) return false;
+                else if(w.contains(pos.var)) return false;
             }
             return numSitOuts <= y+1;
         }
@@ -353,35 +359,16 @@ public class PairingSystem {
         }
 
         @Override
-        public boolean hasAssignment(State state, Variable v, int pos) {
-
+        public boolean hasAssignment(State state, Variable v, VarAssignment pos) {
             int weight = 0;
             for (int i = 0; i < state.variables.length; i++) {
                 for (int j = 0; j < state.variables[i].length; j++) {
                     Variable w = state.getVar(i, j);
                     if(w.equals(v)){
-                        int x ;
-                        if(pos == -1)
-                            x = ((players.get(i).hasSatOut())? 2_000_000: 1_000_000);
-                        else
-                            x = (players.get(i).getScore() - players.get(pos).getScore()) * (players.get(i).getScore() - players.get(pos).getScore());
-
-                        weight += x;
+                        weight += pos.weight;
                         continue;
                     }
-                    int minWeight = Integer.MAX_VALUE;
-                    for(int index : w.getDomain()){
-                        int x;
-                        if(index == -1)
-                            x = ((players.get(i).hasSatOut())? 2_000_000: 1_000_000);
-                        else if(j == roundNumber - 1)
-                            x = (players.get(i).getScore() - players.get(index).getScore()) * (players.get(i).getScore() - players.get(index).getScore());
-                        else
-                            x = 0;
-
-                        if(x < minWeight) minWeight = x;
-                    }
-                    weight += minWeight;
+                    weight += state.getWeightOf(i, j);
                 }
             }
             return weight < bestSolution.getWeight();
