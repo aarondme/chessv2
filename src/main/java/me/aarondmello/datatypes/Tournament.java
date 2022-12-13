@@ -85,6 +85,7 @@ public class Tournament{
         for(Division division : divisions){
             if (shouldRandomize) division.randomizeIds();
             division.initialize();
+            division.setTotalRounds(totalRounds);
         }
     }
 

@@ -64,10 +64,14 @@ public class Player {
     public void setID(int id){
         this.id = id;
     }
-    public void addPlayerGameSummary(PlayerGameSummary playerGameSummary){
-        summaries.add(playerGameSummary);
-        score += playerGameSummary.getPointsEarned();
+    public void addPlayerGameSummary(PlayerGameSummary ... playerGameSummaries){
+        for (PlayerGameSummary p: playerGameSummaries) {
+            summaries.add(p);
+            score += p.getPointsEarned();
+        }
+
     }
+
     
     public boolean hasSatOut(){
         return hasPlayedAgainst(NullPlayer.getInstance());
