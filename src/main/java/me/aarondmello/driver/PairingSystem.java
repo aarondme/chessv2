@@ -10,6 +10,7 @@ public class PairingSystem {
     int totalRounds;
     ArrayList<Player> players;
     int roundNumber;
+    int numEntries, numPlayers;
 
     public PairingSystem(){
     }
@@ -19,6 +20,8 @@ public class PairingSystem {
         this.players = players;
         this.roundNumber = roundNumber;
         bestSolution = getDefaultState();
+        numPlayers = players.size();
+        numEntries = players.size() * totalRounds;
         State vars = new State();
         gac(vars);
         return bestSolution.getRound(roundNumber);
@@ -34,9 +37,9 @@ public class PairingSystem {
             myState.setVar(index, pos.opponentIndex);
 
             LinkedList<Constraint> constraints = getConstraintsForVar(index);
-            HashSet<String> constraintName = constraints.stream().map(Constraint::name).collect(Collectors.toCollection(HashSet::new));
+            HashSet<String> constraintNames = constraints.stream().map(Constraint::name).collect(Collectors.toCollection(HashSet::new));
 
-            if(gacEnforce(constraints, constraintName, myState)){
+            if(gacEnforce(constraints, constraintNames, myState)){
                 State sol = gac(myState);
                 if(sol != null)
                     bestSolution = sol;
@@ -104,7 +107,6 @@ public class PairingSystem {
                             opponentIndex = k;
                             break;
                         }
-                    }
 
                     variables[i][j].setValue(opponentIndex);
                 }
@@ -228,7 +230,6 @@ public class PairingSystem {
             return 0;
         }
 
-
         public LinkedList<VarAssignment> getDomain() {
             return values;
         }
@@ -239,10 +240,6 @@ public class PairingSystem {
 
         public boolean contains(int opponentIndex){
             return values.stream().anyMatch(v -> v.opponentIndex == opponentIndex);
-        }
-
-        public void removeValue(int pos) {
-            values.removeIf(varAssignment -> varAssignment.var == pos);
         }
 
         public boolean isSingleton() {
@@ -263,16 +260,14 @@ public class PairingSystem {
         public boolean isEmpty() {
             return values.isEmpty();
         }
-
-
     }
 
     private record VarAssignment(int opponentIndex, int weight) {
 
     }
-    private interface Constraint {
-        int[][] scope();
-        boolean hasAssignment(State state, Variable v, VarAssignment pos);
+
+    private interface Constraint extends Iterable<int[]> {
+        boolean hasAssignment(State state, int[] coordinate, VarAssignment pos);
         String name();
     }
 
@@ -285,14 +280,9 @@ public class PairingSystem {
             this.playerIndex = playerIndex;
             this.name = "h" + playerIndex;
         }
-
         @Override
-        public int[][] scope() {
-            int[][] s = new int[totalRounds][];
-            for (int i = 0; i < totalRounds; i++) {
-                s[i] = new int[]{x, i};
-            }
-            return s;
+        public Iterator<int[]> iterator() {
+            return new ScopeIterator();
         }
 
         @Override
@@ -315,6 +305,20 @@ public class PairingSystem {
         public String name() {
             return name;
         }
+
+        private class ScopeIterator implements Iterator<int[]>{
+            int index = 0;
+            @Override
+            public boolean hasNext() {
+                return index < totalRounds;
+            }
+
+            @Override
+            public int[] next() {
+                index += 1;
+                return new int[]{playerIndex, index - 1};
+            }
+        }
     }
 
     private class RoundConstraint implements Constraint {
@@ -324,14 +328,9 @@ public class PairingSystem {
             this.roundIndex = roundIndex;
             this.name = "v" + roundIndex;
         }
-
         @Override
-        public int[][] scope() {
-            int[][] s = new int[players.size()][];
-            for (int i = 0; i < players.size(); i++) {
-                s[i] = new int[]{i, y};
-            }
-            return s;
+        public Iterator<int[]> iterator() {
+            return new ScopeIterator();
         }
 
         @Override
@@ -353,21 +352,25 @@ public class PairingSystem {
         public String name() {
             return name;
         }
+        private class ScopeIterator implements Iterator<int[]>{
+            int index = 0;
+            @Override
+            public boolean hasNext() {
+                return index < numPlayers;
+            }
+
+            @Override
+            public int[] next() {
+                index += 1;
+                return new int[]{index - 1, roundIndex};
+            }
+        }
     }
 
     private class WeightConstraint implements Constraint {
-
         @Override
-        public int[][] scope() {
-            int[][] s = new int[players.size() * totalRounds][];
-            int w = 0;
-            for (int i = 0; i < players.size(); i++) {
-                for (int j = 0; j < totalRounds; j++) {
-                    s[w] = new int[]{i, j};
-                    w++;
-                }
-            }
-            return s;
+        public Iterator<int[]> iterator() {
+            return new ScopeIterator();
         }
 
         @Override
@@ -381,5 +384,28 @@ public class PairingSystem {
         public String name() {
             return "w";
         }
+        private class ScopeIterator implements Iterator<int[]>{
+            int playerIndex = 0;
+            int roundIndex = 0;
+            int total = 0;
+
+            @Override
+            public boolean hasNext() {
+                return total < numEntries;
+            }
+
+            @Override
+            public int[] next() {
+                if(playerIndex == numPlayers){
+                    roundIndex++;
+                    playerIndex = 1;
+                }
+                else
+                    playerIndex += 1;
+                total += 1;
+                return new int[]{playerIndex - 1, roundIndex};
+            }
+        }
+
     }
 }
