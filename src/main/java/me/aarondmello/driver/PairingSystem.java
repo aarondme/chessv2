@@ -89,6 +89,7 @@ public class PairingSystem {
 
     private class State {
         Variable[][] variables;
+        int weight = 0;
 
         State(){
             variables = new Variable[players.size()][totalRounds];
@@ -109,8 +110,11 @@ public class PairingSystem {
                 }
                 for (int j = summaries.size(); j < totalRounds; j++)
                     variables[i][j] = new Variable(players.size(), i, j);
-                }
             }
+
+            for (Variable[] vars: variables)
+                for (Variable v: vars)
+                    weight += v.getDomain().get(0).weight;
         }
 
         public State copy() {
@@ -119,20 +123,28 @@ public class PairingSystem {
             for(int i = 0; i < variables.length; i++)
                 for (int j = 0; j < variables[i].length; j++)
                     abc.variables[i][j] = new Variable(variables[i][j]);
-
+            abc.weight = weight;
             return abc;
         }
 
         public boolean removeFailingConstraint(Constraint c, int[] coordinate){
-            List<VarAssignment> domain = variables[coordinate[0]][coordinate[1]].getDomain();
-            return domain.removeIf(pos -> !c.hasAssignment(this, coordinate, pos));
+            List<VarAssignment> domain = variables[coordinate[0]][coordinate[1]].values;
+            int minVal = domain.get(0).weight;
+            boolean didRemove = domain.removeIf(pos -> !c.hasAssignment(this, coordinate, pos));
+            if(!domain.isEmpty())
+                weight += domain.get(0).weight - minVal;
+            return didRemove;
         }
 
         public void trivialize() {
             for (Variable[] variable : variables)
                 for (Variable value : variable)
-                    if (!value.isSingleton())
+                    if (!value.isSingleton()){
+                        int minVal = value.values.get(0).weight;
                         value.setValue(-1);
+                        weight += value.values.get(0).weight - minVal;
+                    }
+
         }
 
         public int[] getUnassignedVariable() {
