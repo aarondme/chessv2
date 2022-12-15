@@ -7,7 +7,7 @@ import me.aarondmello.datatypes.*;
 
 public class PairingSystem {
     State bestSolution = null;
-    int totalRounds;
+    int roundsRemaining;
     ArrayList<Player> players;
     int roundNumber;
     int numEntries, numPlayers;
@@ -16,55 +16,52 @@ public class PairingSystem {
     }
 
     public Round pairRound(int roundNumber, ArrayList<Player> players, int totalRounds){
-        this.totalRounds = totalRounds;
+        this.roundsRemaining = totalRounds - roundNumber + 1;
         this.players = players;
         this.roundNumber = roundNumber;
         State initialState = new State();
         bestSolution = new State(initialState);
         bestSolution.trivialize();
         numPlayers = players.size();
-        numEntries = players.size() * totalRounds;
+        numEntries = players.size() * roundsRemaining;
         gac(initialState);
-        return bestSolution.getRound(roundNumber);
+        return bestSolution.getRound();
     }
 
-    private State gac(State vars) {
-        State myState = new State(vars);
-        int[] index = myState.getUnassignedVariable();
-        if(index == null)
-            return myState;
-
-        for(VarAssignment pos : vars.getVar(index).getDomain()){
-            myState.setVar(index, pos.opponentIndex);
+    private void gac(State previousState) {
+        int[] index = previousState.getUnassignedVariable();
+        if(index == null){
+            bestSolution = previousState;
+            return;
+        }
+        
+        State nextState = new State(previousState);
+        for(VarAssignment pos : previousState.getVar(index).getDomain()){
+            nextState.setVar(index, pos.opponentIndex);
 
             LinkedList<Constraint> constraints = getConstraintsForVar(index);
             HashSet<String> constraintNames = constraints.stream().map(Constraint::name)
                     .collect(Collectors.toCollection(HashSet::new));
 
-            if(gacEnforce(constraints, constraintNames, myState)){
-                State sol = gac(myState);
-                if(sol != null)
-                    bestSolution = sol;
-            }
+            if(gacEnforce(constraints, constraintNames, nextState))
+                gac(nextState);
 
-            myState = new State(vars);
+            nextState = new State(previousState);
         }
-        return bestSolution;
     }
 
-    private boolean gacEnforce(LinkedList<Constraint> constraints, HashSet<String> constraintNames, State state) {
-        while (!constraints.isEmpty()){
-            Constraint c = constraints.removeFirst();
-            constraintNames.remove(c.name());
-            for(int[] x : c){
-                Variable v = state.getVar(x);
-                if(state.removeFailingConstraint(c, x)){
-                    if(v.isEmpty())
+    private boolean gacEnforce(LinkedList<Constraint> gacQueue, HashSet<String> constraintNames, State state) {
+        while (!gacQueue.isEmpty()){
+            Constraint constraint = gacQueue.removeFirst();
+            constraintNames.remove(constraint.name());
+            for(int[] coordinate : constraint){
+                if(state.removeFailingConstraint(constraint, coordinate)){
+                    if(state.getVar(coordinate).isEmpty())
                         return false;
-                    List<Constraint> toAdd = getConstraintsForVar(x);
+                    List<Constraint> toAdd = getConstraintsForVar(coordinate);
                     toAdd.removeIf((d -> constraintNames.contains(d.name())));
-                    constraints.addAll(toAdd);
-                    constraintNames.addAll(constraints.stream().map(Constraint::name).collect(Collectors.toList()));
+                    gacQueue.addAll(toAdd);
+                    constraintNames.addAll(gacQueue.stream().map(Constraint::name).collect(Collectors.toList()));
                 }
             }
         }
@@ -91,22 +88,10 @@ public class PairingSystem {
         int weight = 0;
 
         State(){
-            variables = new Variable[players.size()][totalRounds];
+            variables = new Variable[players.size()][roundsRemaining];
             for(int i = 0; i < players.size(); i++) {
-                LinkedList<PlayerGameSummary> summaries = players.get(i).getPlayerGameSummaries();
-                for (int j = 0; j < totalRounds; j++) {
+                for (int j = 0; j < roundsRemaining; j++) {
                     variables[i][j] = new Variable(players.size(), i, j);
-
-                    if (j < summaries.size()) {
-                        int opponentIndex = -1;
-                        int opponentId = summaries.get(j).getOpponent().getID();
-                        for (int k = 0; k < players.size(); k++)
-                            if (players.get(k).getID() == opponentId) {
-                                opponentIndex = k;
-                                break;
-                            }
-                        variables[i][j].setValue(opponentIndex);
-                    }
                     weight += variables[i][j].getDomain().get(0).weight;
                 }
             }
@@ -119,7 +104,6 @@ public class PairingSystem {
                     variables[i][j] = new Variable(stateToCopy.variables[i][j]);
             weight = stateToCopy.weight;
         }
-
 
         public boolean removeFailingConstraint(Constraint c, int[] coordinate){
             List<VarAssignment> domain = variables[coordinate[0]][coordinate[1]].values;
@@ -156,13 +140,13 @@ public class PairingSystem {
             return variables[a][b];
         }
 
-        public Round getRound(int roundNumber) {
+        public Round getRound() {
             HashSet<Integer> pairedIds = new HashSet<>();
             Round r = new Round();
             for(int i = 0; i < variables.length; i++){
                 if(pairedIds.contains(i))
                     continue;
-                int opponent = variables[i][roundNumber - 1].getValue();
+                int opponent = variables[i][0].getValue();
                 if(opponent == -1){
                     r.addGame(new Game(players.get(i), NullPlayer.getInstance()));
                     pairedIds.add(i);
@@ -199,12 +183,13 @@ public class PairingSystem {
         public Variable(int numPlayers, int playerIndex, int roundIndex) {
             values = new LinkedList<>();
             Player p = players.get(playerIndex);
-            for(int opponentIndex = -1; opponentIndex < numPlayers; opponentIndex++){
+            for(int opponentIndex = 0; opponentIndex < numPlayers; opponentIndex++){
                 if(opponentIndex == playerIndex) continue;
-
+                if(p.hasPlayedAgainst(players.get(opponentIndex))) continue;
                 values.add(new VarAssignment(opponentIndex, calculateWeight(opponentIndex, p, roundIndex)));
             }
             values.sort(Comparator.comparing(varAssignment -> varAssignment.weight));
+            values.add(new VarAssignment(-1, calculateWeight(-1, p, roundIndex)));
         }
 
         private int calculateWeight(int opponentIndex, Player player, int rounds) {
@@ -274,7 +259,7 @@ public class PairingSystem {
         public boolean hasAssignment(State state, int[] coordinate, VarAssignment pos) {
             int numSitOuts = (pos.opponentIndex == -1)? 1:0;
 
-            for (int i = 0; i < totalRounds; i++) {
+            for (int i = 0; i < roundsRemaining; i++) {
                 Variable w = state.getVar(playerIndex, i);
                 if(i == coordinate[1] || !w.isSingleton()) continue;
 
@@ -285,7 +270,7 @@ public class PairingSystem {
                 else if(wOpponentIndex == pos.opponentIndex)
                     return false;
             }
-            return numSitOuts <= (totalRounds + 1)/2;
+            return numSitOuts <= (roundsRemaining + 1)/2;
         }
 
         @Override
@@ -297,7 +282,7 @@ public class PairingSystem {
             int index = 0;
             @Override
             public boolean hasNext() {
-                return index < totalRounds;
+                return index < roundsRemaining;
             }
 
             @Override
@@ -336,7 +321,7 @@ public class PairingSystem {
                 else if(wOpponentIndex == pos.opponentIndex) return false;
                 else if(wOpponentIndex == coordinate[0] && pos.opponentIndex != i) return false;
             }
-            return numSitOuts <= roundIndex +1;
+            return numSitOuts <= roundNumber + roundIndex;
         }
 
         @Override
@@ -398,6 +383,5 @@ public class PairingSystem {
                 return new int[]{playerIndex - 1, roundIndex};
             }
         }
-
     }
 }
