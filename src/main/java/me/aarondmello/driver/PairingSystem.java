@@ -189,7 +189,7 @@ public class PairingSystem {
                 values.add(new VarAssignment(opponentIndex, calculateWeight(opponentIndex, p, roundIndex)));
             }
             values.sort(Comparator.comparing(varAssignment -> varAssignment.weight));
-            values.add(new VarAssignment(-1, calculateWeight(-1, p, roundIndex)));
+            values.addLast(new VarAssignment(-1, calculateWeight(-1, p, roundIndex)));
         }
 
         private int calculateWeight(int opponentIndex, Player player, int rounds) {
