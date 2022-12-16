@@ -51,9 +51,21 @@ public class PairingAlgorithmTest {
 
 
     @Test
-    public void stressTest() {
+    public void manyPlayersEvenFirstRound() {
         assertTimeoutPreemptively(Duration.ofSeconds(60), () -> {
             initPlayers(30);
+            Round r = pairingSystem.pairRound(1, players, 6);
+            for (Game g:r.getGames()) {
+                System.out.println(g.getWhitePlayer().getID() + " " + g.getBlackPlayer().getID());
+            }
+            assertTrue(checkIfAllPlayersPaired(r));
+        });
+    }
+
+    @Test
+    public void manyPlayersOddFirstRound() {
+        assertTimeoutPreemptively(Duration.ofSeconds(60), () -> {
+            initPlayers(31);
             Round r = pairingSystem.pairRound(1, players, 6);
             for (Game g:r.getGames()) {
                 System.out.println(g.getWhitePlayer().getID() + " " + g.getBlackPlayer().getID());

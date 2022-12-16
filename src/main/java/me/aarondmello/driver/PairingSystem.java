@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import me.aarondmello.datatypes.*;
 
 public class PairingSystem {
+    private static final int WEIGHT_OF_SIT_OUT = 1_000_000;
     State bestSolution = null;
     int roundsRemaining;
     ArrayList<Player> players;
@@ -34,9 +35,9 @@ public class PairingSystem {
             bestSolution = previousState;
             return;
         }
-        
-        State nextState = new State(previousState);
+
         for(VarAssignment pos : previousState.getVar(index).getDomain()){
+            State nextState = new State(previousState);
             nextState.setVar(index, pos.opponentIndex);
 
             LinkedList<Constraint> constraints = getConstraintsForVar(index);
@@ -45,8 +46,6 @@ public class PairingSystem {
 
             if(gacEnforce(constraints, constraintNames, nextState))
                 gac(nextState);
-
-            nextState = new State(previousState);
         }
     }
 
@@ -171,21 +170,27 @@ public class PairingSystem {
         public int getWeightOf(int i, int j) {
             return variables[i][j].values.get(0).weight;
         }
+
+        public boolean hasSitOut(int r) {
+            for (Variable[] variable : variables)
+                if (variable[r].isSingleton() && variable[r].getValue() == -1)
+                    return true;
+            return false;
+        }
     }
 
     private class Variable {
         LinkedList<VarAssignment> values;
         public Variable(Variable x){
-            values = new LinkedList<>();
-            values.addAll(x.values);
+            values = new LinkedList<>(x.values);
         }
 
         public Variable(int numPlayers, int playerIndex, int roundIndex) {
             values = new LinkedList<>();
             Player p = players.get(playerIndex);
             for(int opponentIndex = 0; opponentIndex < numPlayers; opponentIndex++){
-                if(opponentIndex == playerIndex) continue;
-                if(p.hasPlayedAgainst(players.get(opponentIndex))) continue;
+                if(opponentIndex == playerIndex || p.hasPlayedAgainst(players.get(opponentIndex)))
+                    continue;
                 values.add(new VarAssignment(opponentIndex, calculateWeight(opponentIndex, p, roundIndex)));
             }
             values.sort(Comparator.comparing(varAssignment -> varAssignment.weight));
@@ -194,7 +199,8 @@ public class PairingSystem {
 
         private int calculateWeight(int opponentIndex, Player player, int rounds) {
             if(opponentIndex == -1)
-                return (player.hasSatOut()? 2_000_000:1_000_000) + player.getScore() * player.getScore() * 5;
+                return (player.hasSatOut()? 2* WEIGHT_OF_SIT_OUT : WEIGHT_OF_SIT_OUT) +
+                        ((rounds == roundNumber - 1)? player.getScore() * player.getScore() * 5 : 0);
 
             Player opponent = players.get(opponentIndex);
             if (rounds == roundNumber - 1)
@@ -220,10 +226,7 @@ public class PairingSystem {
         }
 
         public int getValue(){
-            if(isSingleton())
-                return values.get(0).opponentIndex;
-
-            return -1;
+            return isSingleton()? values.get(0).opponentIndex : -1;
         }
 
         public boolean isUnassigned() {
@@ -354,6 +357,16 @@ public class PairingSystem {
         public boolean hasAssignment(State state, int[] coordinate, VarAssignment pos) {
             int weight = pos.weight - state.getWeightOf(coordinate[0], coordinate[1]);
             weight += state.getWeight();
+
+            if(players.size() % 2 == 1){
+                //We know at least one person will sit out per round if we have an odd number of players
+                for(int r = 0; r < roundsRemaining; r++){
+                    if(r == coordinate[1] && pos.opponentIndex == -1) continue;
+                    if(!state.hasSitOut(r))
+                        weight += WEIGHT_OF_SIT_OUT;
+                }
+            }
+
             return weight < bestSolution.getWeight();
         }
 
