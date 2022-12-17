@@ -6,15 +6,16 @@ import java.util.stream.Collectors;
 import me.aarondmello.datatypes.*;
 
 public class PairingSystem {
-    private static final int WEIGHT_OF_SIT_OUT = 1_000_000;
     State bestSolution = null;
     int roundsRemaining;
     ArrayList<Player> players;
     int roundNumber;
     int numEntries, numPlayers;
     private int bestWeight = Integer.MAX_VALUE;
+    WeightFunction weightFunction;
 
     public PairingSystem(){
+        weightFunction = new BasicWeightFunction();
     }
 
     public Round pairRound(int roundNumber, ArrayList<Player> players, int totalRounds){
@@ -81,18 +82,6 @@ public class PairingSystem {
         return constraints;
     }
 
-    private int calculateWeight(int opponentIndex, Player player, int roundIndex) {
-        if(opponentIndex == -1)
-            return (player.hasSatOut()? 2* WEIGHT_OF_SIT_OUT : WEIGHT_OF_SIT_OUT) +
-                    ((roundIndex == 0)? player.getScore() * player.getScore() * 5 : 0);
-
-        Player opponent = players.get(opponentIndex);
-        if (roundIndex == 0)
-            return (player.getScore() - opponent.getScore()) *
-                    (player.getScore() - opponent.getScore());
-        return 0;
-    }
-
 
     private Game pairPlayers(Player p, Player q) {
         if (p.getGamesAsBlack() >= q.getGamesAsBlack())
@@ -100,7 +89,7 @@ public class PairingSystem {
         return new Game(q, p);
     }
 
-    private class State {
+    public class State {
         Variable[][] variables;
 
         State(){
@@ -185,7 +174,7 @@ public class PairingSystem {
         }
     }
 
-    private class Variable {
+    public class Variable {
         LinkedList<VarAssignment> values;
         public Variable(Variable x){
             values = new LinkedList<>(x.values);
@@ -197,13 +186,11 @@ public class PairingSystem {
             for(int opponentIndex = 0; opponentIndex < numPlayers; opponentIndex++){
                 if(opponentIndex == playerIndex || p.hasPlayedAgainst(players.get(opponentIndex)))
                     continue;
-                values.add(new VarAssignment(opponentIndex, calculateWeight(opponentIndex, p, roundIndex)));
+                values.add(new VarAssignment(opponentIndex, weightFunction.calculateWeight(opponentIndex, p, roundIndex, players)));
             }
             values.sort(Comparator.comparing(varAssignment -> varAssignment.weight));
-            values.addLast(new VarAssignment(-1, calculateWeight(-1, p, roundIndex)));
+            values.addLast(new VarAssignment(-1, weightFunction.calculateWeight(-1, p, roundIndex, players)));
         }
-
-
 
         public LinkedList<VarAssignment> getDomain() {
             return values;
@@ -351,71 +338,8 @@ public class PairingSystem {
 
         @Override
         public boolean hasAssignment(State state, int[] coordinate, VarAssignment pos) {
-            int weight = pos.weight;
-
-            HashSet<Integer> firstRoundPlayersPaired = new HashSet<>();
-            TreeMap<Integer, Integer> scoreToFreq = new TreeMap<>();
-            if(coordinate[1] == 0 && pos.opponentIndex != -1){
-               firstRoundPlayersPaired.add(coordinate[0]);
-               firstRoundPlayersPaired.add(pos.opponentIndex);
-               weight += calculateWeight(coordinate[0], players.get(pos.opponentIndex), 0);
-            }
-            for (int i = 0; i < players.size(); i++) {
-                if(firstRoundPlayersPaired.contains(i)) continue;
-
-                if(state.getVar(i, 0).isSingleton()){
-                    weight += state.getWeightOf(i, 0);
-                    if (state.getVar(i, 0).getValue() != -1) {
-                        weight += calculateWeight(i, players.get(state.getVar(i, 0).getValue()), 0);
-                        firstRoundPlayersPaired.add(state.getVar(i, 0).getValue());
-                    }
-                }
-
-                else {
-                    Integer numOccur = scoreToFreq.get(players.get(i).getScore());
-                    if(numOccur == null) numOccur = 0;
-                    scoreToFreq.put(players.get(i).getScore(), numOccur + 1);
-                }
-
-            }
-
-            Iterator<Integer> iterator = scoreToFreq.navigableKeySet().descendingIterator();
-            int a = -1;
-            int aFreq = -1;
-            while (a != -1 || iterator.hasNext()){
-                if(a == -1){
-                    a = iterator.next();
-                    aFreq = scoreToFreq.get(a);
-                }
-
-                if(aFreq % 2 == 0){
-                    a = -1;
-                }
-                else if(iterator.hasNext()){
-                    int b = iterator.next();
-                    weight += (a-b) * (a-b) * 2; //Add the weight of pairing two players with neighbouring scores
-                    a = b;
-                    aFreq = scoreToFreq.get(b) - 1;
-                }
-                else{
-                    weight += WEIGHT_OF_SIT_OUT + 5 * a * a;//Sit out the worst player if there are an odd number
-                    a = -1;
-                }
-            }
-
-            for(int r = 1; r < roundsRemaining; r++){
-                for (int i = 0; i < players.size(); i++) {
-                    if(i == coordinate[0] && r == coordinate[1]) continue;
-                    if(state.getVar(i, r).isSingleton() && state.getVar(i, r).getValue() == -1) {
-                        weight += state.getWeightOf(i, r);
-                    }
-                }
-                int numPlayersNotSittingOut = (players.size() - state.numSitOuts(r)) + ((r == coordinate[1] && pos.opponentIndex == -1)? 1:0);
-                if(numPlayersNotSittingOut % 2 == 1) //If an odd number of players are not marked as sitting out in a round, we will find one more
-                    weight += WEIGHT_OF_SIT_OUT;
-            }
-
-            return weight < bestWeight; //weight must be an underestimate of the best weight possible given currently assigned variables
+            //weight must be an underestimate of the best weight possible given currently assigned variables
+            return weightFunction.getBestWeightPossible(state, coordinate, pos.opponentIndex, pos.weight, players) < bestWeight;
         }
 
         @Override
