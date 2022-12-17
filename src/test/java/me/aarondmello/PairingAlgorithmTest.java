@@ -80,6 +80,33 @@ public class PairingAlgorithmTest {
         });
     }
 
+    @Test
+    public void manyPlayersEvenThirdRound() {
+        initPlayers(30);
+        for (int i = 0; i < 30; i += 2) {
+            players.get(i).addPlayerGameSummary(new PlayerGameSummary(2, players.get(i + 1), Colour.WHITE));
+            players.get(i + 1).addPlayerGameSummary(new PlayerGameSummary(0, players.get(i), Colour.BLACK));
+        }
+        for (int i = 0; i < 28; i+= 4) {
+            players.get(i).addPlayerGameSummary(new PlayerGameSummary(2, players.get(i + 1), Colour.WHITE));
+            players.get(i + 2).addPlayerGameSummary(new PlayerGameSummary(0, players.get(i), Colour.BLACK));
+            players.get(i + 1).addPlayerGameSummary(new PlayerGameSummary(2, players.get(i + 1), Colour.WHITE));
+            players.get(i + 3).addPlayerGameSummary(new PlayerGameSummary(0, players.get(i), Colour.BLACK));
+        }
+        players.get(28).addPlayerGameSummary(new PlayerGameSummary(2, players.get(29), Colour.WHITE));
+        players.get(29).addPlayerGameSummary(new PlayerGameSummary(0, players.get(28), Colour.BLACK));
+
+        assertTimeoutPreemptively(Duration.ofSeconds(20), () -> {
+            Round r = pairingSystem.pairRound(3, players, 6);
+            System.out.println("Many players Even third round");
+            for (Game g:r.getGames()) {
+                System.out.println(g.getWhitePlayer().getID() + " " + g.getBlackPlayer().getID());
+            }
+            assertTrue(checkIfAllPlayersPaired(r));
+            assertTrue(r.getGames().stream().allMatch(this::checkIfGameValid));
+        });
+    }
+
 
     @Test
     public void manyPlayersOddFirstRound() {
@@ -107,6 +134,35 @@ public class PairingAlgorithmTest {
         assertTimeoutPreemptively(Duration.ofSeconds(20), () -> {
             Round r = pairingSystem.pairRound(2, players, 6);
             System.out.println("Many players Even second round");
+            for (Game g:r.getGames()) {
+                System.out.println(g.getWhitePlayer().getID() + " " + g.getBlackPlayer().getID());
+            }
+            assertTrue(checkIfAllPlayersPaired(r));
+            assertTrue(r.getGames().stream().allMatch(this::checkIfGameValid));
+        });
+    }
+
+    @Test
+    public void manyPlayersOddThirdRound() {
+        initPlayers(31);
+        for (int i = 0; i < 30; i += 2) {
+            players.get(i).addPlayerGameSummary(new PlayerGameSummary(2, players.get(i + 1), Colour.WHITE));
+            players.get(i + 1).addPlayerGameSummary(new PlayerGameSummary(0, players.get(i), Colour.BLACK));
+        }
+        players.get(30).addPlayerGameSummary(new PlayerGameSummary(2, NullPlayer.getInstance(), Colour.WHITE));
+        for (int i = 0; i < 28; i+= 4) {
+            players.get(i).addPlayerGameSummary(new PlayerGameSummary(2, players.get(i + 1), Colour.WHITE));
+            players.get(i + 2).addPlayerGameSummary(new PlayerGameSummary(0, players.get(i), Colour.BLACK));
+            players.get(i + 1).addPlayerGameSummary(new PlayerGameSummary(2, players.get(i + 1), Colour.WHITE));
+            players.get(i + 3).addPlayerGameSummary(new PlayerGameSummary(0, players.get(i), Colour.BLACK));
+        }
+        players.get(28).addPlayerGameSummary(new PlayerGameSummary(2, players.get(30), Colour.WHITE));
+        players.get(30).addPlayerGameSummary(new PlayerGameSummary(0, players.get(28), Colour.BLACK));
+        players.get(29).addPlayerGameSummary(new PlayerGameSummary(2, NullPlayer.getInstance(), Colour.WHITE));
+
+        assertTimeoutPreemptively(Duration.ofSeconds(20), () -> {
+            Round r = pairingSystem.pairRound(3, players, 6);
+            System.out.println("Many players Odd third round");
             for (Game g:r.getGames()) {
                 System.out.println(g.getWhitePlayer().getID() + " " + g.getBlackPlayer().getID());
             }

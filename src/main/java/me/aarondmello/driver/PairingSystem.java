@@ -354,7 +354,7 @@ public class PairingSystem {
             int weight = pos.weight;
 
             HashSet<Integer> firstRoundPlayersPaired = new HashSet<>();
-            TreeSet<Integer> scoresWithOddNumberOfPlayers = new TreeSet<>();
+            TreeMap<Integer, Integer> scoreToFreq = new TreeMap<>();
             if(coordinate[1] == 0 && pos.opponentIndex != -1){
                firstRoundPlayersPaired.add(coordinate[0]);
                firstRoundPlayersPaired.add(pos.opponentIndex);
@@ -370,21 +370,36 @@ public class PairingSystem {
                         firstRoundPlayersPaired.add(state.getVar(i, 0).getValue());
                     }
                 }
-                else if(scoresWithOddNumberOfPlayers.contains(players.get(i).getScore()))
-                    scoresWithOddNumberOfPlayers.remove(players.get(i).getScore());
-                else
-                    scoresWithOddNumberOfPlayers.add(players.get(i).getScore());
+
+                else {
+                    Integer numOccur = scoreToFreq.get(players.get(i).getScore());
+                    if(numOccur == null) numOccur = 0;
+                    scoreToFreq.put(players.get(i).getScore(), numOccur + 1);
+                }
+
             }
 
-            Iterator<Integer> iterator = scoresWithOddNumberOfPlayers.descendingIterator();
-            while (iterator.hasNext()){
-                int v = iterator.next();
-                if(iterator.hasNext()){
-                    int w = iterator.next();
-                    weight += (w-v) * (w-v) * 2; //Add the weight of pairing two players with neighbouring scores
+            Iterator<Integer> iterator = scoreToFreq.navigableKeySet().descendingIterator();
+            int a = -1;
+            int aFreq = -1;
+            while (a != -1 || iterator.hasNext()){
+                if(a == -1){
+                    a = iterator.next();
+                    aFreq = scoreToFreq.get(a);
+                }
+
+                if(aFreq % 2 == 0){
+                    a = -1;
+                }
+                else if(iterator.hasNext()){
+                    int b = iterator.next();
+                    weight += (a-b) * (a-b) * 2; //Add the weight of pairing two players with neighbouring scores
+                    a = b;
+                    aFreq = scoreToFreq.get(b) - 1;
                 }
                 else{
-                    weight += WEIGHT_OF_SIT_OUT + 5 * v * v; //Sit out the worst player if there are an odd number
+                    weight += WEIGHT_OF_SIT_OUT + 5 * a * a;//Sit out the worst player if there are an odd number
+                    a = -1;
                 }
             }
 
@@ -400,7 +415,7 @@ public class PairingSystem {
                     weight += WEIGHT_OF_SIT_OUT;
             }
 
-            return weight < bestWeight;
+            return weight < bestWeight; //weight must be an underestimate of the best weight possible given currently assigned variables
         }
 
         @Override
