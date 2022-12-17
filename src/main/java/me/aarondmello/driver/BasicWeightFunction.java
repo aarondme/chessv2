@@ -10,9 +10,7 @@ import java.util.TreeMap;
 public class BasicWeightFunction implements WeightFunction {
     private static final int WEIGHT_OF_SIT_OUT = 1_000_000;
     @Override
-    public int getBestWeightPossible(PairingSystem.State state, int[] coordinate, int opponentIndex, int w, List<Player> players) {
-        int weight = w;
-
+    public int getBestWeightPossible(PairingSystem.State state, int[] coordinate, int opponentIndex, int weight, List<Player> players) {
         HashSet<Integer> firstRoundPlayersPaired = new HashSet<>();
         TreeMap<Integer, Integer> scoreToFreq = new TreeMap<>();
         if(coordinate[1] == 0 && opponentIndex != -1){
@@ -36,7 +34,6 @@ public class BasicWeightFunction implements WeightFunction {
                 if(numOccur == null) numOccur = 0;
                 scoreToFreq.put(players.get(i).getScore(), numOccur + 1);
             }
-
         }
 
         Iterator<Integer> iterator = scoreToFreq.navigableKeySet().descendingIterator();
@@ -65,10 +62,10 @@ public class BasicWeightFunction implements WeightFunction {
 
         for(int r = 1; r < state.variables[0].length; r++){
             for (int i = 0; i < players.size(); i++) {
-                if(i == coordinate[0] && r == coordinate[1]) continue;
-                if(state.getVar(i, r).isSingleton() && state.getVar(i, r).getValue() == -1) {
+                if(i == coordinate[0] && r == coordinate[1])
+                    continue;
+                if(state.getVar(i, r).isSingleton() && state.getVar(i, r).getValue() == -1)
                     weight += state.getWeightOf(i, r);
-                }
             }
             int numPlayersNotSittingOut = (players.size() - state.numSitOuts(r)) + ((r == coordinate[1] && opponentIndex == -1)? 1:0);
             if(numPlayersNotSittingOut % 2 == 1) //If an odd number of players are not marked as sitting out in a round, we will find one more

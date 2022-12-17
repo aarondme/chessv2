@@ -107,8 +107,6 @@ public class PairingSystem {
                     variables[i][j] = new Variable(stateToCopy.variables[i][j]);
         }
 
-
-
         public boolean removeFailingConstraint(Constraint c, int[] coordinate){
             List<VarAssignment> domain = variables[coordinate[0]][coordinate[1]].values;
             return domain.removeIf(pos -> !c.hasAssignment(this, coordinate, pos));
@@ -119,7 +117,6 @@ public class PairingSystem {
                 for (Variable value : variable)
                     if (!value.isSingleton())
                         value.setValue(-1);
-
         }
 
         public int[] getUnassignedVariable() {
