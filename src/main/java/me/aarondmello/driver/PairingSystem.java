@@ -12,6 +12,7 @@ public class PairingSystem {
     ArrayList<Player> players;
     int roundNumber;
     int numEntries, numPlayers;
+    private int bestWeight = Integer.MAX_VALUE;
 
     public PairingSystem(){
     }
@@ -33,6 +34,11 @@ public class PairingSystem {
         int[] index = previousState.getUnassignedVariable();
         if(index == null){
             bestSolution = previousState;
+            bestWeight = 0;
+            for (Variable[] vars: bestSolution.variables)
+                for (Variable v: vars)
+                    bestWeight += v.getDomain().get(0).weight;
+
             return;
         }
 
@@ -75,25 +81,34 @@ public class PairingSystem {
         return constraints;
     }
 
+    private int calculateWeight(int opponentIndex, Player player, int roundIndex) {
+        if(opponentIndex == -1)
+            return (player.hasSatOut()? 2* WEIGHT_OF_SIT_OUT : WEIGHT_OF_SIT_OUT) +
+                    ((roundIndex == 0)? player.getScore() * player.getScore() * 5 : 0);
+
+        Player opponent = players.get(opponentIndex);
+        if (roundIndex == 0)
+            return (player.getScore() - opponent.getScore()) *
+                    (player.getScore() - opponent.getScore());
+        return 0;
+    }
+
 
     private Game pairPlayers(Player p, Player q) {
-        if (p.getGamesAsBlack() >= q.getGamesAsBlack()) 
+        if (p.getGamesAsBlack() >= q.getGamesAsBlack())
             return new Game(p, q);
         return new Game(q, p);
     }
 
     private class State {
         Variable[][] variables;
-        int weight = 0;
 
         State(){
             variables = new Variable[players.size()][roundsRemaining];
-            for(int i = 0; i < players.size(); i++) {
-                for (int j = 0; j < roundsRemaining; j++) {
+            for(int i = 0; i < players.size(); i++)
+                for (int j = 0; j < roundsRemaining; j++)
                     variables[i][j] = new Variable(players.size(), i, j);
-                    weight += variables[i][j].getDomain().get(0).weight;
-                }
-            }
+
         }
 
         public State(State stateToCopy){
@@ -101,26 +116,20 @@ public class PairingSystem {
             for(int i = 0; i < variables.length; i++)
                 for (int j = 0; j < variables[i].length; j++)
                     variables[i][j] = new Variable(stateToCopy.variables[i][j]);
-            weight = stateToCopy.weight;
         }
+
+
 
         public boolean removeFailingConstraint(Constraint c, int[] coordinate){
             List<VarAssignment> domain = variables[coordinate[0]][coordinate[1]].values;
-            int minVal = domain.get(0).weight;
-            boolean didRemove = domain.removeIf(pos -> !c.hasAssignment(this, coordinate, pos));
-            if(!domain.isEmpty())
-                weight += domain.get(0).weight - minVal;
-            return didRemove;
+            return domain.removeIf(pos -> !c.hasAssignment(this, coordinate, pos));
         }
 
         public void trivialize() {
             for (Variable[] variable : variables)
                 for (Variable value : variable)
-                    if (!value.isSingleton()){
-                        int minVal = value.values.get(0).weight;
+                    if (!value.isSingleton())
                         value.setValue(-1);
-                        weight += value.values.get(0).weight - minVal;
-                    }
 
         }
 
@@ -135,8 +144,8 @@ public class PairingSystem {
         public Variable getVar(int[] index) {
             return variables[index[0]][index[1]];
         }
-        public Variable getVar(int a, int b) {
-            return variables[a][b];
+        public Variable getVar(int playerIndex, int roundIndex) {
+            return variables[playerIndex][roundIndex];
         }
 
         public Round getRound() {
@@ -159,23 +168,20 @@ public class PairingSystem {
             return r;
         }
 
-        public int getWeight() {
-            return weight;
-        }
-
         public void setVar(int[] index, int pos) {
             variables[index[0]][index[1]].setValue(pos);
         }
 
-        public int getWeightOf(int i, int j) {
-            return variables[i][j].values.get(0).weight;
+        public int getWeightOf(int playerIndex, int roundIndex) {
+            return variables[playerIndex][roundIndex].values.get(0).weight;
         }
 
-        public boolean hasSitOut(int r) {
+        public int numSitOuts(int r) {
+            int num = 0;
             for (Variable[] variable : variables)
                 if (variable[r].isSingleton() && variable[r].getValue() == -1)
-                    return true;
-            return false;
+                    num++;
+            return num;
         }
     }
 
@@ -197,17 +203,7 @@ public class PairingSystem {
             values.addLast(new VarAssignment(-1, calculateWeight(-1, p, roundIndex)));
         }
 
-        private int calculateWeight(int opponentIndex, Player player, int rounds) {
-            if(opponentIndex == -1)
-                return (player.hasSatOut()? 2* WEIGHT_OF_SIT_OUT : WEIGHT_OF_SIT_OUT) +
-                        ((rounds == roundNumber - 1)? player.getScore() * player.getScore() * 5 : 0);
 
-            Player opponent = players.get(opponentIndex);
-            if (rounds == roundNumber - 1)
-                return (player.getScore() - opponent.getScore()) *
-                            (player.getScore() - opponent.getScore());
-            return 0;
-        }
 
         public LinkedList<VarAssignment> getDomain() {
             return values;
@@ -355,19 +351,56 @@ public class PairingSystem {
 
         @Override
         public boolean hasAssignment(State state, int[] coordinate, VarAssignment pos) {
-            int weight = pos.weight - state.getWeightOf(coordinate[0], coordinate[1]);
-            weight += state.getWeight();
+            int weight = pos.weight;
 
-            if(players.size() % 2 == 1){
-                //We know at least one person will sit out per round if we have an odd number of players
-                for(int r = 0; r < roundsRemaining; r++){
-                    if(r == coordinate[1] && pos.opponentIndex == -1) continue;
-                    if(!state.hasSitOut(r))
-                        weight += WEIGHT_OF_SIT_OUT;
+            HashSet<Integer> firstRoundPlayersPaired = new HashSet<>();
+            TreeSet<Integer> scoresWithOddNumberOfPlayers = new TreeSet<>();
+            if(coordinate[1] == 0 && pos.opponentIndex != -1){
+               firstRoundPlayersPaired.add(coordinate[0]);
+               firstRoundPlayersPaired.add(pos.opponentIndex);
+               weight += calculateWeight(coordinate[0], players.get(pos.opponentIndex), 0);
+            }
+            for (int i = 0; i < players.size(); i++) {
+                if(firstRoundPlayersPaired.contains(i)) continue;
+
+                if(state.getVar(i, 0).isSingleton()){
+                    weight += state.getWeightOf(i, 0);
+                    if (state.getVar(i, 0).getValue() != -1) {
+                        weight += calculateWeight(i, players.get(state.getVar(i, 0).getValue()), 0);
+                        firstRoundPlayersPaired.add(state.getVar(i, 0).getValue());
+                    }
+                }
+                else if(scoresWithOddNumberOfPlayers.contains(players.get(i).getScore()))
+                    scoresWithOddNumberOfPlayers.remove(players.get(i).getScore());
+                else
+                    scoresWithOddNumberOfPlayers.add(players.get(i).getScore());
+            }
+
+            Iterator<Integer> iterator = scoresWithOddNumberOfPlayers.descendingIterator();
+            while (iterator.hasNext()){
+                int v = iterator.next();
+                if(iterator.hasNext()){
+                    int w = iterator.next();
+                    weight += (w-v) * (w-v) * 2; //Add the weight of pairing two players with neighbouring scores
+                }
+                else{
+                    weight += WEIGHT_OF_SIT_OUT + 5 * v * v; //Sit out the worst player if there are an odd number
                 }
             }
 
-            return weight < bestSolution.getWeight();
+            for(int r = 1; r < roundsRemaining; r++){
+                for (int i = 0; i < players.size(); i++) {
+                    if(i == coordinate[0] && r == coordinate[1]) continue;
+                    if(state.getVar(i, r).isSingleton() && state.getVar(i, r).getValue() == -1) {
+                        weight += state.getWeightOf(i, r);
+                    }
+                }
+                int numPlayersNotSittingOut = (players.size() - state.numSitOuts(r)) + ((r == coordinate[1] && pos.opponentIndex == -1)? 1:0);
+                if(numPlayersNotSittingOut % 2 == 1) //If an odd number of players are not marked as sitting out in a round, we will find one more
+                    weight += WEIGHT_OF_SIT_OUT;
+            }
+
+            return weight < bestWeight;
         }
 
         @Override
