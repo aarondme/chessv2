@@ -1,10 +1,10 @@
 package me.aarondmello.commandlineinterface;
 
-import me.aarondmello.csv.CsvWriter;
 import me.aarondmello.datatypes.*;
-import me.aarondmello.driver.Persister;
+import me.aarondmello.driver.DataReader;
+import me.aarondmello.driver.DataWriter;
 import me.aarondmello.driver.PersisterFactory;
-import me.aarondmello.maininterfaces.GUI;
+import me.aarondmello.driver.GUI;
 
 import java.io.*;
 import java.util.Scanner;
@@ -15,23 +15,22 @@ public class CommandLineInterface implements GUI {
 
     @Override
     public void start(PersisterFactory persisterFactory){
-        Persister persister = persisterFactory.getPersister();
+        DataReader tournamentReader = persisterFactory.getReaderOfType("csv");
+        DataWriter tournamentWriter = persisterFactory.getWriterOfType("csv");
         Tournament tournament;
         displayWelcomeMessage();
-        tournament = getTournament(persister);
+        tournament = getTournament(tournamentReader);
         runTournament(tournament);
-        saveTournament(tournament);
+        saveTournament(tournament, tournamentWriter);
     }
 
-    private void saveTournament(Tournament tournament) {
+    private void saveTournament(Tournament tournament, DataWriter writer) {
         if(tournament == null) return;
-        CsvWriter writer = new CsvWriter();
         while (true){
             try {
-                System.out.println("Enter the path to save the tournament, or \"0\" to exit");
-                String x = input.nextLine();
-                if(x.equals("0")) return;
-                PrintWriter p = new PrintWriter(x);
+                File f = getSaveLocation("Enter the path to save the tournament, or \"0\" to exit");
+                if(f == null) return;
+                PrintWriter p = new PrintWriter(f);
                 writer.saveTournament(tournament, p);
                 return;
             } catch (FileNotFoundException e) {
@@ -131,33 +130,20 @@ public class CommandLineInterface implements GUI {
         }
     }
 
-    private Tournament getTournament(Persister persister) {
+    private Tournament getTournament(DataReader tournamentReader) {
         int in = promptForInt("Enter the appropriate number to continue", 
                         new String[]{"0: exit", "1: starting new tournament", "2: resuming existing tournament"}, 
                         0, 2);
         if(in == 0)
             return null;
         else if(in == 1)
-            return getNewTournamentDetails(persister);
+            return editNewTournamentDetails(new Tournament(), tournamentReader);
         else
-            return getExistingTournamentDetails(persister);
+            return getExistingTournamentDetails(tournamentReader);
     }
 
-    private Tournament getNewTournamentDetails(Persister persister) {
-        int in = promptForInt("Enter the appropriate number to continue", 
-                        new String[]{"0: exit", "1: starting from save", "2: starting from scratch"}, 
-                        0, 2);
-        Tournament tournament = new Tournament();
-        if(in == 0)
-            return null;
-        if(in == 1){
-            File tournamentFolder = getSaveLocation("Enter the path to the folder in which tournament data is stored, or enter \"0\" to exit");
-            tournament = persister.scanFolder(tournamentFolder);
-        }
-        return editNewTournamentDetails(tournament, persister);
-    }
 
-    private Tournament getExistingTournamentDetails(Persister persister) {
+    private Tournament getExistingTournamentDetails(DataReader tournamentReader) {
         return null;
     }
 
@@ -182,22 +168,28 @@ public class CommandLineInterface implements GUI {
     }
 
     private File getSaveLocation(String prompt) {
-        while(true){
+        File result;
+        while (true) {
             System.out.println(prompt);
             String val = input.nextLine();
-            if(val.equals("0"))
-                return null;
-            
-            File folder = new File(val);
-            if(folder.exists() && folder.isDirectory())
-                return folder;
+            if (val.equals("0")) {
+                result = null;
+                break;
+            }
+
+            File f = new File(val);
+            if (!f.isDirectory()) {
+                result = f;
+                break;
+            }
 
             System.out.println("Invalid input provided");
         }
-        
+
+        return result;
     }
 
-    private Tournament confirmTournamentDetails(Tournament tournament, Persister persister) {
+    private Tournament confirmTournamentDetails(Tournament tournament, DataReader tournamentReader) {
         printPlayerList(tournament);
         int in = promptForInt("--- Confirming tournament details ---",
                 new String[]{"0: close program", "1: continue", "2: edit tournament details"},
@@ -208,7 +200,7 @@ public class CommandLineInterface implements GUI {
         else if(in == 1)
             return tournament;
         else
-            return editNewTournamentDetails(tournament, persister);
+            return editNewTournamentDetails(tournament, tournamentReader);
 
     }
 
@@ -225,7 +217,7 @@ public class CommandLineInterface implements GUI {
         }
     }
 
-    private Tournament editNewTournamentDetails(Tournament tournament, Persister persister) {
+    private Tournament editNewTournamentDetails(Tournament tournament, DataReader tournamentReader) {
         while(true){
             printPlayerList(tournament);
             int in = promptForInt("--- Fetching tournament details ---\nEnter the appropriate number to continue", 
@@ -240,7 +232,7 @@ public class CommandLineInterface implements GUI {
                 tournament.setTotalRounds(getNewTournamentTotalRounds());
             else if(in == 3){
                 try {
-                    persister.addPlayersInFileToTournament(new BufferedReader(new FileReader(getFile())), tournament);
+                    tournamentReader.readFromStarterFile(new BufferedReader(new FileReader(getFile())), tournament);
                 }catch (Exception e) {
                     System.out.println("Error reading file");
                 }
@@ -253,7 +245,7 @@ public class CommandLineInterface implements GUI {
                 removePlayerInTournament(tournament);
             else if(in == 7){
                 if(tournament.isDataValid())
-                    return confirmTournamentDetails(tournament, persister);
+                    return confirmTournamentDetails(tournament, tournamentReader);
                 System.out.println("Tournament data is invalid");
             }
         }  

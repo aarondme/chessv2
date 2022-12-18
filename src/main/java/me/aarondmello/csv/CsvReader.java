@@ -11,8 +11,9 @@ import me.aarondmello.datatypes.Player;
 import me.aarondmello.datatypes.PlayerGameSummary;
 import me.aarondmello.datatypes.Tournament;
 import me.aarondmello.datatypes.TiebreakType;
+import me.aarondmello.driver.DataReader;
 
-public class CsvReader {
+public class CsvReader implements DataReader{
     String organizationName;
     HashMap<String, ArrayList<Player>> divisionToPlayerList;
     public CsvReader(){}
@@ -32,6 +33,7 @@ public class CsvReader {
         return divisionToPlayerList;
     }
 
+
     private void addPlayerToList(String playerName, String division){
         ArrayList<Player> players;
         if(divisionToPlayerList.containsKey(division))
@@ -43,7 +45,7 @@ public class CsvReader {
         players.add(new Player(playerName, organizationName));
     }
 
-    public Tournament resumeTournament(BufferedReader reader) {
+    public Tournament readFromInProgressFile(BufferedReader reader) {
         Tournament t = new Tournament();
         try {
             readName(reader, t);
@@ -125,4 +127,10 @@ public class CsvReader {
         int firstComma = row.indexOf(',');
         t.setName(row.substring(firstComma+1));
     }
+
+    @Override
+    public void readFromStarterFile(BufferedReader reader, Tournament tournament) {
+        tournament.addPlayers(read(reader));
+    }
+
 }

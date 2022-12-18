@@ -6,10 +6,11 @@ import me.aarondmello.datatypes.Player;
 import me.aarondmello.datatypes.PlayerGameSummary;
 import me.aarondmello.datatypes.Tournament;
 import me.aarondmello.datatypes.Tiebreak;
+import me.aarondmello.driver.DataWriter;
 
 import java.io.PrintWriter;
 
-public class CsvWriter {
+public class CsvWriter implements DataWriter {
 
     public void saveTournament(Tournament tournament, PrintWriter printWriter) {
         printWriter.println("Tournament Name:," + tournament.getName());

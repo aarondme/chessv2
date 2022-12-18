@@ -1,5 +1,0 @@
-tournament_name:
-number_of_rounds:
-data_in_format:
-data_out_format:
- 

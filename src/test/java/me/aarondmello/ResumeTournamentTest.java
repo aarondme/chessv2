@@ -22,7 +22,7 @@ public class ResumeTournamentTest {
         String name = "tournament_with_no_divisions.csv";
         reader = new BufferedReader(new FileReader(root + name));
 
-        Tournament t = csvReader.resumeTournament(reader);
+        Tournament t = csvReader.readFromInProgressFile(reader);
         Tournament v = TournamentBuilder.createTournament()
                         .withName("myTournament")
                         .withNRounds(5)
@@ -36,7 +36,7 @@ public class ResumeTournamentTest {
         String name = "tournament_with_one_empty_division.csv";
         reader = new BufferedReader(new FileReader(root + name));
 
-        Tournament t = csvReader.resumeTournament(reader);
+        Tournament t = csvReader.readFromInProgressFile(reader);
         Tournament v = TournamentBuilder.createTournament()
                 .withName("tournament")
                 .withNRounds(7)
@@ -51,7 +51,7 @@ public class ResumeTournamentTest {
         String name = "tournament_with_one_division_and_one_player_with_no_tiebreaks_or_games.csv";
         reader = new BufferedReader(new FileReader(root+name));
 
-        Tournament t = csvReader.resumeTournament(reader);
+        Tournament t = csvReader.readFromInProgressFile(reader);
         Tournament v = TournamentBuilder.createTournament()
                 .withName("myTournament")
                 .withNRounds(3)
@@ -67,7 +67,7 @@ public class ResumeTournamentTest {
         String name = "tournament_with_one_division_and_one_player_with_some_tiebreaks_no_games.csv";
         reader = new BufferedReader(new FileReader(root+name));
 
-        Tournament t = csvReader.resumeTournament(reader);
+        Tournament t = csvReader.readFromInProgressFile(reader);
 
         TiebreakType[] defaultTiebreaks = {TiebreakType.BuchholzCutOne, TiebreakType.Buchholz,
                 TiebreakType.SonnebornBerger, TiebreakType.ProgressiveScores,
@@ -87,7 +87,7 @@ public class ResumeTournamentTest {
     public void tournamentWithTwoDivisionsAndOnePlayerInEach() throws IOException {
         String name = "tournament_with_two_divisions_and_one_player_in_each.csv";
         reader = new BufferedReader(new FileReader(root+name));
-        Tournament t = csvReader.resumeTournament(reader);
+        Tournament t = csvReader.readFromInProgressFile(reader);
         Tournament v = TournamentBuilder.createTournament()
                 .withName("myTournament")
                 .withNRounds(3)
@@ -104,7 +104,7 @@ public class ResumeTournamentTest {
     public void completeTournamentWithOneDivisionAndTiebreaks() throws IOException {
         String name = "complete_tournament_with_one_division_and_tiebreaks.csv";
         reader = new BufferedReader(new FileReader(root+name));
-        Tournament t = csvReader.resumeTournament(reader);
+        Tournament t = csvReader.readFromInProgressFile(reader);
 
         Player p1 = new Player("p1", "org");
         Player p2 =  new Player("p2", "org");
@@ -132,7 +132,7 @@ public class ResumeTournamentTest {
         String name = "tournament_with_one_division_and_one_game.csv";
         reader = new BufferedReader(new FileReader(root+name));
 
-        Tournament t = csvReader.resumeTournament(reader);
+        Tournament t = csvReader.readFromInProgressFile(reader);
 
         Player p1 = new Player("p1", "org");
         p1.setID(1);
@@ -160,7 +160,7 @@ public class ResumeTournamentTest {
     public void completeTournamentWithOneDivision() throws FileNotFoundException {
         String name = "complete_tournament_with_one_division.csv";
         reader = new BufferedReader(new FileReader(root+name));
-        Tournament t = csvReader.resumeTournament(reader);
+        Tournament t = csvReader.readFromInProgressFile(reader);
 
         Player p1 = new Player("p1", "org");
         Player p2 =  new Player("p2", "org");

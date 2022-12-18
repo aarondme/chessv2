@@ -1,4 +1,4 @@
-package me.aarondmello.maininterfaces;
+package me.aarondmello.driver;
 
 import me.aarondmello.driver.PersisterFactory;
 public interface GUI{
