@@ -60,16 +60,16 @@ public class PairingSystem {
         while (!gacQueue.isEmpty()){
             Constraint constraint = gacQueue.removeFirst();
             constraintNames.remove(constraint.name());
-            for(int[] coordinate : constraint){
-                if(state.removeFailingConstraint(constraint, coordinate)){
-                    if(state.getVar(coordinate).isEmpty())
-                        return false;
-                    List<Constraint> toAdd = getConstraintsForVar(coordinate);
-                    toAdd.removeIf((d -> constraintNames.contains(d.name())));
-                    gacQueue.addAll(toAdd);
-                    constraintNames.addAll(gacQueue.stream().map(Constraint::name).collect(Collectors.toList()));
-                }
+            Iterable<int[]> modifiedVariables = constraint.applyTo(state, players);
+            if(modifiedVariables == null)
+                return false;
+            for(int[] coordinate : modifiedVariables){
+                List<Constraint> toAdd = getConstraintsForVar(coordinate);
+                toAdd.removeIf((d -> constraintNames.contains(d.name())));
+                gacQueue.addAll(toAdd);
+                constraintNames.addAll(gacQueue.stream().map(Constraint::name).collect(Collectors.toList()));
             }
+
         }
         return true;
     }
@@ -78,7 +78,7 @@ public class PairingSystem {
         LinkedList<Constraint> constraints = new LinkedList<>();
         constraints.add(new PlayerConstraint(coordinate[0]));
         constraints.add(new RoundConstraint(coordinate[1]));
-        constraints.add(new WeightConstraint());
+        constraints.add(weightFunction.getWeightConstraint(bestWeight));
         return constraints;
     }
 
@@ -105,11 +105,6 @@ public class PairingSystem {
             for(int i = 0; i < variables.length; i++)
                 for (int j = 0; j < variables[i].length; j++)
                     variables[i][j] = new Variable(stateToCopy.variables[i][j]);
-        }
-
-        public boolean removeFailingConstraint(Constraint c, int[] coordinate){
-            List<VarAssignment> domain = variables[coordinate[0]][coordinate[1]].values;
-            return domain.removeIf(pos -> !c.hasAssignment(this, coordinate, pos));
         }
 
         public void trivialize() {
@@ -154,8 +149,8 @@ public class PairingSystem {
             return r;
         }
 
-        public void setVar(int[] index, int pos) {
-            variables[index[0]][index[1]].setValue(pos);
+        public boolean setVar(int[] index, int value) {
+            return variables[index[0]][index[1]].setValue(value);
         }
 
         public int getWeightOf(int playerIndex, int roundIndex) {
@@ -168,6 +163,10 @@ public class PairingSystem {
                 if (variable[r].isSingleton() && variable[r].getValue() == -1)
                     num++;
             return num;
+        }
+
+        public boolean setVar(int playerIndex, int roundIndex, int value) {
+            return variables[playerIndex][roundIndex].setValue(value);
         }
     }
 
@@ -193,12 +192,8 @@ public class PairingSystem {
             return values;
         }
 
-        public void setValue(int opponentIndex) {
-            values.removeIf(varAssignment -> varAssignment.opponentIndex != opponentIndex);
-        }
-
-        public boolean contains(int opponentIndex){
-            return values.stream().anyMatch(v -> v.opponentIndex == opponentIndex);
+        public boolean setValue(int opponentIndex) {
+            return values.removeIf(varAssignment -> varAssignment.opponentIndex != opponentIndex);
         }
 
         public boolean isSingleton() {
@@ -218,10 +213,10 @@ public class PairingSystem {
         }
     }
 
-    private record VarAssignment(int opponentIndex, int weight) { }
+    record VarAssignment(int opponentIndex, int weight) { }
 
-    private interface Constraint extends Iterable<int[]> {
-        boolean hasAssignment(State state, int[] coordinate, VarAssignment pos);
+    interface Constraint {
+        Iterable<int[]> applyTo(State state, List<Player> players);
         String name();
     }
 
@@ -233,27 +228,30 @@ public class PairingSystem {
             this.playerIndex = playerIndex;
             this.name = "h" + playerIndex;
         }
-        @Override
-        public Iterator<int[]> iterator() {
-            return new ScopeIterator();
-        }
+
 
         @Override
-        public boolean hasAssignment(State state, int[] coordinate, VarAssignment pos) {
-            int numSitOuts = (pos.opponentIndex == -1)? 1:0;
+        public Iterable<int[]> applyTo(State state, List<Player> players) {
+            LinkedList<int[]> modified = new LinkedList<>();
+            HashSet<Integer> usedValues = new HashSet<>();
+            for (int i = 0; i < roundsRemaining; i++) {
+                Variable w = state.getVar(playerIndex, i);
+                int wVal = w.getValue();
+                if(w.isSingleton() && wVal != -1)
+                    usedValues.add(wVal);
+            }
 
             for (int i = 0; i < roundsRemaining; i++) {
                 Variable w = state.getVar(playerIndex, i);
-                if(i == coordinate[1] || !w.isSingleton()) continue;
+                if(w.isSingleton()) continue;
+                List<VarAssignment> domain = w.getDomain();
 
-                int wOpponentIndex = w.getDomain().get(0).opponentIndex;
-
-                if(wOpponentIndex == -1)
-                    numSitOuts++;
-                else if(wOpponentIndex == pos.opponentIndex)
-                    return false;
+                if(domain.removeIf(v -> usedValues.contains(v.opponentIndex))){
+                    if(domain.isEmpty()) return null;
+                    modified.add(new int[]{playerIndex, i});
+                }
             }
-            return numSitOuts <= (roundsRemaining + 1)/2;
+            return modified;
         }
 
         @Override
@@ -261,19 +259,6 @@ public class PairingSystem {
             return name;
         }
 
-        private class ScopeIterator implements Iterator<int[]>{
-            int index = 0;
-            @Override
-            public boolean hasNext() {
-                return index < roundsRemaining;
-            }
-
-            @Override
-            public int[] next() {
-                index += 1;
-                return new int[]{playerIndex, index - 1};
-            }
-        }
     }
 
     private class RoundConstraint implements Constraint {
@@ -284,86 +269,40 @@ public class PairingSystem {
             this.roundIndex = roundIndex;
             this.name = "v" + roundIndex;
         }
-        @Override
-        public Iterator<int[]> iterator() {
-            return new ScopeIterator();
-        }
 
         @Override
-        public boolean hasAssignment(State state, int[] coordinate, VarAssignment pos) {
-            int numSitOuts = (pos.opponentIndex == -1)? 1:0;
-
-            for (int i = 0; i < players.size(); i++) {
+        public Iterable<int[]> applyTo(State state, List<Player> players) {
+            LinkedList<int[]> modified = new LinkedList<>();
+            HashSet<Integer> usedValues = new HashSet<>();
+            for (int i = 0; i < numPlayers; i++) {
                 Variable w = state.getVar(i, roundIndex);
-                if(i == pos.opponentIndex && !w.contains(coordinate[0])) return false;
-                if(i == coordinate[0] || !w.isSingleton()) continue;
-
-                int wOpponentIndex = w.getDomain().get(0).opponentIndex;
-
-                if(wOpponentIndex == -1) numSitOuts++;
-                else if(wOpponentIndex == pos.opponentIndex) return false;
-                else if(wOpponentIndex == coordinate[0] && pos.opponentIndex != i) return false;
+                int wVal = w.getValue();
+                if(w.isSingleton() && wVal != -1){
+                    usedValues.add(wVal);
+                    usedValues.add(i);
+                    if(state.setVar(wVal, roundIndex, i)){
+                        if(state.getVar(wVal, roundIndex).isEmpty()) return null;
+                        modified.add(new int[]{wVal, roundIndex});
+                    }
+                }
             }
-            return numSitOuts <= roundNumber + roundIndex;
+
+            for (int i = 0; i < numPlayers; i++) {
+                Variable w = state.getVar(i, roundIndex);
+                if(w.isSingleton()) continue;
+                List<VarAssignment> domain = w.getDomain();
+
+                if(domain.removeIf(v -> usedValues.contains(v.opponentIndex))){
+                    if(domain.isEmpty()) return null;
+                    modified.add(new int[]{i, roundIndex});
+                }
+            }
+            return modified;
         }
 
         @Override
         public String name() {
             return name;
-        }
-        private class ScopeIterator implements Iterator<int[]>{
-            int index = 0;
-            @Override
-            public boolean hasNext() {
-                return index < numPlayers;
-            }
-
-            @Override
-            public int[] next() {
-                index += 1;
-                return new int[]{index - 1, roundIndex};
-            }
-        }
-    }
-
-    private class WeightConstraint implements Constraint {
-        //The current solution must be better than the best solution to continue
-        @Override
-        public Iterator<int[]> iterator() {
-            return new ScopeIterator();
-        }
-
-        @Override
-        public boolean hasAssignment(State state, int[] coordinate, VarAssignment pos) {
-            //weight must be an underestimate of the best weight possible given currently assigned variables
-            return weightFunction.getBestWeightPossible(state, coordinate, pos.opponentIndex, pos.weight, players) < bestWeight;
-        }
-
-        @Override
-        public String name() {
-            return "w";
-        }
-        private class ScopeIterator implements Iterator<int[]>{
-            int playerIndex = 0;
-            int roundIndex = 0;
-            int total = 0;
-
-            @Override
-            public boolean hasNext() {
-                return total < numEntries;
-            }
-
-            @Override
-            public int[] next() {
-                if(playerIndex == numPlayers){
-                    roundIndex++;
-                    playerIndex = 1;
-                }
-                else
-                    playerIndex += 1;
-                total += 1;
-                return new int[]{playerIndex - 1, roundIndex};
-            }
         }
     }
 }

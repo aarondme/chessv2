@@ -39,7 +39,7 @@ public class PairingAlgorithmTest {
     @ValueSource(ints = {2, 3, 4, 5,6})
     public void pairPlayersFirstRound(int numPlayers){
         initPlayers(numPlayers);
-        Round r = pairingSystem.pairRound(1, players, 3);
+        Round r = pairingSystem.pairRound(1, players, Math.min(3, numPlayers-1));
         System.out.println("Pair players first round: " + numPlayers);
         for (Game g:r.getGames()) {
             System.out.println(g.getWhitePlayer().getID() + " " + g.getBlackPlayer().getID());
