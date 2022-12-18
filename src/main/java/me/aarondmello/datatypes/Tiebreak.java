@@ -1,7 +1,5 @@
 package me.aarondmello.datatypes;
 
-import me.aarondmello.constants.Colour;
-
 import java.util.*;
 
 public interface Tiebreak {

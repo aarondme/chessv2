@@ -4,7 +4,7 @@ import java.util.*;
 //TODO initialize by type.
 public class Tournament{
     private String name = null;
-    private LinkedList<Division> divisions = new LinkedList<>();
+    private final LinkedList<Division> divisions = new LinkedList<>();
     private int roundNumber = 1;
     private int totalRounds = -1;
 
@@ -106,7 +106,7 @@ public class Tournament{
         return true;
     }
 
-    public void setResultByDivisionAndGameID(String divisionName, int id, int result) {
+    public void setResultByDivisionAndGameID(String divisionName, int id, GameResult result) {
         Division division = getDivisionWithName(divisionName, false);
         if(division != null)
             division.setGameResultByID(id, result);

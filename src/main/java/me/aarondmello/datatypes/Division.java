@@ -8,7 +8,7 @@ public class Division{
         totalRounds = rounds;
     }
 
-    class PlayerComparator implements Comparator<Player>{
+    static class PlayerComparator implements Comparator<Player>{
         Tiebreak[] tiebreaks;
         PlayerComparator(Tiebreak[] tb){
             tiebreaks = tb;
@@ -24,11 +24,11 @@ public class Division{
         }
     }
 
-    private String name;
-    private ArrayList<Player> players = new ArrayList<>();
+    private final String name;
+    private final ArrayList<Player> players = new ArrayList<>();
     private int totalRounds;
     private int maxID = 0;
-    private PairingSystem pairingSystem = new PairingSystem();
+    private final PairingSystem pairingSystem = new PairingSystem();
 
     Tiebreak[] tiebreaks = null;
     private Round currentRound;
@@ -102,13 +102,9 @@ public class Division{
 
 
     public boolean validateRoundResults() {
-        for(Game game : currentRound.getGames()){
-            if(!game.isResultValid())
-                return false;
-        }
-        return true;
+        return currentRound.getGames().stream().allMatch(g -> g.result != null);
     }
-    public void setGameResultByID(int id, int result) {
+    public void setGameResultByID(int id, GameResult result) {
         currentRound.setResultByID(id, result);
     }
     public LinkedList<Game> getPairing() {

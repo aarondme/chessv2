@@ -1,6 +1,6 @@
 package me.aarondmello;
 
-import me.aarondmello.constants.Colour;
+import me.aarondmello.datatypes.Colour;
 import me.aarondmello.datatypes.*;
 import me.aarondmello.driver.PairingSystem;
 import org.junit.jupiter.api.BeforeEach;

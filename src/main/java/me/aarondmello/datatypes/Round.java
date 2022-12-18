@@ -1,7 +1,7 @@
 package me.aarondmello.datatypes;
 import java.util.*;
 public class Round{
-    private LinkedList<Game> games;
+    private final LinkedList<Game> games;
     public Round(){
         games = new LinkedList<>();
     }
@@ -14,10 +14,8 @@ public class Round{
         games.addLast(g);
     }
 
-    public void setResultByID(int id, int result) {
-        try {
+    public void setResultByID(int id, GameResult result) {
+        if(id < games.size())
             games.get(id).setResult(result);
-        } catch (Exception e) {
-        }
     }
 }

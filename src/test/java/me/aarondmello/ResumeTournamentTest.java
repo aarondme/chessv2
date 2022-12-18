@@ -1,6 +1,5 @@
 package me.aarondmello;
 
-import me.aarondmello.constants.GameResult;
 import me.aarondmello.csv.CsvReader;
 import me.aarondmello.datatypes.*;
 import org.junit.jupiter.api.Test;
@@ -142,7 +141,7 @@ public class ResumeTournamentTest {
 
         Round r = new Round();
         Game g = new Game(p1, p2);
-        g.setResult(2);
+        g.setResult(GameResult.WHITE_WIN);
         r.addGame(g);
         Tournament v = TournamentBuilder.createTournament()
                 .withName("tournament")

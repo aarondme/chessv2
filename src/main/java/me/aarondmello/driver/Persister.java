@@ -12,7 +12,7 @@ import me.aarondmello.datatypes.Player;
 import me.aarondmello.datatypes.Tournament;
 
 public class Persister {
-    ArrayList<FileReadSummary> filesRead = new ArrayList<FileReadSummary>();
+    ArrayList<FileReadSummary> filesRead = new ArrayList<>();
 
     public Tournament scanFolder(File tournamentFolder) {
         File configFile = new File(tournamentFolder, "/config.txt");

@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import me.aarondmello.constants.Colour;
+import me.aarondmello.datatypes.Colour;
 import me.aarondmello.datatypes.Division;
 import me.aarondmello.datatypes.Player;
 import me.aarondmello.datatypes.PlayerGameSummary;
@@ -82,7 +82,7 @@ public class CsvReader {
             String[] games = encoded_games.get(i);
             for(int j = 4; j < 4 + roundNum - 1; j++){
                 int pointsEarned = (games[j].charAt(0) == 'W')? 2 : (games[j].charAt(0) == 'L')? 0 : 1;
-                int colour = (games[j].charAt(1) == 'w')? Colour.WHITE : Colour.BLACK;
+                Colour colour = (games[j].charAt(1) == 'w')? Colour.WHITE : Colour.BLACK;
                 Player opponent = players.get(Integer.parseInt(String.valueOf(games[j].charAt(2))));
                 p.addPlayerGameSummary(new PlayerGameSummary(pointsEarned, opponent, colour));
             }

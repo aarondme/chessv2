@@ -1,25 +1,20 @@
 package me.aarondmello.commandlineinterface;
 
-import java.io.*;
-import java.util.Scanner;
-
 import me.aarondmello.csv.CsvWriter;
-import me.aarondmello.datatypes.Division;
-import me.aarondmello.datatypes.Game;
-import me.aarondmello.datatypes.Player;
-import me.aarondmello.datatypes.Tournament;
-import me.aarondmello.driver.FileReadSummary;
+import me.aarondmello.datatypes.*;
 import me.aarondmello.driver.Persister;
 import me.aarondmello.driver.PersisterFactory;
 import me.aarondmello.maininterfaces.GUI;
+
+import java.io.*;
+import java.util.Scanner;
+
 public class CommandLineInterface implements GUI {
 
-    private PersisterFactory persisterFactory;
-    private Scanner input = new Scanner(System.in);
+    private final Scanner input = new Scanner(System.in);
 
     @Override
     public void start(PersisterFactory persisterFactory){
-        this.persisterFactory = persisterFactory;
         Persister persister = persisterFactory.getPersister();
         Tournament tournament;
         displayWelcomeMessage();
@@ -73,6 +68,12 @@ public class CommandLineInterface implements GUI {
         }
     }
 
+    private GameResult toGameResult(int num){
+        if(num == 2) return GameResult.WHITE_WIN;
+        if(num == 1) return GameResult.DRAW;
+        return GameResult.BLACK_WIN;
+    }
+
     private void getRoundResults(Tournament tournament) {
         while(true){
             printPairing(tournament);
@@ -80,7 +81,9 @@ public class CommandLineInterface implements GUI {
             if(in == null)
                 return;
             String[] split = in.split("\\s+");
-            tournament.setResultByDivisionAndGameID(split[0], Integer.parseInt(split[1]), Integer.parseInt(split[2]));
+            GameResult result = toGameResult(Integer.parseInt(split[2]));
+
+            tournament.setResultByDivisionAndGameID(split[0], Integer.parseInt(split[1]), result);
         }  
     }
 
@@ -195,7 +198,6 @@ public class CommandLineInterface implements GUI {
     }
 
     private Tournament confirmTournamentDetails(Tournament tournament, Persister persister) {
-
         printPlayerList(tournament);
         int in = promptForInt("--- Confirming tournament details ---",
                 new String[]{"0: close program", "1: continue", "2: edit tournament details"},
@@ -240,7 +242,7 @@ public class CommandLineInterface implements GUI {
                 try {
                     persister.addPlayersInFileToTournament(new BufferedReader(new FileReader(getFile())), tournament);
                 }catch (Exception e) {
-
+                    System.out.println("Error reading file");
                 }
             }
             else if(in == 4)

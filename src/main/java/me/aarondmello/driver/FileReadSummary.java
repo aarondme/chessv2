@@ -1,7 +1,7 @@
 package me.aarondmello.driver;
 
 public class FileReadSummary {
-    private String relativePathToFile;
+    private final String relativePathToFile;
     private boolean isError;
     public FileReadSummary(String relativePathToFile){
         this.relativePathToFile = relativePathToFile;
