@@ -1,16 +1,6 @@
 package me.aarondmello;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.Collections;
-
-import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-
-import me.aarondmello.datatypes.Player;
-import me.aarondmello.tiebreaks.Tiebreak;
 //TODO fix sorting test
 //public class PlayerSortingTest {
 //    ArrayList<Player> players = new ArrayList<Player>();

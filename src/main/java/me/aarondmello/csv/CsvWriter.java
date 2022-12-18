@@ -5,7 +5,7 @@ import me.aarondmello.datatypes.Division;
 import me.aarondmello.datatypes.Player;
 import me.aarondmello.datatypes.PlayerGameSummary;
 import me.aarondmello.datatypes.Tournament;
-import me.aarondmello.tiebreaks.Tiebreak;
+import me.aarondmello.datatypes.Tiebreak;
 
 import java.io.PrintWriter;
 

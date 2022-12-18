@@ -2,7 +2,6 @@ package me.aarondmello.datatypes;
 import java.util.*;
 
 import me.aarondmello.driver.PairingSystem;
-import me.aarondmello.tiebreaks.*;
 
 public class Division{
     public void setTotalRounds(int rounds) {

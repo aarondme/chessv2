@@ -1,4 +1,4 @@
-package me.aarondmello.tiebreaks;
+package me.aarondmello.datatypes;
 
 public enum TiebreakType {
     Buchholz, BuchholzCutOne, DirectEncounter, ProgressiveScores,

@@ -4,7 +4,10 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import me.aarondmello.datatypes.*;
-
+interface Constraint {
+    Iterable<int[]> applyTo(PairingSystem.State state, List<Player> players);
+    String name();
+}
 public class PairingSystem {
     State bestSolution = null;
     int roundsRemaining;
@@ -214,11 +217,6 @@ public class PairingSystem {
     }
 
     record VarAssignment(int opponentIndex, int weight) { }
-
-    interface Constraint {
-        Iterable<int[]> applyTo(State state, List<Player> players);
-        String name();
-    }
 
     private class PlayerConstraint implements Constraint {
         //Each player does not have the same opponent more than once

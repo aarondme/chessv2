@@ -10,8 +10,7 @@ import me.aarondmello.datatypes.Division;
 import me.aarondmello.datatypes.Player;
 import me.aarondmello.datatypes.PlayerGameSummary;
 import me.aarondmello.datatypes.Tournament;
-import me.aarondmello.tiebreaks.Tiebreak;
-import me.aarondmello.tiebreaks.TiebreakType;
+import me.aarondmello.datatypes.TiebreakType;
 
 public class CsvReader {
     String organizationName;

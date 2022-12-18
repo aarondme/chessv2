@@ -1,11 +1,7 @@
 package me.aarondmello.datatypes;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
-
-import me.aarondmello.tiebreaks.Tiebreak;
-import me.aarondmello.tiebreaks.TiebreakType;
 
 public class Player {
     private String name;

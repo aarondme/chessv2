@@ -5,7 +5,7 @@ import me.aarondmello.datatypes.Player;
 import java.util.*;
 
 public class BasicWeightFunction implements WeightFunction {
-    class BasicWeightConstraint implements PairingSystem.Constraint{
+    class BasicWeightConstraint implements Constraint{
         int bestWeight;
         int bestWeightForFirstRound = Integer.MIN_VALUE;
         int bestWeightForOtherRounds = Integer.MIN_VALUE;
@@ -132,7 +132,7 @@ public class BasicWeightFunction implements WeightFunction {
     private static final int WEIGHT_OF_SIT_OUT = 1_000_000;
 
     @Override
-    public PairingSystem.Constraint getWeightConstraint(int bestWeight) {
+    public Constraint getWeightConstraint(int bestWeight) {
         return new BasicWeightConstraint(bestWeight);
     }
 
