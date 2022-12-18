@@ -21,8 +21,14 @@ public class BasicWeightFunction implements WeightFunction {
         }
 
         private int getWeightForOtherRounds(PairingSystem.State state, int[] coordinate, int opponentIndex, int weight, List<Player> players) {
-            if(bestWeightForOtherRounds != Integer.MIN_VALUE && coordinate[1] == 0)
+            if(bestWeightForOtherRounds != Integer.MIN_VALUE && (coordinate[1] == 0 || opponentIndex != -1))
                 return bestWeightForOtherRounds;
+
+            if(bestWeightForOtherRounds != Integer.MIN_VALUE){
+                int numPlayersNotSittingOut = (players.size() - state.numSitOuts(coordinate[1])) + (state.getVar(coordinate).isSingleton()? 0:1);
+                if(numPlayersNotSittingOut % 2 == 1)
+                    return bestWeightForOtherRounds + WEIGHT_OF_SIT_OUT;
+            }
 
             int weightForOtherRounds = (coordinate[1] == 0) ? 0 : weight;
             for(int r = 1; r < state.variables[0].length; r++){
