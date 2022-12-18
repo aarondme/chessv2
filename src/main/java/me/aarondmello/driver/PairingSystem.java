@@ -1,171 +1,308 @@
 package me.aarondmello.driver;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.ListIterator;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import me.aarondmello.datatypes.*;
 
 public class PairingSystem {
-    Round round;
+    State bestSolution = null;
+    int roundsRemaining;
     ArrayList<Player> players;
+    int roundNumber;
+    int numEntries, numPlayers;
+    private int bestWeight = Integer.MAX_VALUE;
+    WeightFunction weightFunction;
 
     public PairingSystem(){
+        weightFunction = new BasicWeightFunction();
     }
 
-    public Round pairRound(int roundNumber, ArrayList<Player> players){
+    public Round pairRound(int roundNumber, ArrayList<Player> players, int totalRounds){
+        this.roundsRemaining = totalRounds - roundNumber + 1;
         this.players = players;
-        round = new Round();
-        if(roundNumber == 1)
-            pairFirstRound();
-        else
-            determineMatches();
-        return round;
+        this.roundNumber = roundNumber;
+        State initialState = new State();
+        bestSolution = new State(initialState);
+        bestSolution.trivialize();
+        numPlayers = players.size();
+        numEntries = players.size() * roundsRemaining;
+        gac(initialState);
+        return bestSolution.getRound();
     }
 
-    private void pairFirstRound(){
-        int frontPointer = 0;
-        int backPointer = players.size() - 1;
-        while(frontPointer < backPointer){
-            Player white = players.get(frontPointer);
-            Player black = players.get(backPointer);
-            round.addGame(new Game(white, black));
-            frontPointer++;
-            backPointer--;
+    private void gac(State previousState) {
+        int[] index = previousState.getUnassignedVariable();
+        if(index == null){
+            bestSolution = previousState;
+            bestWeight = 0;
+            for (Variable[] vars: bestSolution.variables)
+                for (Variable v: vars)
+                    bestWeight += v.getDomain().get(0).weight;
+
+            return;
         }
-        if(frontPointer == backPointer)
-            round.addGame(new Game(players.get(frontPointer), NullPlayer.getInstance()));
+
+        for(VarAssignment pos : previousState.getVar(index).getDomain()){
+            State nextState = new State(previousState);
+            nextState.setVar(index, pos.opponentIndex);
+
+            LinkedList<Constraint> constraints = getConstraintsForVar(index);
+            HashSet<String> constraintNames = constraints.stream().map(Constraint::name)
+                    .collect(Collectors.toCollection(HashSet::new));
+
+            if(gacEnforce(constraints, constraintNames, nextState))
+                gac(nextState);
+        }
     }
 
-    /**
-     * Determines the matches
-     */
-    public boolean determineMatches() {
-        int indexOfSittingOut = players.size();
-        Game bye = null;
-
-        // Loops until break condition is hit; successful combination found or all
-        // combinations tried
-        while (true) {
-            LinkedList<Player> playersLeft = new LinkedList<Player>(players);
-            round = new Round();
-
-            if (playersLeft.size() % 2 == 1) {
-                indexOfSittingOut = indexOfWorstPlayerWhoCanSitOutBefore(indexOfSittingOut, players);
-                if(indexOfSittingOut == -1)
-                    break;
-                Player z = playersLeft.remove(indexOfSittingOut);
-                bye = new Game(z, NullPlayer.getInstance());
+    private boolean gacEnforce(LinkedList<Constraint> gacQueue, HashSet<String> constraintNames, State state) {
+        while (!gacQueue.isEmpty()){
+            Constraint constraint = gacQueue.removeFirst();
+            constraintNames.remove(constraint.name());
+            Iterable<int[]> modifiedVariables = constraint.applyTo(state, players);
+            if(modifiedVariables == null)
+                return false;
+            for(int[] coordinate : modifiedVariables){
+                List<Constraint> toAdd = getConstraintsForVar(coordinate);
+                toAdd.removeIf((d -> constraintNames.contains(d.name())));
+                gacQueue.addAll(toAdd);
+                constraintNames.addAll(gacQueue.stream().map(Constraint::name).collect(Collectors.toList()));
             }
 
-            // Loops until all players are matched, or until all combinations are tried
-            while (playersLeft.size() > 0) {
-                ArrayList<Player> sublist = getEvenLengthSublistOfTopPlayers(playersLeft);
-
-                // Loops until a set of matches for the temporary list is found
-                while (true) {
-                    ArrayList<Game> m = pairSublist(sublist);
-                    //If the sublist was paired, add them all to the list.
-                    if(m != null){
-                        round.addAllGames(m);
-                        break;
-                    }
-
-                    // If no match is found, tries to add more players to the temporary list
-                    // If there are 2 or more players left, add them and try again
-                    if (playersLeft.size() >= 2) {
-                        sublist.add(playersLeft.pollFirst());
-                        sublist.add(playersLeft.pollFirst());
-                        continue;
-                    }
-                    // If all but one, or all players are already on the list, break
-                    if (sublist.size() >= players.size() - 1)
-                        break;
-
-                    // Remove the match with the weakest players, and add the players involved to
-                    // the temporary list and try again
-                    Game q = round.removeGame();
-                    Player a = q.getWhitePlayer();
-                    Player b = q.getBlackPlayer();
-                    if (a == NullPlayer.getInstance())
-                        break;
-
-                    sublist.add(a);
-                    sublist.add(b);
-                }
-            }
-            // If this is true, all players are paired, so break
-            if (round.getNumberOfGames() == players.size() / 2)
-                break;
-            // If there are an even number of players, all combinations were tried in the
-            // worst case, so break from the loop
-            if (players.size() % 2 == 0)
-                break;
         }
-        // If this is true, not all players were paired
-        if (round.getNumberOfGames() != players.size() / 2)
-            return false;
-        // Add the odd player's match
-        if (bye != null)
-            round.addGame(bye);
         return true;
     }
 
-    private ArrayList<Player> getEvenLengthSublistOfTopPlayers(LinkedList<Player> playersLeft) {
-        ArrayList<Player> temp = new ArrayList<Player>();
-        int score = playersLeft.get(0).getScore();
-
-        while (playersLeft.size() > 1 && playersLeft.get(0).getScore() == score) {
-            temp.add(playersLeft.pollFirst());
-            temp.add(playersLeft.pollFirst());
-        }
-
-        return temp;
-    }
-
-    private int indexOfWorstPlayerWhoCanSitOutBefore(int maxIndex, ArrayList<Player> p) {
-        for (int i = maxIndex - 1; i >= 0; i--) {
-            if (!p.get(i).hasSatOut())
-                return i;
-        }
-        return -1;
+    private LinkedList<Constraint> getConstraintsForVar(int[] coordinate) {
+        LinkedList<Constraint> constraints = new LinkedList<>();
+        constraints.add(new PlayerConstraint(coordinate[0]));
+        constraints.add(new RoundConstraint(coordinate[1]));
+        constraints.add(weightFunction.getWeightConstraint(bestWeight));
+        return constraints;
     }
 
 
+    private Game pairPlayers(Player p, Player q) {
+        if (p.getGamesAsBlack() >= q.getGamesAsBlack())
+            return new Game(p, q);
+        return new Game(q, p);
+    }
 
-    private ArrayList<Game> pairSublist(ArrayList<Player> sub) {
-        if (sub.size() == 0)
-            return new ArrayList<>();
-        // True if the first and last player's score are the same
-        boolean isPairingFirstPlayer = (sub.get(0).getScore() == sub.get(sub.size() - 1).getScore());
-        ArrayList<Player> temp = new ArrayList<Player>(sub);
-        Player p = temp.remove((isPairingFirstPlayer) ? 0 : sub.size() - 1);
-        ListIterator<Player> iterator = temp.listIterator(temp.size());
-        while (iterator.hasPrevious()){
-            Player q = iterator.previous();
-            if(p.hasPlayedAgainst(q))
-                continue;
-            iterator.remove();
-            ArrayList<Game> mat = pairSublist(temp);
-            if (mat != null){
-                Game g = pairPlayers(isPairingFirstPlayer, p, q);
-                mat.add(g);
-                return mat;
+    public class State {
+        Variable[][] variables;
+
+        State(){
+            variables = new Variable[players.size()][roundsRemaining];
+            for(int i = 0; i < players.size(); i++)
+                for (int j = 0; j < roundsRemaining; j++)
+                    variables[i][j] = new Variable(players.size(), i, j);
+
+        }
+
+        public State(State stateToCopy){
+            variables = new Variable[stateToCopy.variables.length][stateToCopy.variables[0].length];
+            for(int i = 0; i < variables.length; i++)
+                for (int j = 0; j < variables[i].length; j++)
+                    variables[i][j] = new Variable(stateToCopy.variables[i][j]);
+        }
+
+        public void trivialize() {
+            for (Variable[] variable : variables)
+                for (Variable value : variable)
+                    if (!value.isSingleton())
+                        value.setValue(-1);
+        }
+
+        public int[] getUnassignedVariable() {
+            for (int j = 0; j < variables[0].length; j++)
+                for (int i = 0; i < variables.length; i++)
+                    if(variables[i][j].isUnassigned())
+                        return new int[]{i, j};
+            return null;
+        }
+
+        public Variable getVar(int[] index) {
+            return variables[index[0]][index[1]];
+        }
+        public Variable getVar(int playerIndex, int roundIndex) {
+            return variables[playerIndex][roundIndex];
+        }
+
+        public Round getRound() {
+            HashSet<Integer> pairedIds = new HashSet<>();
+            Round r = new Round();
+            for(int i = 0; i < variables.length; i++){
+                if(pairedIds.contains(i))
+                    continue;
+                int opponent = variables[i][0].getValue();
+                if(opponent == -1){
+                    r.addGame(new Game(players.get(i), NullPlayer.getInstance()));
+                    pairedIds.add(i);
+                }
+                else{
+                    r.addGame(pairPlayers(players.get(i), players.get(opponent)));
+                    pairedIds.add(i);
+                    pairedIds.add(opponent);
+                }
             }
-            iterator.add(p);
+            return r;
         }
-        return null;
+
+        public boolean setVar(int[] index, int value) {
+            return variables[index[0]][index[1]].setValue(value);
+        }
+
+        public int getWeightOf(int playerIndex, int roundIndex) {
+            return variables[playerIndex][roundIndex].values.get(0).weight;
+        }
+
+        public int numSitOuts(int r) {
+            int num = 0;
+            for (Variable[] variable : variables)
+                if (variable[r].isSingleton() && variable[r].getValue() == -1)
+                    num++;
+            return num;
+        }
+
+        public boolean setVar(int playerIndex, int roundIndex, int value) {
+            return variables[playerIndex][roundIndex].setValue(value);
+        }
     }
 
-    private Game pairPlayers(boolean isPairingFirstPlayer, Player p, Player q) {
-        if (p.getGamesAsBlack() > q.getGamesAsBlack()) {
-            return new Game(p, q);
-        } else if (p.getGamesAsBlack() < q.getGamesAsBlack()) {
-            return new Game(q, p);
-        } else if (isPairingFirstPlayer) {
-            return new Game(p, q);
-        } else {
-            return new Game(q, p);
+    public class Variable {
+        LinkedList<VarAssignment> values;
+        public Variable(Variable x){
+            values = new LinkedList<>(x.values);
+        }
+
+        public Variable(int numPlayers, int playerIndex, int roundIndex) {
+            values = new LinkedList<>();
+            Player p = players.get(playerIndex);
+            for(int opponentIndex = 0; opponentIndex < numPlayers; opponentIndex++){
+                if(opponentIndex == playerIndex || p.hasPlayedAgainst(players.get(opponentIndex)))
+                    continue;
+                values.add(new VarAssignment(opponentIndex, weightFunction.calculateWeight(opponentIndex, p, roundIndex, players)));
+            }
+            values.sort(Comparator.comparing(varAssignment -> varAssignment.weight));
+            values.addLast(new VarAssignment(-1, weightFunction.calculateWeight(-1, p, roundIndex, players)));
+        }
+
+        public LinkedList<VarAssignment> getDomain() {
+            return values;
+        }
+
+        public boolean setValue(int opponentIndex) {
+            return values.removeIf(varAssignment -> varAssignment.opponentIndex != opponentIndex);
+        }
+
+        public boolean isSingleton() {
+            return values.size() == 1;
+        }
+
+        public int getValue(){
+            return isSingleton()? values.get(0).opponentIndex : -1;
+        }
+
+        public boolean isUnassigned() {
+            return values.size() > 1;
+        }
+
+        public boolean isEmpty() {
+            return values.isEmpty();
+        }
+    }
+
+    record VarAssignment(int opponentIndex, int weight) { }
+
+    interface Constraint {
+        Iterable<int[]> applyTo(State state, List<Player> players);
+        String name();
+    }
+
+    private class PlayerConstraint implements Constraint {
+        //Each player does not have the same opponent more than once
+        private final int playerIndex;
+        private final String name;
+        public PlayerConstraint(int playerIndex) {
+            this.playerIndex = playerIndex;
+            this.name = "h" + playerIndex;
+        }
+
+
+        @Override
+        public Iterable<int[]> applyTo(State state, List<Player> players) {
+            LinkedList<int[]> modified = new LinkedList<>();
+            HashSet<Integer> usedValues = new HashSet<>();
+            for (int i = 0; i < roundsRemaining; i++) {
+                Variable w = state.getVar(playerIndex, i);
+                int wVal = w.getValue();
+                if(w.isSingleton() && wVal != -1)
+                    usedValues.add(wVal);
+            }
+
+            for (int i = 0; i < roundsRemaining; i++) {
+                Variable w = state.getVar(playerIndex, i);
+                if(w.isSingleton()) continue;
+                List<VarAssignment> domain = w.getDomain();
+
+                if(domain.removeIf(v -> usedValues.contains(v.opponentIndex))){
+                    if(domain.isEmpty()) return null;
+                    modified.add(new int[]{playerIndex, i});
+                }
+            }
+            return modified;
+        }
+
+        @Override
+        public String name() {
+            return name;
+        }
+
+    }
+
+    private class RoundConstraint implements Constraint {
+        //In a round, each player plays at most one game.
+        private final int roundIndex;
+        private final String name;
+        public RoundConstraint(int roundIndex) {
+            this.roundIndex = roundIndex;
+            this.name = "v" + roundIndex;
+        }
+
+        @Override
+        public Iterable<int[]> applyTo(State state, List<Player> players) {
+            LinkedList<int[]> modified = new LinkedList<>();
+            HashSet<Integer> usedValues = new HashSet<>();
+            for (int i = 0; i < numPlayers; i++) {
+                Variable w = state.getVar(i, roundIndex);
+                int wVal = w.getValue();
+                if(w.isSingleton() && wVal != -1){
+                    usedValues.add(wVal);
+                    usedValues.add(i);
+                    if(state.setVar(wVal, roundIndex, i)){
+                        if(state.getVar(wVal, roundIndex).isEmpty()) return null;
+                        modified.add(new int[]{wVal, roundIndex});
+                    }
+                }
+            }
+
+            for (int i = 0; i < numPlayers; i++) {
+                Variable w = state.getVar(i, roundIndex);
+                if(w.isSingleton()) continue;
+                List<VarAssignment> domain = w.getDomain();
+
+                if(domain.removeIf(v -> usedValues.contains(v.opponentIndex))){
+                    if(domain.isEmpty()) return null;
+                    modified.add(new int[]{i, roundIndex});
+                }
+            }
+            return modified;
+        }
+
+        @Override
+        public String name() {
+            return name;
         }
     }
 }

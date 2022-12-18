@@ -5,6 +5,10 @@ import me.aarondmello.driver.PairingSystem;
 import me.aarondmello.tiebreaks.*;
 
 public class Division{
+    public void setTotalRounds(int rounds) {
+        totalRounds = rounds;
+    }
+
     class PlayerComparator implements Comparator<Player>{
         Tiebreak[] tiebreaks;
         PlayerComparator(Tiebreak[] tb){
@@ -23,6 +27,7 @@ public class Division{
 
     private String name;
     private ArrayList<Player> players = new ArrayList<>();
+    private int totalRounds;
     private int maxID = 0;
     private PairingSystem pairingSystem = new PairingSystem();
 
@@ -84,11 +89,7 @@ public class Division{
         sortPlayers();
     }
     public void pairRound(int roundNumber) {
-        currentRound = pairingSystem.pairRound(roundNumber, players);
-    }
-
-    public Round getCurrentRound() {
-        return currentRound;
+        currentRound = pairingSystem.pairRound(roundNumber, players, totalRounds);
     }
 
     public void setCurrentRound(Round currentRound) {

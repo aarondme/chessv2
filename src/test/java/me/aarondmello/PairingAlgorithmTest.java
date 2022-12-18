@@ -1,36 +1,24 @@
 package me.aarondmello;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.when;
-
-import java.util.*;
-
 import me.aarondmello.constants.Colour;
 import me.aarondmello.datatypes.*;
-import me.aarondmello.tiebreaks.Tiebreak;
+import me.aarondmello.driver.PairingSystem;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.mockito.Mockito;
 
-import me.aarondmello.driver.PairingSystem;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedList;
+
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class PairingAlgorithmTest {
-    class PlayerComparator implements Comparator<Player>{
-        @Override
-        public int compare(Player o1, Player o2) {
-          return o1.getScore() - o2.getScore();
-        }
-    }
     PairingSystem pairingSystem;
     ArrayList<Player> players;
-    final int WHITE = 8;
-    final int BLACK = 0;
-    final int WIN = 3;
-    final int LOSS = 0;
-    final int DRAW = 1;
-    final int NOPLAY = -1;
 
     @BeforeEach
     public void setup(){
@@ -38,132 +26,293 @@ public class PairingAlgorithmTest {
         players = new ArrayList<>();
     }
 
-    private void initPlayers(int numberOfPlayers, int[][] matches){
+    private void initPlayers(int numberOfPlayers){
         for(int i = 0; i < numberOfPlayers; i++){
             Player p = new Player("" + i, "org");
             p.setID(i);
             players.add(p);
         }
-        for(int i = 0; i < numberOfPlayers; i++){
-            for(int j = 0; j < numberOfPlayers; j++){
-                if(matches[i][j] != NOPLAY) {
-                    PlayerGameSummary summary = initializeSummary(matches[i][j], j);
-                    players.get(i).addPlayerGameSummary(summary);
-                }
-            }
-        }
     }
 
-    private PlayerGameSummary initializeSummary(int bitmask, int opponent) {
-        int color = ((bitmask & WHITE) == 0)? Colour.BLACK:Colour.WHITE;
-        int score = ((bitmask & WIN) == 3)? 2: ((bitmask & DRAW) == 1)? 1 : 0;
-        Player opp = players.get(opponent);
-        return new PlayerGameSummary(score, opp, color);
-    }
 
     @ParameterizedTest
-    @ValueSource(ints = {5,6})
+    @ValueSource(ints = {2, 3, 4, 5,6})
     public void pairPlayersFirstRound(int numPlayers){
-        int[][] matches = new int[numPlayers][numPlayers];
-        for(int i = 0; i < numPlayers; i++)
-            for(int j = 0; j < numPlayers; j++)
-                matches[i][j] = NOPLAY;
-        initPlayers(numPlayers, matches);
-        Round r = pairingSystem.pairRound(1, players);
-        
+        initPlayers(numPlayers);
+        Round r = pairingSystem.pairRound(1, players, Math.min(3, numPlayers-1));
+        System.out.println("Pair players first round: " + numPlayers);
+        for (Game g:r.getGames()) {
+            System.out.println(g.getWhitePlayer().getID() + " " + g.getBlackPlayer().getID());
+        }
         assertTrue(checkIfAllPlayersPaired(r));
+    }
+
+
+    @Test
+    public void manyPlayersEvenFirstRound() {
+        assertTimeoutPreemptively(Duration.ofSeconds(20), () -> {
+            initPlayers(30);
+            Round r = pairingSystem.pairRound(1, players, 6);
+            System.out.println("Many players Even first round");
+            for (Game g:r.getGames()) {
+                System.out.println(g.getWhitePlayer().getID() + " " + g.getBlackPlayer().getID());
+            }
+            assertTrue(checkIfAllPlayersPaired(r));
+            assertTrue(r.getGames().stream().allMatch(this::checkIfGameValid));
+        });
     }
 
     @Test
+    public void manyPlayersEvenSecondRound() {
+        initPlayers(30);
+        for (int i = 0; i < 30; i += 2) {
+            players.get(i).addPlayerGameSummary(new PlayerGameSummary(2, players.get(i + 1), Colour.WHITE));
+            players.get(i + 1).addPlayerGameSummary(new PlayerGameSummary(0, players.get(i), Colour.BLACK));
+        }
+        assertTimeoutPreemptively(Duration.ofSeconds(20), () -> {
+            Round r = pairingSystem.pairRound(2, players, 6);
+            System.out.println("Many players Even second round");
+            for (Game g:r.getGames()) {
+                System.out.println(g.getWhitePlayer().getID() + " " + g.getBlackPlayer().getID());
+            }
+            assertTrue(checkIfAllPlayersPaired(r));
+            assertTrue(r.getGames().stream().allMatch(this::checkIfGameValid));
+        });
+    }
+
+    @Test
+    public void manyPlayersEvenThirdRound() {
+        initPlayers(30);
+        for (int i = 0; i < 30; i += 2) {
+            players.get(i).addPlayerGameSummary(new PlayerGameSummary(2, players.get(i + 1), Colour.WHITE));
+            players.get(i + 1).addPlayerGameSummary(new PlayerGameSummary(0, players.get(i), Colour.BLACK));
+        }
+        for (int i = 0; i < 28; i+= 4) {
+            players.get(i).addPlayerGameSummary(new PlayerGameSummary(2, players.get(i + 1), Colour.WHITE));
+            players.get(i + 2).addPlayerGameSummary(new PlayerGameSummary(0, players.get(i), Colour.BLACK));
+            players.get(i + 1).addPlayerGameSummary(new PlayerGameSummary(2, players.get(i + 1), Colour.WHITE));
+            players.get(i + 3).addPlayerGameSummary(new PlayerGameSummary(0, players.get(i), Colour.BLACK));
+        }
+        players.get(28).addPlayerGameSummary(new PlayerGameSummary(2, players.get(29), Colour.WHITE));
+        players.get(29).addPlayerGameSummary(new PlayerGameSummary(0, players.get(28), Colour.BLACK));
+
+        assertTimeoutPreemptively(Duration.ofSeconds(20), () -> {
+            Round r = pairingSystem.pairRound(3, players, 6);
+            System.out.println("Many players Even third round");
+            for (Game g:r.getGames()) {
+                System.out.println(g.getWhitePlayer().getID() + " " + g.getBlackPlayer().getID());
+            }
+            assertTrue(checkIfAllPlayersPaired(r));
+            assertTrue(r.getGames().stream().allMatch(this::checkIfGameValid));
+        });
+    }
+
+
+    @Test
+    public void manyPlayersOddFirstRound() {
+        assertTimeoutPreemptively(Duration.ofSeconds(20), () -> {
+            initPlayers(31);
+            Round r = pairingSystem.pairRound(1, players, 6);
+            System.out.println("Many players Odd first round");
+            for (Game g:r.getGames()) {
+                System.out.println(g.getWhitePlayer().getID() + " " + g.getBlackPlayer().getID());
+            }
+            assertTrue(checkIfAllPlayersPaired(r));
+            assertTrue(r.getGames().stream().allMatch(this::checkIfGameValid));
+        });
+    }
+
+    @Test
+    public void manyPlayersOddSecondRound() {
+        initPlayers(31);
+        for (int i = 0; i < 30; i += 2) {
+            players.get(i).addPlayerGameSummary(new PlayerGameSummary(2, players.get(i + 1), Colour.WHITE));
+            players.get(i + 1).addPlayerGameSummary(new PlayerGameSummary(0, players.get(i), Colour.BLACK));
+        }
+        players.get(30).addPlayerGameSummary(new PlayerGameSummary(2, NullPlayer.getInstance(), Colour.WHITE));
+
+        assertTimeoutPreemptively(Duration.ofSeconds(20), () -> {
+            Round r = pairingSystem.pairRound(2, players, 6);
+            System.out.println("Many players Even second round");
+            for (Game g:r.getGames()) {
+                System.out.println(g.getWhitePlayer().getID() + " " + g.getBlackPlayer().getID());
+            }
+            assertTrue(checkIfAllPlayersPaired(r));
+            assertTrue(r.getGames().stream().allMatch(this::checkIfGameValid));
+        });
+    }
+
+    @Test
+    public void manyPlayersOddThirdRound() {
+        initPlayers(31);
+        for (int i = 0; i < 30; i += 2) {
+            players.get(i).addPlayerGameSummary(new PlayerGameSummary(2, players.get(i + 1), Colour.WHITE));
+            players.get(i + 1).addPlayerGameSummary(new PlayerGameSummary(0, players.get(i), Colour.BLACK));
+        }
+        players.get(30).addPlayerGameSummary(new PlayerGameSummary(2, NullPlayer.getInstance(), Colour.WHITE));
+        for (int i = 0; i < 28; i+= 4) {
+            players.get(i).addPlayerGameSummary(new PlayerGameSummary(2, players.get(i + 1), Colour.WHITE));
+            players.get(i + 2).addPlayerGameSummary(new PlayerGameSummary(0, players.get(i), Colour.BLACK));
+            players.get(i + 1).addPlayerGameSummary(new PlayerGameSummary(2, players.get(i + 1), Colour.WHITE));
+            players.get(i + 3).addPlayerGameSummary(new PlayerGameSummary(0, players.get(i), Colour.BLACK));
+        }
+        players.get(28).addPlayerGameSummary(new PlayerGameSummary(2, players.get(30), Colour.WHITE));
+        players.get(30).addPlayerGameSummary(new PlayerGameSummary(0, players.get(28), Colour.BLACK));
+        players.get(29).addPlayerGameSummary(new PlayerGameSummary(2, NullPlayer.getInstance(), Colour.WHITE));
+
+        assertTimeoutPreemptively(Duration.ofSeconds(20), () -> {
+            Round r = pairingSystem.pairRound(3, players, 6);
+            System.out.println("Many players Odd third round");
+            for (Game g:r.getGames()) {
+                System.out.println(g.getWhitePlayer().getID() + " " + g.getBlackPlayer().getID());
+            }
+            assertTrue(checkIfAllPlayersPaired(r));
+            assertTrue(r.getGames().stream().allMatch(this::checkIfGameValid));
+        });
+    }
+
+
+    @Test
     public void pairLastOption(){
-        int[][] matches = {
-                {NOPLAY,WHITE+DRAW , BLACK+DRAW, NOPLAY},
-                {BLACK+DRAW, NOPLAY, NOPLAY, WHITE+WIN},
-                {WHITE+DRAW ,NOPLAY,NOPLAY, BLACK+DRAW},
-                {NOPLAY,BLACK+LOSS ,WHITE+DRAW ,NOPLAY}};
-        initPlayers(4, matches);
+        initPlayers(4);
+        players.get(0).addPlayerGameSummary(
+                new PlayerGameSummary(1, players.get(1), Colour.WHITE),
+                new PlayerGameSummary(1, players.get(2), Colour.BLACK)
+        );
+        players.get(1).addPlayerGameSummary(
+                new PlayerGameSummary(1, players.get(0), Colour.BLACK),
+                new PlayerGameSummary(2, players.get(3), Colour.WHITE)
+        );
+        players.get(2).addPlayerGameSummary(
+                new PlayerGameSummary(1, players.get(3), Colour.BLACK),
+                new PlayerGameSummary(1, players.get(0), Colour.WHITE)
+        );
+        players.get(3).addPlayerGameSummary(
+                new PlayerGameSummary(1, players.get(2), Colour.WHITE),
+                new PlayerGameSummary(0, players.get(1), Colour.BLACK)
+        );
 
-        Round r = pairingSystem.pairRound(3, players);
 
+        Round r = pairingSystem.pairRound(3, players, 3);
+        System.out.println("Pair last option");
+        for (Game g : r.getGames()) {
+            System.out.println(g.getWhitePlayer().getID() + " " + g.getBlackPlayer().getID());
+        }
         assertTrue(checkIfAllPlayersPaired(r));
-        assertTrue(checkIfPairingValid(r));
+        assertTrue(r.getGames().stream().allMatch(this::checkIfGameValid));
     }
 
     @Test
     public void pairSecondRound(){
-        int[][] matches = {
-                {NOPLAY, WHITE+WIN, NOPLAY, NOPLAY, NOPLAY},
-                {BLACK+LOSS, NOPLAY, NOPLAY, NOPLAY, NOPLAY},
-                {NOPLAY,NOPLAY,NOPLAY,BLACK+WIN,NOPLAY},
-                {NOPLAY,NOPLAY,WHITE+LOSS,NOPLAY,NOPLAY},
-                {NOPLAY,NOPLAY,NOPLAY,NOPLAY,NOPLAY}
-        };
-        initPlayers(5, matches);
-        players.get(4).addPlayerGameSummary(new PlayerGameSummary(2, NullPlayer.getInstance(), Colour.WHITE));
-        players.sort(new PlayerComparator().reversed());
+        initPlayers(5);
+        players.get(0).addPlayerGameSummary(
+                new PlayerGameSummary(2, players.get(1), Colour.WHITE)
+        );
+        players.get(1).addPlayerGameSummary(
+                new PlayerGameSummary(0, players.get(0), Colour.BLACK)
+        );
+        players.get(2).addPlayerGameSummary(
+                new PlayerGameSummary(2, players.get(3), Colour.BLACK)
+        );
+        players.get(3).addPlayerGameSummary(
+                new PlayerGameSummary(0, players.get(2), Colour.WHITE)
+        );
+        players.get(4).addPlayerGameSummary(
+                new PlayerGameSummary(2, NullPlayer.getInstance(), Colour.WHITE)
+        );
 
-        Round r = pairingSystem.pairRound(2, players);
 
+        Round r = pairingSystem.pairRound(2, players, 4);
+        System.out.println("Pair second round");
+        for (Game g : r.getGames()) {
+            System.out.println(g.getWhitePlayer().getID() + " " + g.getBlackPlayer().getID());
+        }
         assertTrue(checkIfAllPlayersPaired(r));
-        assertTrue(checkIfPairingValid(r));
-        assertTrue(scoreDifference(r) <= 2);
+        assertTrue(r.getGames().stream().allMatch(this::checkIfGameValid));
     }
 
 
     @Test
     public void pairThirdRound(){
-        int[][] matches = {
-                {NOPLAY, WHITE+WIN, BLACK+WIN, NOPLAY, NOPLAY},
-                {BLACK+LOSS, NOPLAY, NOPLAY, NOPLAY, WHITE+LOSS},
-                {WHITE+LOSS,NOPLAY,NOPLAY,BLACK+WIN,NOPLAY},
-                {NOPLAY,NOPLAY,WHITE+LOSS,NOPLAY,NOPLAY},
-                {NOPLAY,BLACK+WIN,NOPLAY,NOPLAY,NOPLAY}
-        };
-        initPlayers(5, matches);
-        players.sort(new PlayerComparator().reversed());
-        Round r = pairingSystem.pairRound(3, players);
-
-        assertTrue(checkIfAllPlayersPaired(r));
-        assertTrue(checkIfPairingValid(r));
-        assertTrue(scoreDifference(r) <= 4);
-    }
-
-    private int scoreDifference(Round r){
-        int diff = 0;
-        for(Game g : r.getGames()){
-            diff += Math.abs(g.getWhitePlayer().getScore() - g.getBlackPlayer().getScore());
+        initPlayers(5);
+        players.get(0).addPlayerGameSummary(
+                new PlayerGameSummary(2, players.get(1), Colour.WHITE),
+                new PlayerGameSummary(2, players.get(2), Colour.BLACK)
+        );
+        players.get(1).addPlayerGameSummary(
+                new PlayerGameSummary(0, players.get(0), Colour.BLACK),
+                new PlayerGameSummary(0, players.get(4), Colour.WHITE)
+        );
+        players.get(2).addPlayerGameSummary(
+                new PlayerGameSummary(2, players.get(3), Colour.BLACK),
+                new PlayerGameSummary(0, players.get(0), Colour.WHITE)
+        );
+        players.get(3).addPlayerGameSummary(
+                new PlayerGameSummary(0, players.get(2), Colour.WHITE),
+                new PlayerGameSummary(2, NullPlayer.getInstance(), Colour.WHITE)
+        );
+        players.get(4).addPlayerGameSummary(
+                new PlayerGameSummary(2, NullPlayer.getInstance(), Colour.WHITE),
+                new PlayerGameSummary(2, players.get(1), Colour.BLACK)
+        );
+        Round r = pairingSystem.pairRound(3, players, 4);
+        System.out.println("Pair third round");
+        for (Game g : r.getGames()) {
+            System.out.println(g.getWhitePlayer().getID() + " " + g.getBlackPlayer().getID());
         }
-        return diff;
+        assertTrue(checkIfAllPlayersPaired(r));
+        assertTrue(r.getGames().stream().allMatch(this::checkIfGameValid));
     }
 
+    @Test
+    public void pairLookingAhead(){
+        initPlayers(6);
+        players.get(0).addPlayerGameSummary(
+                new PlayerGameSummary(2, players.get(4), Colour.WHITE),
+                new PlayerGameSummary(2, players.get(5), Colour.BLACK)
+        );
+        players.get(1).addPlayerGameSummary(
+                new PlayerGameSummary(2, players.get(5), Colour.WHITE),
+                new PlayerGameSummary(0, players.get(3), Colour.BLACK)
+        );
+        players.get(2).addPlayerGameSummary(
+                new PlayerGameSummary(0, players.get(3), Colour.WHITE),
+                new PlayerGameSummary(0, players.get(4), Colour.BLACK)
+        );
+        players.get(3).addPlayerGameSummary(
+                new PlayerGameSummary(2, players.get(2), Colour.BLACK),
+                new PlayerGameSummary(2, players.get(1), Colour.WHITE)
+        );
+        players.get(4).addPlayerGameSummary(
+                new PlayerGameSummary(0, players.get(0), Colour.BLACK),
+                new PlayerGameSummary(2, players.get(2), Colour.WHITE)
+        );
+        players.get(5).addPlayerGameSummary(
+                new PlayerGameSummary(0, players.get(1), Colour.BLACK),
+                new PlayerGameSummary(0, players.get(0), Colour.WHITE)
+        );
+
+        Round r = pairingSystem.pairRound(3, players, 4);
+        System.out.println("Pair looking ahead");
+        for (Game g : r.getGames()) {
+            System.out.println(g.getWhitePlayer().getID() + " " + g.getBlackPlayer().getID());
+        }
+        assertTrue(checkIfAllPlayersPaired(r));
+        assertTrue(r.getGames().stream().allMatch(this::checkIfGameValid));
+        assertTrue(r.getGames().stream().anyMatch(g -> g.getBlackPlayer().getScore() != g.getWhitePlayer().getScore())); //Otherwise, the fourth round necessarily has two players sit out.
+    }
     private boolean checkIfAllPlayersPaired(Round round){
         LinkedList<Game> games = round.getGames();
+        if(games.size() != (players.size() + 1)/2)
+            return false;
         HashSet<Integer> uniquePairedPlayers = new HashSet<>();
-        boolean nullPlayerPaired = false;
-        for(Game g : games){
-            Player black = g.getBlackPlayer();
-            uniquePairedPlayers.add(g.getWhitePlayer().getID());
-            if(black instanceof NullPlayer)
-                nullPlayerPaired = true;
-               
-            uniquePairedPlayers.add(black.getID());
-                
-        }
-        boolean oddNumberOfPlayers = players.size() % 2 == 1;
-        //An additional "null" player expected if odd
-        int numberOfUniquePlayersExpected = players.size() + ((oddNumberOfPlayers)? 1:0);
-        int numberOfGamesExpected = numberOfUniquePlayersExpected/2;
-        boolean areCorrectNumberOfGames = games.size() == numberOfGamesExpected;  
-        boolean allPlayersPaired = numberOfUniquePlayersExpected == uniquePairedPlayers.size();
 
-        return allPlayersPaired && (!oddNumberOfPlayers ^ nullPlayerPaired) && areCorrectNumberOfGames;
-    } 
-    private boolean checkIfPairingValid(Round round){
-        LinkedList<Game> games = round.getGames();
         for(Game g : games){
-            if(!checkIfGameValid(g))
+            if(!uniquePairedPlayers.add(g.getWhitePlayer().getID()) ||
+                    !uniquePairedPlayers.add(g.getBlackPlayer().getID()))
                 return false;
         }
+
         return true;
     }
 

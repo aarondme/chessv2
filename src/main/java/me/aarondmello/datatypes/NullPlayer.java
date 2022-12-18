@@ -20,7 +20,7 @@ public class NullPlayer extends Player{
     }
 
     @Override
-    public void addPlayerGameSummary(PlayerGameSummary PlayerGameSummary) {}
+    public void addPlayerGameSummary(PlayerGameSummary ... PlayerGameSummary) {}
 
     @Override
     public int getID() {
