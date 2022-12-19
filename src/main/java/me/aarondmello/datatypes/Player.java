@@ -70,11 +70,7 @@ public class Player {
         return hasPlayedAgainst(NullPlayer.getInstance());
     }
     public boolean hasPlayedAgainst(Player opponent){
-        for(PlayerGameSummary m : summaries){
-            if(m.getOpponent().equals(opponent))
-                return true;
-        }
-        return false;
+        return summaries.stream().anyMatch(m -> m.getOpponent().equals(opponent));
     }
 
     public int getScoreAgainst(Player opponent){

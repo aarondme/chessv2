@@ -8,6 +8,10 @@ interface Constraint {
     Iterable<int[]> applyTo(PairingSystem.State state, List<Player> players);
     String name();
 }
+interface WeightFunction {
+    Constraint getWeightConstraint(int bestWeight);
+    int calculateWeight(int opponentIndex, Player p, int roundIndex, List<Player> players);
+}
 public class PairingSystem extends Thread {
     State bestSolution;
     State initialState;
