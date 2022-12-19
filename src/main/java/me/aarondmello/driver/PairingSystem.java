@@ -8,8 +8,9 @@ interface Constraint {
     Iterable<int[]> applyTo(PairingSystem.State state, List<Player> players);
     String name();
 }
-public class PairingSystem {
-    State bestSolution = null;
+public class PairingSystem extends Thread {
+    State bestSolution;
+    State initialState;
     int roundsRemaining;
     ArrayList<Player> players;
     int roundNumber;
@@ -17,24 +18,39 @@ public class PairingSystem {
     private int bestWeight = Integer.MAX_VALUE;
     WeightFunction weightFunction;
 
-    public PairingSystem(){
-        weightFunction = new BasicWeightFunction();
+    @Override
+    public void run() {
+        gac(initialState);
     }
 
-    public Round pairRound(int roundNumber, ArrayList<Player> players, int totalRounds){
+    public PairingSystem(int roundNumber, ArrayList<Player> players, int totalRounds){
+        weightFunction = new BasicWeightFunction();
         this.roundsRemaining = totalRounds - roundNumber + 1;
         this.players = players;
         this.roundNumber = roundNumber;
-        State initialState = new State();
+        this.initialState = new State();
         bestSolution = new State(initialState);
         bestSolution.trivialize();
         numPlayers = players.size();
         numEntries = players.size() * roundsRemaining;
-        gac(initialState);
-        return bestSolution.getRound();
+    }
+
+    public static Round pairRound(int roundNumber, ArrayList<Player> players, int totalRounds){
+        PairingSystem s = new PairingSystem(roundNumber, players, totalRounds);
+
+        s.start();
+        try {
+            s.join(80_000);
+        }catch (InterruptedException ignored){}
+        Round r = s.bestSolution.getRound();
+        s.interrupt();
+
+        return r;
     }
 
     private void gac(State previousState) {
+        if(previousState == null) previousState = initialState;
+
         int[] index = previousState.getUnassignedVariable();
         if(index == null){
             bestSolution = previousState;

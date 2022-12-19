@@ -1,7 +1,6 @@
 package me.aarondmello.datatypes;
 import java.util.*;
 
-//TODO initialize by type.
 public class Tournament{
     private String name = null;
     private final LinkedList<Division> divisions = new LinkedList<>();
@@ -90,18 +89,14 @@ public class Tournament{
     }
 
     public void createRound() {
-        for(Division division : divisions)
-            division.pairRound(roundNumber);
+        divisions.parallelStream().forEach(d -> d.pairRound(roundNumber));
     }
 
     public boolean confirmRoundResults() {
-        for(Division division : divisions){
-            if(!division.validateRoundResults())
-                return false;
-        }
-        for(Division division : divisions){
-            division.confirmRoundResults();
-        }    
+        if(divisions.stream().anyMatch(d -> !d.validateRoundResults()))
+            return false;
+        divisions.forEach(Division::confirmRoundResults);
+
         roundNumber++;
         return true;
     }

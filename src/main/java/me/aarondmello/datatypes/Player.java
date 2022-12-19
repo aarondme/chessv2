@@ -49,7 +49,7 @@ public class Player {
         this.name = name;
     }
     public void setOrganization(String organization) {
-        this.organization = organization;
+        this.organization = organization.trim();
     }
     public void setScore(int score) {
         this.score = score;

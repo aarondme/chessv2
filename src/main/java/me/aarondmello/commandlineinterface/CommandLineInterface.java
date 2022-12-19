@@ -28,7 +28,7 @@ public class CommandLineInterface implements GUI {
         if(tournament == null) return;
         while (true){
             try {
-                File f = getSaveLocation("Enter the path to save the tournament, or \"0\" to exit");
+                File f = getLocationToPrintSave();
                 if(f == null) return;
                 PrintWriter p = new PrintWriter(f);
                 writer.saveTournament(tournament, p);
@@ -103,7 +103,7 @@ public class CommandLineInterface implements GUI {
     }
 
     private String formatPlayer(Player player) {
-        return player.getName() + "(" + player.getOrganization() + ") [" + player.getScore() + "]";
+        return player.getDisplayName() + " [" + player.getScore() + "]";
     }
 
     private String getResultFromInput() {
@@ -144,7 +144,12 @@ public class CommandLineInterface implements GUI {
 
 
     private Tournament getExistingTournamentDetails(DataReader tournamentReader) {
-        return null;
+        File toReadFrom = getLocationToReadSave();
+        try {
+            return tournamentReader.readFromInProgressFile(new BufferedReader(new FileReader(toReadFrom)));
+        }catch (Exception e){
+            return null;
+        }
     }
 
     private int promptForInt(String header, String[] options, int min, int max) {
@@ -167,10 +172,32 @@ public class CommandLineInterface implements GUI {
         System.out.println("--- Chess Tournament Manager ---");
     }
 
-    private File getSaveLocation(String prompt) {
+    private File getLocationToReadSave(){
         File result;
         while (true) {
-            System.out.println(prompt);
+            System.out.println("Enter the path to save the tournament, or \"0\" to exit");
+            String val = input.nextLine();
+            if (val.equals("0")) {
+                result = null;
+                break;
+            }
+
+            File f = new File(val);
+            if (f.exists() && !f.isDirectory()) {
+                result = f;
+                break;
+            }
+
+            System.out.println("Invalid input provided");
+        }
+
+        return result;
+    }
+
+    private File getLocationToPrintSave() {
+        File result;
+        while (true) {
+            System.out.println("Enter the path to save the tournament, or \"0\" to exit");
             String val = input.nextLine();
             if (val.equals("0")) {
                 result = null;

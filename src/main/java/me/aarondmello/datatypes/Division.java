@@ -28,7 +28,6 @@ public class Division{
     private final ArrayList<Player> players = new ArrayList<>();
     private int totalRounds;
     private int maxID = 0;
-    private final PairingSystem pairingSystem = new PairingSystem();
 
     Tiebreak[] tiebreaks = null;
     private Round currentRound;
@@ -88,7 +87,7 @@ public class Division{
         sortPlayers();
     }
     public void pairRound(int roundNumber) {
-        currentRound = pairingSystem.pairRound(roundNumber, players, totalRounds);
+        currentRound = PairingSystem.pairRound(roundNumber, players, totalRounds);
     }
 
     public void setCurrentRound(Round currentRound) {
