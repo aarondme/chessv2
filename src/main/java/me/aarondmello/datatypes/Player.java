@@ -1,20 +1,14 @@
 package me.aarondmello.datatypes;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
-
-import me.aarondmello.tiebreaks.Tiebreak;
-import me.aarondmello.tiebreaks.TiebreakType;
 
 public class Player {
     private String name;
     private String organization;
     private int score = 0;
-    private int gamesAsWhite = 0;
-    private int gamesAsBlack = 0;
-    private LinkedList<PlayerGameSummary> summaries = new LinkedList<>();
-    private HashMap<TiebreakType, Integer> tiebreaks = new HashMap<>();
+    private final LinkedList<PlayerGameSummary> summaries = new LinkedList<>();
+    private final HashMap<TiebreakType, Integer> tiebreaks = new HashMap<>();
     /**
      * IDs for players within a division are expected to be unique integers 
      */
@@ -40,11 +34,9 @@ public class Player {
         return tiebreaks;
     }
     public int getGamesAsBlack() {
-        return gamesAsBlack;
+        return summaries.stream().mapToInt(s -> ((s.getColour() == Colour.BLACK)?1:0)).sum();
     }
-    public int getGamesAsWhite() {
-        return gamesAsWhite;
-    }
+
     public String getDisplayName() {
         if (organization.trim().length() == 0)
           return name;
@@ -57,7 +49,7 @@ public class Player {
         this.name = name;
     }
     public void setOrganization(String organization) {
-        this.organization = organization;
+        this.organization = organization.trim();
     }
     public void setScore(int score) {
         this.score = score;
@@ -78,11 +70,7 @@ public class Player {
         return hasPlayedAgainst(NullPlayer.getInstance());
     }
     public boolean hasPlayedAgainst(Player opponent){
-        for(PlayerGameSummary m : summaries){
-            if(m.getOpponent().equals(opponent))
-                return true;
-        }
-        return false;
+        return summaries.stream().anyMatch(m -> m.getOpponent().equals(opponent));
     }
 
     public int getScoreAgainst(Player opponent){

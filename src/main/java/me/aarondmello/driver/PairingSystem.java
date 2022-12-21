@@ -4,9 +4,17 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import me.aarondmello.datatypes.*;
-
-public class PairingSystem {
-    State bestSolution = null;
+interface Constraint {
+    Iterable<int[]> applyTo(PairingSystem.State state, List<Player> players);
+    String name();
+}
+interface WeightFunction {
+    Constraint getWeightConstraint(int bestWeight);
+    int calculateWeight(int opponentIndex, Player p, int roundIndex, List<Player> players);
+}
+public class PairingSystem extends Thread {
+    State bestSolution;
+    State initialState;
     int roundsRemaining;
     ArrayList<Player> players;
     int roundNumber;
@@ -14,24 +22,39 @@ public class PairingSystem {
     private int bestWeight = Integer.MAX_VALUE;
     WeightFunction weightFunction;
 
-    public PairingSystem(){
-        weightFunction = new BasicWeightFunction();
+    @Override
+    public void run() {
+        gac(initialState);
     }
 
-    public Round pairRound(int roundNumber, ArrayList<Player> players, int totalRounds){
+    public PairingSystem(int roundNumber, ArrayList<Player> players, int totalRounds){
+        weightFunction = new BasicWeightFunction();
         this.roundsRemaining = totalRounds - roundNumber + 1;
         this.players = players;
         this.roundNumber = roundNumber;
-        State initialState = new State();
+        this.initialState = new State();
         bestSolution = new State(initialState);
         bestSolution.trivialize();
         numPlayers = players.size();
         numEntries = players.size() * roundsRemaining;
-        gac(initialState);
-        return bestSolution.getRound();
+    }
+
+    public static Round pairRound(int roundNumber, ArrayList<Player> players, int totalRounds){
+        PairingSystem s = new PairingSystem(roundNumber, players, totalRounds);
+
+        s.start();
+        try {
+            s.join(80_000);
+        }catch (InterruptedException ignored){}
+        Round r = s.bestSolution.getRound();
+        s.interrupt();
+
+        return r;
     }
 
     private void gac(State previousState) {
+        if(previousState == null) previousState = initialState;
+
         int[] index = previousState.getUnassignedVariable();
         if(index == null){
             bestSolution = previousState;
@@ -137,7 +160,9 @@ public class PairingSystem {
                     continue;
                 int opponent = variables[i][0].getValue();
                 if(opponent == -1){
-                    r.addGame(new Game(players.get(i), NullPlayer.getInstance()));
+                    Game g = new Game(players.get(i), NullPlayer.getInstance());
+                    g.setResult(GameResult.WHITE_WIN);
+                    r.addGame(g);
                     pairedIds.add(i);
                 }
                 else{
@@ -184,8 +209,8 @@ public class PairingSystem {
                     continue;
                 values.add(new VarAssignment(opponentIndex, weightFunction.calculateWeight(opponentIndex, p, roundIndex, players)));
             }
-            values.sort(Comparator.comparing(varAssignment -> varAssignment.weight));
             values.addLast(new VarAssignment(-1, weightFunction.calculateWeight(-1, p, roundIndex, players)));
+            values.sort(Comparator.comparing(varAssignment -> varAssignment.weight));
         }
 
         public LinkedList<VarAssignment> getDomain() {
@@ -214,11 +239,6 @@ public class PairingSystem {
     }
 
     record VarAssignment(int opponentIndex, int weight) { }
-
-    interface Constraint {
-        Iterable<int[]> applyTo(State state, List<Player> players);
-        String name();
-    }
 
     private class PlayerConstraint implements Constraint {
         //Each player does not have the same opponent more than once

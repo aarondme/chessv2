@@ -1,10 +1,9 @@
 package me.aarondmello;
 
 import me.aarondmello.datatypes.*;
-import me.aarondmello.tiebreaks.Tiebreak;
-import me.aarondmello.tiebreaks.TiebreakType;
+import me.aarondmello.datatypes.Tiebreak;
+import me.aarondmello.datatypes.TiebreakType;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 

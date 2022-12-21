@@ -3,12 +3,10 @@ import javax.swing.*;
 
 import me.aarondmello.datatypes.Tournament;
 import me.aarondmello.driver.PersisterFactory;
-import me.aarondmello.driver.FileReadSummary;
-import me.aarondmello.maininterfaces.GUI;
+import me.aarondmello.driver.GUI;
 
 import java.awt.*;
 import java.util.HashMap;
-import java.util.Iterator;
 
 import java.io.*;
 

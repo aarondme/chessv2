@@ -1,7 +1,5 @@
 package me.aarondmello.datatypes;
 
-import me.aarondmello.tiebreaks.TiebreakType;
-
 public class NullPlayer extends Player{
 
     static NullPlayer instanceNullPlayer = new NullPlayer();

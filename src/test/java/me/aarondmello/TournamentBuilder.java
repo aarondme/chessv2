@@ -4,7 +4,7 @@ import me.aarondmello.datatypes.Division;
 import me.aarondmello.datatypes.Player;
 import me.aarondmello.datatypes.Round;
 import me.aarondmello.datatypes.Tournament;
-import me.aarondmello.tiebreaks.TiebreakType;
+import me.aarondmello.datatypes.TiebreakType;
 
 public class TournamentBuilder {
     Tournament t;

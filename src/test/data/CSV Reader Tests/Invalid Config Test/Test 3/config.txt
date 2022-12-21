@@ -1,5 +1,0 @@
-tournament_name: ,,
-number_of_rounds: qwe
-data_in_format: ahtio
-data_out_format: hkds
- 

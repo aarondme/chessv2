@@ -5,7 +5,25 @@ import me.aarondmello.datatypes.Player;
 import java.util.*;
 
 public class BasicWeightFunction implements WeightFunction {
-    class BasicWeightConstraint implements PairingSystem.Constraint{
+    private static final int WEIGHT_OF_SIT_OUT = 1_000_000;
+
+    @Override
+    public int calculateWeight(int opponentIndex, Player player, int roundIndex, List<Player> players) {
+        if(opponentIndex == -1)
+            return (player.hasSatOut()? 2* WEIGHT_OF_SIT_OUT : WEIGHT_OF_SIT_OUT) +
+                    ((roundIndex == 0)? player.getScore() * player.getScore() * 5 : 0);
+
+        Player opponent = players.get(opponentIndex);
+        if (roundIndex == 0)
+            return (player.getScore() - opponent.getScore()) *
+                    (player.getScore() - opponent.getScore());
+        return 0;
+    }
+    @Override
+    public Constraint getWeightConstraint(int bestWeight) {
+        return new BasicWeightConstraint(bestWeight);
+    }
+    class BasicWeightConstraint implements Constraint{
         int bestWeight;
         int bestWeightForFirstRound = Integer.MIN_VALUE;
         int bestWeightForOtherRounds = Integer.MIN_VALUE;
@@ -127,25 +145,5 @@ public class BasicWeightFunction implements WeightFunction {
         public String name() {
             return "w";
         }
-    }
-
-    private static final int WEIGHT_OF_SIT_OUT = 1_000_000;
-
-    @Override
-    public PairingSystem.Constraint getWeightConstraint(int bestWeight) {
-        return new BasicWeightConstraint(bestWeight);
-    }
-
-    @Override
-    public int calculateWeight(int opponentIndex, Player player, int roundIndex, List<Player> players) {
-        if(opponentIndex == -1)
-            return (player.hasSatOut()? 2* WEIGHT_OF_SIT_OUT : WEIGHT_OF_SIT_OUT) +
-                    ((roundIndex == 0)? player.getScore() * player.getScore() * 5 : 0);
-
-        Player opponent = players.get(opponentIndex);
-        if (roundIndex == 0)
-            return (player.getScore() - opponent.getScore()) *
-                    (player.getScore() - opponent.getScore());
-        return 0;
     }
 }

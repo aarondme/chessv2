@@ -1,40 +1,35 @@
 package me.aarondmello.datatypes;
 
-import me.aarondmello.constants.Colour;
-import me.aarondmello.constants.GameResult;
-
 public class Game{
     Player white;
     Player black;
-    int result = -1;
+    GameResult result;
+    private int getPointsForPlayer(Colour playerColour, GameResult result){
+        if(result == GameResult.DRAW) return 1;
+        return (result == GameResult.WHITE_WIN ^ playerColour == Colour.WHITE)? 0:2;
+    }
     public Game(Player white, Player black){
         this.white = white;
         this.black = black;
     }
 
-    public void setResult(int result){
-        if(0 <= result && result <= 2)
-            this.result = result;
+    public void setResult(GameResult result){
+        this.result = result;
     }
 
-    public int getResult() {
+    public GameResult getResult() {
         return result;
     }
 
     public void confirmResult() {
-        sendWhiteResult(result);
-        sendBlackResult(result);
+        white.addPlayerGameSummary(
+                new PlayerGameSummary(getPointsForPlayer(Colour.WHITE, result), black, Colour.WHITE)
+        );
+        black.addPlayerGameSummary(
+                new PlayerGameSummary(getPointsForPlayer(Colour.BLACK, result), white, Colour.BLACK)
+        );
     }
-    private void sendWhiteResult(int result){
-        PlayerGameSummary whiteResult = new PlayerGameSummary(GameResult.getPointsForPlayer(Colour.WHITE, result), 
-                                                    black, Colour.WHITE);
-        white.addPlayerGameSummary(whiteResult);
-    }
-    private void sendBlackResult(int result){
-        PlayerGameSummary blackResult = new PlayerGameSummary(GameResult.getPointsForPlayer(Colour.BLACK, result), 
-                                                    white, Colour.BLACK);
-        black.addPlayerGameSummary(blackResult);
-    }
+
     public Player getWhitePlayer() {
         return white;
     }
@@ -42,7 +37,4 @@ public class Game{
         return black;
     }
 
-    public boolean isResultValid() {
-        return (0 <= result && result <= 2);
-    }
 }

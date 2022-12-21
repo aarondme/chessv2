@@ -1,9 +1,8 @@
 package me.aarondmello;
 
-import me.aarondmello.constants.GameResult;
 import me.aarondmello.csv.CsvWriter;
 import me.aarondmello.datatypes.*;
-import me.aarondmello.tiebreaks.TiebreakType;
+import me.aarondmello.datatypes.TiebreakType;
 import org.junit.jupiter.api.Test;
 
 import java.io.*;
