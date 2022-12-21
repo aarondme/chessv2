@@ -87,7 +87,18 @@ public class Division{
         sortPlayers();
     }
     public void pairRound(int roundNumber) {
-        currentRound = PairingSystem.pairRound(roundNumber, players, totalRounds);
+        ArrayList<Player> activePlayers = new ArrayList<>(players);
+        ArrayList<Player> inactivePlayers = new ArrayList<>(players);
+        activePlayers.removeIf(p -> !p.isActive());
+        inactivePlayers.removeIf(Player::isActive);
+
+        currentRound = PairingSystem.pairRound(roundNumber, activePlayers, totalRounds);
+
+        for (Player p : inactivePlayers) {
+            Game g = new Game(p, NullPlayer.getInstance());
+            g.setResult(GameResult.BLACK_WIN);
+            currentRound.addGame(g);
+        }
     }
 
     public void setCurrentRound(Round currentRound) {

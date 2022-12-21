@@ -48,10 +48,41 @@ public class CommandLineInterface implements GUI {
             tournament.createRound();
             
             getRoundResults(tournament);
-            shouldContinue = tournament.confirmRoundResults(); 
+            shouldContinue = tournament.confirmRoundResults();
+            alterSitOuts(tournament);
 
             printStandings(tournament);
         }
+    }
+
+    private void alterSitOuts(Tournament tournament) {
+        int a = promptForInt("Enter the appropriate number to continue",
+                new String[]{"0: continue", "1: modify players sitting out"}, 0, 1);
+        if(a == 0) return;
+
+        while(true){
+            for (Division d: tournament.getDivisions()) {
+                System.out.println("Division " + d.getName());
+                for (Player p: d.getPlayers()) {
+                    System.out.println("Player " + p.getDisplayName() + " id: " + p.getID() +  ": isActive = " + p.isActive());
+                }
+            }
+
+            System.out.println("Enter \"division\" \"player id\" \"shouldSitOut\", where shouldSitOut is 1 if sitting out, 0 otherwise. Enter \"0\" to exit");
+            String in = input.nextLine();
+            if(in.equals("0"))
+                return;
+            if(validateResultFromInput(in)){
+                String[] abc = in.split("\\s+");
+                String divName = abc[0];
+                int id = Integer.parseInt(abc[1]);
+                int shouldSitOut = Integer.parseInt(abc[2]);
+                tournament.getPlayer(divName, id).setActive(shouldSitOut == 0);
+            }
+
+            System.out.println("Invalid input provided.");
+        }
+
     }
 
     private void printStandings(Tournament tournament) {

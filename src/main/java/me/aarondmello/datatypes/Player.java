@@ -9,6 +9,7 @@ public class Player {
     private int score = 0;
     private final LinkedList<PlayerGameSummary> summaries = new LinkedList<>();
     private final HashMap<TiebreakType, Integer> tiebreaks = new HashMap<>();
+    private boolean isActive;
     /**
      * IDs for players within a division are expected to be unique integers 
      */
@@ -17,6 +18,7 @@ public class Player {
     public Player(String name, String organization){
         this.name = name;
         this.organization = organization;
+        this.isActive = true;
     }
     public String getName() {
         return name;
@@ -93,5 +95,13 @@ public class Player {
         Integer a = tiebreaks.get(type);
         if(a == null) return 0;
         else return a;
+    }
+
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public void setActive(boolean active) {
+        isActive = active;
     }
 }

@@ -61,6 +61,7 @@ public class Tournament{
         }
         if(createIfDoesntExist){
             Division division = new Division(name);
+            division.setTotalRounds(totalRounds);
             divisions.add(division);
             return division;
         }
