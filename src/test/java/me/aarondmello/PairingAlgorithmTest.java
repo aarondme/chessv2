@@ -309,6 +309,8 @@ public class PairingAlgorithmTest {
             if(!uniquePairedPlayers.add(g.getWhitePlayer().getID()) ||
                     !uniquePairedPlayers.add(g.getBlackPlayer().getID()))
                 return false;
+            if(g.getBlackPlayer().equals(NullPlayer.getInstance()) && g.getResult() != GameResult.WHITE_WIN)
+                return false;
         }
 
         return true;

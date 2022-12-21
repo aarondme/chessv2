@@ -160,7 +160,9 @@ public class PairingSystem extends Thread {
                     continue;
                 int opponent = variables[i][0].getValue();
                 if(opponent == -1){
-                    r.addGame(new Game(players.get(i), NullPlayer.getInstance()));
+                    Game g = new Game(players.get(i), NullPlayer.getInstance());
+                    g.setResult(GameResult.WHITE_WIN);
+                    r.addGame(g);
                     pairedIds.add(i);
                 }
                 else{
@@ -207,8 +209,8 @@ public class PairingSystem extends Thread {
                     continue;
                 values.add(new VarAssignment(opponentIndex, weightFunction.calculateWeight(opponentIndex, p, roundIndex, players)));
             }
-            values.sort(Comparator.comparing(varAssignment -> varAssignment.weight));
             values.addLast(new VarAssignment(-1, weightFunction.calculateWeight(-1, p, roundIndex, players)));
+            values.sort(Comparator.comparing(varAssignment -> varAssignment.weight));
         }
 
         public LinkedList<VarAssignment> getDomain() {
