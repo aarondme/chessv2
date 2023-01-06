@@ -5,13 +5,15 @@ import java.util.stream.Collectors;
 
 import me.aarondmello.datatypes.*;
 interface Constraint {
-    Iterable<int[]> applyTo(PairingSystem.State state, List<Player> players);
+    Iterable<VariableIndex> applyTo(PairingSystem.State state, List<Player> players);
     String name();
 }
 interface WeightFunction {
     Constraint getWeightConstraint(int bestWeight);
     int calculateWeight(int opponentIndex, Player p, int roundIndex, List<Player> players);
 }
+record VariableAssignment(int opponentIndex, int weight) {}
+record VariableIndex(int player, int round) {}
 public class PairingSystem extends Thread {
     State bestSolution;
     State initialState;
@@ -27,8 +29,8 @@ public class PairingSystem extends Thread {
         gac(initialState);
     }
 
-    public PairingSystem(int roundNumber, ArrayList<Player> players, int totalRounds){
-        weightFunction = new BasicWeightFunction();
+    public PairingSystem(int roundNumber, ArrayList<Player> players, int totalRounds, WeightFunction function){
+        weightFunction = function;
         this.roundsRemaining = totalRounds - roundNumber + 1;
         this.players = players;
         this.roundNumber = roundNumber;
@@ -40,7 +42,11 @@ public class PairingSystem extends Thread {
     }
 
     public static Round pairRound(int roundNumber, ArrayList<Player> players, int totalRounds){
-        PairingSystem s = new PairingSystem(roundNumber, players, totalRounds);
+        return pairRound(roundNumber, players, totalRounds, new BasicWeightFunction());
+    }
+
+    public static Round pairRound(int roundNumber, ArrayList<Player> players, int totalRounds, WeightFunction function){
+        PairingSystem s = new PairingSystem(roundNumber, players, totalRounds, function);
 
         s.start();
         try {
@@ -55,20 +61,20 @@ public class PairingSystem extends Thread {
     private void gac(State previousState) {
         if(previousState == null) previousState = initialState;
 
-        int[] index = previousState.getUnassignedVariable();
+        VariableIndex index = previousState.getUnassignedVariable();
         if(index == null){
             bestSolution = previousState;
             bestWeight = 0;
             for (Variable[] vars: bestSolution.variables)
                 for (Variable v: vars)
-                    bestWeight += v.getDomain().get(0).weight;
+                    bestWeight += v.getDomain().get(0).weight();
 
             return;
         }
 
-        for(VarAssignment pos : previousState.getVar(index).getDomain()){
+        for(VariableAssignment pos : previousState.getVar(index).getDomain()){
             State nextState = new State(previousState);
-            nextState.setVar(index, pos.opponentIndex);
+            nextState.setVar(index, pos.opponentIndex());
 
             LinkedList<Constraint> constraints = getConstraintsForVar(index);
             HashSet<String> constraintNames = constraints.stream().map(Constraint::name)
@@ -83,10 +89,10 @@ public class PairingSystem extends Thread {
         while (!gacQueue.isEmpty()){
             Constraint constraint = gacQueue.removeFirst();
             constraintNames.remove(constraint.name());
-            Iterable<int[]> modifiedVariables = constraint.applyTo(state, players);
+            Iterable<VariableIndex> modifiedVariables = constraint.applyTo(state, players);
             if(modifiedVariables == null)
                 return false;
-            for(int[] coordinate : modifiedVariables){
+            for(VariableIndex coordinate : modifiedVariables){
                 List<Constraint> toAdd = getConstraintsForVar(coordinate);
                 toAdd.removeIf((d -> constraintNames.contains(d.name())));
                 gacQueue.addAll(toAdd);
@@ -97,10 +103,10 @@ public class PairingSystem extends Thread {
         return true;
     }
 
-    private LinkedList<Constraint> getConstraintsForVar(int[] coordinate) {
+    private LinkedList<Constraint> getConstraintsForVar(VariableIndex coordinate) {
         LinkedList<Constraint> constraints = new LinkedList<>();
-        constraints.add(new PlayerConstraint(coordinate[0]));
-        constraints.add(new RoundConstraint(coordinate[1]));
+        constraints.add(new PlayerConstraint(coordinate.player()));
+        constraints.add(new RoundConstraint(coordinate.round()));
         constraints.add(weightFunction.getWeightConstraint(bestWeight));
         return constraints;
     }
@@ -137,16 +143,16 @@ public class PairingSystem extends Thread {
                         value.setValue(-1);
         }
 
-        public int[] getUnassignedVariable() {
+        public VariableIndex getUnassignedVariable() {
             for (int j = 0; j < variables[0].length; j++)
                 for (int i = 0; i < variables.length; i++)
                     if(variables[i][j].isUnassigned())
-                        return new int[]{i, j};
+                        return new VariableIndex(i, j);
             return null;
         }
 
-        public Variable getVar(int[] index) {
-            return variables[index[0]][index[1]];
+        public Variable getVar(VariableIndex index) {
+            return variables[index.player()][index.round()];
         }
         public Variable getVar(int playerIndex, int roundIndex) {
             return variables[playerIndex][roundIndex];
@@ -174,12 +180,12 @@ public class PairingSystem extends Thread {
             return r;
         }
 
-        public boolean setVar(int[] index, int value) {
-            return variables[index[0]][index[1]].setValue(value);
+        public boolean setVar(VariableIndex i, int value) {
+            return variables[i.player()][i.round()].setValue(value);
         }
 
-        public int getWeightOf(int playerIndex, int roundIndex) {
-            return variables[playerIndex][roundIndex].values.get(0).weight;
+        public int getWeightOf(VariableIndex variableIndex) {
+            return variables[variableIndex.player()][variableIndex.round()].values.get(0).weight();
         }
 
         public int numSitOuts(int r) {
@@ -196,7 +202,7 @@ public class PairingSystem extends Thread {
     }
 
     public class Variable {
-        LinkedList<VarAssignment> values;
+        LinkedList<VariableAssignment> values;
         public Variable(Variable x){
             values = new LinkedList<>(x.values);
         }
@@ -207,18 +213,18 @@ public class PairingSystem extends Thread {
             for(int opponentIndex = 0; opponentIndex < numPlayers; opponentIndex++){
                 if(opponentIndex == playerIndex || p.hasPlayedAgainst(players.get(opponentIndex)))
                     continue;
-                values.add(new VarAssignment(opponentIndex, weightFunction.calculateWeight(opponentIndex, p, roundIndex, players)));
+                values.add(new VariableAssignment(opponentIndex, weightFunction.calculateWeight(opponentIndex, p, roundIndex, players)));
             }
-            values.addLast(new VarAssignment(-1, weightFunction.calculateWeight(-1, p, roundIndex, players)));
-            values.sort(Comparator.comparing(varAssignment -> varAssignment.weight));
+            values.addLast(new VariableAssignment(-1, weightFunction.calculateWeight(-1, p, roundIndex, players)));
+            values.sort(Comparator.comparing(VariableAssignment::weight));
         }
 
-        public LinkedList<VarAssignment> getDomain() {
+        public LinkedList<VariableAssignment> getDomain() {
             return values;
         }
 
         public boolean setValue(int opponentIndex) {
-            return values.removeIf(varAssignment -> varAssignment.opponentIndex != opponentIndex);
+            return values.removeIf(varAssignment -> varAssignment.opponentIndex() != opponentIndex);
         }
 
         public boolean isSingleton() {
@@ -226,7 +232,7 @@ public class PairingSystem extends Thread {
         }
 
         public int getValue(){
-            return isSingleton()? values.get(0).opponentIndex : -1;
+            return isSingleton()? values.get(0).opponentIndex() : -1;
         }
 
         public boolean isUnassigned() {
@@ -237,8 +243,6 @@ public class PairingSystem extends Thread {
             return values.isEmpty();
         }
     }
-
-    record VarAssignment(int opponentIndex, int weight) { }
 
     private class PlayerConstraint implements Constraint {
         //Each player does not have the same opponent more than once
@@ -251,8 +255,8 @@ public class PairingSystem extends Thread {
 
 
         @Override
-        public Iterable<int[]> applyTo(State state, List<Player> players) {
-            LinkedList<int[]> modified = new LinkedList<>();
+        public Iterable<VariableIndex> applyTo(State state, List<Player> players) {
+            LinkedList<VariableIndex> modified = new LinkedList<>();
             HashSet<Integer> usedValues = new HashSet<>();
             for (int i = 0; i < roundsRemaining; i++) {
                 Variable w = state.getVar(playerIndex, i);
@@ -264,11 +268,11 @@ public class PairingSystem extends Thread {
             for (int i = 0; i < roundsRemaining; i++) {
                 Variable w = state.getVar(playerIndex, i);
                 if(w.isSingleton()) continue;
-                List<VarAssignment> domain = w.getDomain();
+                List<VariableAssignment> domain = w.getDomain();
 
-                if(domain.removeIf(v -> usedValues.contains(v.opponentIndex))){
+                if(domain.removeIf(v -> usedValues.contains(v.opponentIndex()))){
                     if(domain.isEmpty()) return null;
-                    modified.add(new int[]{playerIndex, i});
+                    modified.add(new VariableIndex(playerIndex, i));
                 }
             }
             return modified;
@@ -291,8 +295,8 @@ public class PairingSystem extends Thread {
         }
 
         @Override
-        public Iterable<int[]> applyTo(State state, List<Player> players) {
-            LinkedList<int[]> modified = new LinkedList<>();
+        public Iterable<VariableIndex> applyTo(State state, List<Player> players) {
+            LinkedList<VariableIndex> modified = new LinkedList<>();
             HashSet<Integer> usedValues = new HashSet<>();
             for (int i = 0; i < numPlayers; i++) {
                 Variable w = state.getVar(i, roundIndex);
@@ -302,7 +306,7 @@ public class PairingSystem extends Thread {
                     usedValues.add(i);
                     if(state.setVar(wVal, roundIndex, i)){
                         if(state.getVar(wVal, roundIndex).isEmpty()) return null;
-                        modified.add(new int[]{wVal, roundIndex});
+                        modified.add(new VariableIndex(wVal, roundIndex));
                     }
                 }
             }
@@ -310,11 +314,11 @@ public class PairingSystem extends Thread {
             for (int i = 0; i < numPlayers; i++) {
                 Variable w = state.getVar(i, roundIndex);
                 if(w.isSingleton()) continue;
-                List<VarAssignment> domain = w.getDomain();
+                List<VariableAssignment> domain = w.getDomain();
 
-                if(domain.removeIf(v -> usedValues.contains(v.opponentIndex))){
+                if(domain.removeIf(v -> usedValues.contains(v.opponentIndex()))){
                     if(domain.isEmpty()) return null;
-                    modified.add(new int[]{i, roundIndex});
+                    modified.add(new VariableIndex(i, roundIndex));
                 }
             }
             return modified;

@@ -32,60 +32,59 @@ public class BasicWeightFunction implements WeightFunction {
         }
 
 
-        public int getBestWeightPossible(PairingSystem.State state, int[] coordinate, int opponentIndex, int weight, List<Player> players) {
-            int weightForFirstRound = getWeightForFirstRound(state, coordinate, opponentIndex, weight, players);
-            int weightForOtherRounds = getWeightForOtherRounds(state, coordinate, opponentIndex, weight, players);
+        public int getBestWeightPossible(PairingSystem.State state, VariableIndex variableIndex, VariableAssignment assignment, List<Player> players) {
+            int weightForFirstRound = getWeightForFirstRound(state, variableIndex, assignment, players);
+            int weightForOtherRounds = getWeightForOtherRounds(state, variableIndex, assignment, players);
             return weightForOtherRounds + weightForFirstRound;
         }
 
-        private int getWeightForOtherRounds(PairingSystem.State state, int[] coordinate, int opponentIndex, int weight, List<Player> players) {
-            if(bestWeightForOtherRounds != Integer.MIN_VALUE && (coordinate[1] == 0 || opponentIndex != -1))
-                return bestWeightForOtherRounds;
-
+        private int getWeightForOtherRounds(PairingSystem.State state, VariableIndex variableIndex, VariableAssignment assignment, List<Player> players) {
             if(bestWeightForOtherRounds != Integer.MIN_VALUE){
-                int numPlayersNotSittingOut = (players.size() - state.numSitOuts(coordinate[1])) + (state.getVar(coordinate).isSingleton()? 0:1);
-                if(numPlayersNotSittingOut % 2 == 1)
-                    return bestWeightForOtherRounds + WEIGHT_OF_SIT_OUT;
+                if(variableIndex.round() == 0 || assignment.opponentIndex() != -1)  return bestWeightForOtherRounds;
+                int numPlayersNotSittingOut = (players.size() - state.numSitOuts(variableIndex.round())) +
+                        (state.getVar(variableIndex).isSingleton()? 0:1);
+                return bestWeightForOtherRounds + (numPlayersNotSittingOut % 2) * WEIGHT_OF_SIT_OUT;
             }
 
-            int weightForOtherRounds = (coordinate[1] == 0) ? 0 : weight;
+            int weightForOtherRounds = (variableIndex.round() == 0) ? 0 : assignment.weight();
             for(int r = 1; r < state.variables[0].length; r++){
                 for (int i = 0; i < players.size(); i++) {
-                    if(i == coordinate[0] && r == coordinate[1])
+                    VariableIndex indexToGet = new VariableIndex(i, r);
+                    if(indexToGet.equals(variableIndex))
                         continue;
-                    if(state.getVar(i, r).isSingleton() && state.getVar(i, r).getValue() == -1)
-                        weightForOtherRounds += state.getWeightOf(i, r);
+                    if(state.getVar(indexToGet).isSingleton() && state.getVar(indexToGet).getValue() == -1)
+                        weightForOtherRounds += state.getWeightOf(indexToGet);
                 }
-                int numPlayersNotSittingOut = (players.size() - state.numSitOuts(r)) + ((r == coordinate[1] && opponentIndex == -1)? 1:0);
+                int numPlayersNotSittingOut = (players.size() - state.numSitOuts(r)) + ((r == variableIndex.round() && assignment.opponentIndex() == -1)? 1:0);
                 if(numPlayersNotSittingOut % 2 == 1) //If an odd number of players are not marked as sitting out in a round, we will find one more
                     weightForOtherRounds += WEIGHT_OF_SIT_OUT;
             }
 
-            if(coordinate[1] == 0)
+            if(variableIndex.round() == 0)
                 bestWeightForOtherRounds = weightForOtherRounds;
             return weightForOtherRounds;
         }
 
-        private int getWeightForFirstRound(PairingSystem.State state, int[] coordinate, int opponentIndex, int weight, List<Player> players) {
-            if(bestWeightForFirstRound != Integer.MIN_VALUE && coordinate[1] != 0)
+        private int getWeightForFirstRound(PairingSystem.State state, VariableIndex variableIndex, VariableAssignment assignment, List<Player> players) {
+            if(bestWeightForFirstRound != Integer.MIN_VALUE && variableIndex.round() != 0)
                 return bestWeightForFirstRound;
 
             int weightForFirstRound = 0;
             HashSet<Integer> firstRoundPlayersPaired = new HashSet<>();
             TreeMap<Integer, Integer> scoreToFreq = new TreeMap<>();
-            if(coordinate[1] == 0 && opponentIndex != -1){
-                firstRoundPlayersPaired.add(coordinate[0]);
-                firstRoundPlayersPaired.add(opponentIndex);
-                weightForFirstRound += calculateWeight(coordinate[0], players.get(opponentIndex), 0, players) + weight;
+            if(variableIndex.round() == 0 && assignment.opponentIndex() != -1){
+                firstRoundPlayersPaired.add(variableIndex.player());
+                firstRoundPlayersPaired.add(assignment.opponentIndex());
+                weightForFirstRound += calculateWeight(variableIndex.player(), players.get(assignment.opponentIndex()), 0, players) + assignment.weight();
             }
             for (int i = 0; i < players.size(); i++) {
                 if(firstRoundPlayersPaired.contains(i)) continue;
-
-                if(state.getVar(i, 0).isSingleton()){
-                    weightForFirstRound += state.getWeightOf(i, 0);
-                    if (state.getVar(i, 0).getValue() != -1) {
-                        weightForFirstRound += calculateWeight(i, players.get(state.getVar(i, 0).getValue()), 0, players);
-                        firstRoundPlayersPaired.add(state.getVar(i, 0).getValue());
+                VariableIndex indexToGet = new VariableIndex(i, 0);
+                if(state.getVar(indexToGet).isSingleton()){
+                    weightForFirstRound += state.getWeightOf(indexToGet);
+                    if (state.getVar(indexToGet).getValue() != -1) {
+                        weightForFirstRound += calculateWeight(i, players.get(state.getVar(indexToGet).getValue()), 0, players);
+                        firstRoundPlayersPaired.add(state.getVar(indexToGet).getValue());
                     }
                 }
 
@@ -120,19 +119,19 @@ public class BasicWeightFunction implements WeightFunction {
                 }
             }
 
-            if(coordinate[1] != 0)
+            if(variableIndex.round() != 0)
                 bestWeightForFirstRound = weightForFirstRound;
             return weightForFirstRound;
         }
 
         @Override
-        public Iterable<int[]> applyTo(PairingSystem.State state, List<Player> players) {
-            List<int[]> modified = new LinkedList<>();
+        public Iterable<VariableIndex> applyTo(PairingSystem.State state, List<Player> players) {
+            List<VariableIndex> modified = new LinkedList<>();
             for (int i = 0; i < state.variables.length; i++) {
                 for (int j = 0; j < state.variables[i].length; j++) {
-                    PairingSystem.Variable v = state.getVar(i, j);
-                    int[] coordinate = new int[]{i, j};
-                    if(v.getDomain().removeIf(a -> getBestWeightPossible(state, coordinate, a.opponentIndex(), a.weight(), players) >= bestWeight)){
+                    VariableIndex coordinate = new VariableIndex(i, j);
+                    PairingSystem.Variable v = state.getVar(coordinate);
+                    if(v.getDomain().removeIf(a -> getBestWeightPossible(state, coordinate, a, players) >= bestWeight)){
                         if(v.isEmpty()) return null;
                         modified.add(coordinate);
                     }
