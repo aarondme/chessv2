@@ -20,44 +20,43 @@ public class BasicWeightFunction implements WeightFunction {
         return 0;
     }
     @Override
-    public Constraint getWeightConstraint(int bestWeight) {
-        return new BasicWeightConstraint(bestWeight);
+    public Constraint getWeightConstraint(int bestWeight, int roundsRemaining, List<Player> players) {
+        return new BasicWeightConstraint(bestWeight, roundsRemaining, players);
     }
     class BasicWeightConstraint implements Constraint{
         int bestWeight;
         int bestWeightForFirstRound = Integer.MIN_VALUE;
         int bestWeightForOtherRounds = Integer.MIN_VALUE;
-        BasicWeightConstraint(int bestWeight){
+        BasicWeightConstraint(int bestWeight, int roundsRemaining, List<Player> players){
             this.bestWeight = bestWeight;
         }
 
 
-        public int getBestWeightPossible(PairingSystem.State state, VariableIndex variableIndex, VariableAssignment assignment, List<Player> players) {
+        public int getBestWeightPossible(VariableState state, VariableIndex variableIndex, VariableAssignment assignment, List<Player> players) {
             int weightForFirstRound = getWeightForFirstRound(state, variableIndex, assignment, players);
             int weightForOtherRounds = getWeightForOtherRounds(state, variableIndex, assignment, players);
             return weightForOtherRounds + weightForFirstRound;
         }
 
-        private int getWeightForOtherRounds(PairingSystem.State state, VariableIndex variableIndex, VariableAssignment assignment, List<Player> players) {
+        private int getWeightForOtherRounds(VariableState state, VariableIndex variableIndex, VariableAssignment assignment, List<Player> players) {
             if(bestWeightForOtherRounds != Integer.MIN_VALUE){
                 if(variableIndex.round() == 0 || assignment.opponentIndex() != -1)  return bestWeightForOtherRounds;
                 int numPlayersNotSittingOut = (players.size() - state.numSitOuts(variableIndex.round())) +
-                        (state.getVar(variableIndex).isSingleton()? 0:1);
-                return bestWeightForOtherRounds + (numPlayersNotSittingOut % 2) * WEIGHT_OF_SIT_OUT;
+                        ((state.getVar(variableIndex).size() == 1)? 0:1);
+                return bestWeightForOtherRounds + (numPlayersNotSittingOut & 1) * WEIGHT_OF_SIT_OUT;
             }
 
             int weightForOtherRounds = (variableIndex.round() == 0) ? 0 : assignment.weight();
-            for(int r = 1; r < state.variables[0].length; r++){
+            for(int r = 1; r < state.roundsRemaining; r++){
                 for (int i = 0; i < players.size(); i++) {
                     VariableIndex indexToGet = new VariableIndex(i, r);
                     if(indexToGet.equals(variableIndex))
                         continue;
-                    if(state.getVar(indexToGet).isSingleton() && state.getVar(indexToGet).getValue() == -1)
+                    if(state.getVar(indexToGet).size() == 1 && state.getVar(indexToGet).get(0).opponentIndex() == -1)
                         weightForOtherRounds += state.getWeightOf(indexToGet);
                 }
                 int numPlayersNotSittingOut = (players.size() - state.numSitOuts(r)) + ((r == variableIndex.round() && assignment.opponentIndex() == -1)? 1:0);
-                if(numPlayersNotSittingOut % 2 == 1) //If an odd number of players are not marked as sitting out in a round, we will find one more
-                    weightForOtherRounds += WEIGHT_OF_SIT_OUT;
+                weightForOtherRounds += (numPlayersNotSittingOut & 1) * WEIGHT_OF_SIT_OUT; //If an odd number of players are not marked as sitting out in a round, we will find one more
             }
 
             if(variableIndex.round() == 0)
@@ -65,7 +64,7 @@ public class BasicWeightFunction implements WeightFunction {
             return weightForOtherRounds;
         }
 
-        private int getWeightForFirstRound(PairingSystem.State state, VariableIndex variableIndex, VariableAssignment assignment, List<Player> players) {
+        private int getWeightForFirstRound(VariableState state, VariableIndex variableIndex, VariableAssignment assignment, List<Player> players) {
             if(bestWeightForFirstRound != Integer.MIN_VALUE && variableIndex.round() != 0)
                 return bestWeightForFirstRound;
 
@@ -80,18 +79,20 @@ public class BasicWeightFunction implements WeightFunction {
             for (int i = 0; i < players.size(); i++) {
                 if(firstRoundPlayersPaired.contains(i)) continue;
                 VariableIndex indexToGet = new VariableIndex(i, 0);
-                if(state.getVar(indexToGet).isSingleton()){
+                LinkedList<VariableAssignment> domain = state.getVar(indexToGet);
+                if(domain.size() == 1){
                     weightForFirstRound += state.getWeightOf(indexToGet);
-                    if (state.getVar(indexToGet).getValue() != -1) {
-                        weightForFirstRound += calculateWeight(i, players.get(state.getVar(indexToGet).getValue()), 0, players);
-                        firstRoundPlayersPaired.add(state.getVar(indexToGet).getValue());
+                    int opponentIndex = domain.get(0).opponentIndex();
+                    if (opponentIndex != -1) {
+                        weightForFirstRound += calculateWeight(i, players.get(opponentIndex), 0, players);
+                        firstRoundPlayersPaired.add(opponentIndex);
                     }
                 }
 
                 else {
-                    Integer numOccur = scoreToFreq.get(players.get(i).getScore());
-                    if(numOccur == null) numOccur = 0;
-                    scoreToFreq.put(players.get(i).getScore(), numOccur + 1);
+                    int score = players.get(i).getScore();
+                    Integer numOccur = scoreToFreq.getOrDefault(score, 0);
+                    scoreToFreq.put(score, numOccur + 1);
                 }
             }
 
@@ -125,13 +126,13 @@ public class BasicWeightFunction implements WeightFunction {
         }
 
         @Override
-        public Iterable<VariableIndex> applyTo(PairingSystem.State state, List<Player> players) {
+        public Iterable<VariableIndex> applyTo(VariableState state, List<Player> players) {
             List<VariableIndex> modified = new LinkedList<>();
-            for (int i = 0; i < state.variables.length; i++) {
-                for (int j = 0; j < state.variables[i].length; j++) {
+            for (int i = 0; i < players.size(); i++) {
+                for (int j = 0; j < state.roundsRemaining; j++) {
                     VariableIndex coordinate = new VariableIndex(i, j);
-                    PairingSystem.Variable v = state.getVar(coordinate);
-                    if(v.getDomain().removeIf(a -> getBestWeightPossible(state, coordinate, a, players) >= bestWeight)){
+                    LinkedList<VariableAssignment> v = state.getVar(coordinate);
+                    if(v.removeIf(a -> getBestWeightPossible(state, coordinate, a, players) >= bestWeight)){
                         if(v.isEmpty()) return null;
                         modified.add(coordinate);
                     }

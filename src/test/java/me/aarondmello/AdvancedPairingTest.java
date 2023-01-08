@@ -1,8 +1,6 @@
 package me.aarondmello;
 
-import me.aarondmello.datatypes.Game;
-import me.aarondmello.datatypes.Player;
-import me.aarondmello.datatypes.Round;
+import me.aarondmello.datatypes.*;
 import me.aarondmello.driver.AdvancedWeightFunction;
 import me.aarondmello.driver.PairingSystem;
 import org.junit.jupiter.api.Test;
@@ -22,9 +20,7 @@ public class AdvancedPairingTest {
             initPlayers(4, 2, 4);
             Round r = PairingSystem.pairRound(1, players, 1, new AdvancedWeightFunction());
             System.out.println("Different org first round only");
-            for (Game g:r.getGames()) {
-                System.out.println(g.getWhitePlayer().getID() + " " + g.getBlackPlayer().getID());
-            }
+            printPairing(r);
             assertTrue(PairingAlgorithmTest.checkIfAllPlayersPaired(r, players));
             assertTrue(PairingAlgorithmTest.checkIfAllGamesValid(r));
             assertEquals(numSameOrg(r), 0);
@@ -37,9 +33,7 @@ public class AdvancedPairingTest {
             initPlayers(12, 6, 12);
             Round r = PairingSystem.pairRound(1, players, 6, new AdvancedWeightFunction());
             System.out.println("Different org first round even");
-            for (Game g:r.getGames()) {
-                System.out.println(g.getWhitePlayer().getID() + " " + g.getBlackPlayer().getID());
-            }
+            printPairing(r);
             assertTrue(PairingAlgorithmTest.checkIfAllPlayersPaired(r, players));
             assertTrue(PairingAlgorithmTest.checkIfAllGamesValid(r));
             assertEquals(numSameOrg(r), 0);
@@ -52,13 +46,58 @@ public class AdvancedPairingTest {
             initPlayers(12, 6, 13);
             Round r = PairingSystem.pairRound(1, players, 6, new AdvancedWeightFunction());
             System.out.println("Different org first round odd");
-            for (Game g:r.getGames()) {
-                System.out.println(g.getWhitePlayer().getID() + " " + g.getBlackPlayer().getID());
-            }
+            printPairing(r);
             assertTrue(PairingAlgorithmTest.checkIfAllPlayersPaired(r, players));
             assertTrue(PairingAlgorithmTest.checkIfAllGamesValid(r));
             assertEquals(numSameOrg(r), 0);
         });
+    }
+
+//    @Test TODO make test pass
+//    public void pairManyPlayersDifferentPriorityWeakPlayers() {
+//        assertTimeoutPreemptively(Duration.ofSeconds(20), () -> {
+//            initPlayers(4, 4, 4, 4);
+//            for (int i = 0; i < 4; i++) {
+//                Player a = players.get(i);
+//                Player b = players.get(i + 4);
+//                Player c = players.get(i + 8);
+//                Player d = players.get(i + 12);
+//                a.addPlayerGameSummary(
+//                        new PlayerGameSummary(2, b, Colour.WHITE),
+//                        new PlayerGameSummary(2, c, Colour.BLACK),
+//                        new PlayerGameSummary(2, d, Colour.WHITE)
+//                );
+//                b.addPlayerGameSummary(
+//                        new PlayerGameSummary(0, a, Colour.BLACK),
+//                        new PlayerGameSummary(2, d, Colour.WHITE),
+//                        new PlayerGameSummary(2, c, Colour.BLACK)
+//                );
+//                c.addPlayerGameSummary(
+//                        new PlayerGameSummary(2, d, Colour.BLACK),
+//                        new PlayerGameSummary(0, a, Colour.WHITE),
+//                        new PlayerGameSummary(0, b, Colour.WHITE)
+//                );
+//                d.addPlayerGameSummary(
+//                        new PlayerGameSummary(0, c, Colour.WHITE),
+//                        new PlayerGameSummary(0, b, Colour.BLACK),
+//                        new PlayerGameSummary(0, a, Colour.BLACK)
+//                );
+//            }
+//
+//            Round r = PairingSystem.pairRound(4, players, 4, new AdvancedWeightFunction());
+//            System.out.println("Different org first round odd");
+//            printPairing(r);
+//            assertTrue(PairingAlgorithmTest.checkIfAllPlayersPaired(r, players));
+//            assertTrue(PairingAlgorithmTest.checkIfAllGamesValid(r));
+//            assert (numSameOrg(r)) <= 4;
+//        });
+//    }
+
+    private void printPairing(Round r){
+        for (Game g:r.getGames()) {
+            System.out.println(g.getWhitePlayer().getID() + g.getWhitePlayer().getOrganization() + " " +
+                    g.getBlackPlayer().getID() + g.getBlackPlayer().getOrganization());
+        }
     }
 
     private void initPlayers(int ... ints) {
