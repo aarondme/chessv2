@@ -122,19 +122,27 @@ public class CommandLineInterface implements GUI {
         System.out.println("Tournament name " + tournament.getName());
         System.out.println("Round " + tournament.getRoundNumber() + " of " + tournament.getTotalRounds());
         for(Division division : tournament.getDivisions()){
-            System.out.println("  Division name " + division.getName());
-            System.out.println("    Game ID | White Player | Black Player | result");
+            System.out.println("Division " + division.getName());
+            System.out.println("| ID |         White Player         |         Black Player         |  result  |/////| ID |         White Player         |         Black Player         |  result  ");
+            String g = null;
             int id = 0;
             for(Game game : division.getPairing()){
-                System.out.println("    " + id + " | " + formatPlayer(game.getWhitePlayer()) + " | " + formatPlayer(game.getBlackPlayer()) + " | " + game.getResult());
+                if(g == null){
+                    g = String.format("|%1$-4s|%2$-30s|%3$-30s|%4$-10s", id, formatPlayer(game.getWhitePlayer()), formatPlayer(game.getBlackPlayer()), game.getResult());
+                }
+                else {
+                    System.out.printf("%1s|/////|%2$-4s|%3$-30s|%4$-30s|%5$-10s\n", g, id, formatPlayer(game.getWhitePlayer()), formatPlayer(game.getBlackPlayer()), game.getResult());
+                    g = null;
+                }
                 id++;
             }
-            
+            if(g != null)
+                System.out.println(g);
         }
     }
 
     private String formatPlayer(Player player) {
-        return player.getDisplayName() + " [" + player.getScore() + "]";
+        return player.getName() + " [" + player.getScore() + "]";
     }
 
     private String getResultFromInput() {
