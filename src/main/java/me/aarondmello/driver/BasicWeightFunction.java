@@ -20,14 +20,14 @@ public class BasicWeightFunction implements WeightFunction {
         return 0;
     }
     @Override
-    public Constraint getWeightConstraint(int bestWeight, int roundsRemaining, List<Player> players) {
-        return new BasicWeightConstraint(bestWeight, roundsRemaining, players);
+    public Constraint getWeightConstraint(int bestWeight) {
+        return new BasicWeightConstraint(bestWeight);
     }
     class BasicWeightConstraint implements Constraint{
         int bestWeight;
         int bestWeightForFirstRound = Integer.MIN_VALUE;
         int bestWeightForOtherRounds = Integer.MIN_VALUE;
-        BasicWeightConstraint(int bestWeight, int roundsRemaining, List<Player> players){
+        BasicWeightConstraint(int bestWeight){
             this.bestWeight = bestWeight;
         }
 

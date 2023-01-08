@@ -9,7 +9,7 @@ interface Constraint {
     String name();
 }
 interface WeightFunction {
-    Constraint getWeightConstraint(int bestWeight, int roundsRemaining, List<Player> players);
+    Constraint getWeightConstraint(int bestWeight);
     int calculateWeight(int opponentIndex, Player p, int roundIndex, List<Player> players);
 }
 record VariableAssignment(int opponentIndex, int weight) {}
@@ -78,6 +78,7 @@ public class PairingSystem extends Thread {
         if(index == null){
             bestSolution = previousState;
             bestWeight = previousState.variables.values().stream().mapToInt(v -> v.get(0).weight()).sum();
+            System.out.println(bestWeight);
             return;
         }
 
@@ -115,7 +116,7 @@ public class PairingSystem extends Thread {
         LinkedList<Constraint> constraints = new LinkedList<>();
         constraints.add(new PlayerConstraint(variableIndex.player()));
         constraints.add(new RoundConstraint(variableIndex.round()));
-        constraints.add(weightFunction.getWeightConstraint(bestWeight, roundsRemaining, players));
+        constraints.add(weightFunction.getWeightConstraint(bestWeight));
         return constraints;
     }
 
