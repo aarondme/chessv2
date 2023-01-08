@@ -7,6 +7,7 @@ import me.aarondmello.driver.PersisterFactory;
 import me.aarondmello.driver.GUI;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class CommandLineInterface implements GUI {
@@ -61,12 +62,7 @@ public class CommandLineInterface implements GUI {
         if(a == 0) return;
 
         while(true){
-            for (Division d: tournament.getDivisions()) {
-                System.out.println("Division " + d.getName());
-                for (Player p: d.getPlayers()) {
-                    System.out.println("Player " + p.getDisplayName() + " id: " + p.getID() +  ": isActive = " + p.isActive());
-                }
-            }
+            printPlayerList(tournament);
 
             System.out.println("Enter \"division\" \"player id\" \"shouldSitOut\", where shouldSitOut is 1 if sitting out, 0 otherwise. Enter \"0\" to exit");
             String in = input.nextLine();
@@ -90,11 +86,19 @@ public class CommandLineInterface implements GUI {
         System.out.println("Tournament name " + tournament.getName());
         System.out.println("Round " + tournament.getRoundNumber() + " of " + tournament.getTotalRounds());
         for(Division division : tournament.getDivisions()){
-            System.out.println("  Division name " + division.getName());
-            System.out.println("    Player ID | Player name | Organization | Score");
+            System.out.println("Division name " + division.getName());
+            System.out.println("| ID | Rank |         Player name         |       Organization       | Score |/////| ID | Rank |         Player name         |       Organization       | Score |");
+            ArrayList<String> strings = new ArrayList<>();
+            int rank = 1;
             for(Player player : division.getPlayers()){
-                System.out.println("    " + player.getID() + " | " + player.getName() + " | " + player.getOrganization() + " | " + player.getScore());
+                strings.add(String.format("|%1$-4s|%2$-6s|%3$-29s|%4$-26s|%5$-7s|", player.getID(), rank, player.getName(), player.getOrganization(), player.getScore()));
+                rank++;
             }
+            for (int i = 0; i < strings.size() / 2; i++) {
+                System.out.println(strings.get(i) + "/////" + strings.get(strings.size()/2 + i));
+            }
+            if(strings.size() % 2 == 1)
+                System.out.println(strings.get(strings.size() - 1));
         }
     }
 
@@ -275,11 +279,20 @@ public class CommandLineInterface implements GUI {
         System.out.println("Tournament name " + tournament.getName());
         System.out.println("Number of rounds " + tournament.getTotalRounds());
         for(Division division : tournament.getDivisions()){
-            System.out.println("  Division name " + division.getName());
-            System.out.println("    Player ID | Player name | Organization");
-            for(Player player : division.getPlayers()){
-                System.out.println("    " + player.getID() + " | " + player.getName() + " | " + player.getOrganization());
+            System.out.println("Division name " + division.getName());
+            System.out.println("| ID |         Player name         |         Organization        | Active |/////| ID |         Player name         |         Organization        | Active |");
+            String g = null;
+            for(Player p : division.getPlayers()){
+                if(g == null){
+                    g = String.format("|%1$-4s|%2$-29s|%3$-29s|%4$-8s|", p.getID(), p.getName(), p.getOrganization(), p.isActive());
+                }
+                else {
+                    System.out.printf("%1s/////|%2$-4s|%3$-29s|%4$-29s|%5$-8s|\n", g, p.getID(), p.getName(),  p.getOrganization(), p.isActive());
+                    g = null;
+                }
             }
+            if(g != null)
+                System.out.println(g);
         }
     }
 

@@ -70,13 +70,10 @@ public class Division{
     }
 
     public void randomizeIds(){
-        ArrayList<Integer> ids = new ArrayList<>();
-        for(int i = 0; i < players.size(); i++)
-            ids.add(i);
-        Collections.shuffle(ids);
+        Collections.shuffle(players);
         for(int i = 0; i < players.size(); i++){
             Player player = players.get(i);
-            player.setID(ids.get(i));
+            player.setID(i);
         }
     }
     public void initialize() {
