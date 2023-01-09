@@ -77,8 +77,7 @@ public class PairingSystem extends Thread {
         VariableIndex index = previousState.getUnassignedVariable();
         if(index == null){
             bestSolution = previousState;
-            bestWeight = previousState.variables.values().stream().mapToInt(v -> v.get(0).weight()).sum();
-            System.out.println(bestWeight);
+            bestWeight = previousState.variables.values().parallelStream().mapToInt(v -> v.get(0).weight()).sum();
             return;
         }
 
@@ -87,7 +86,7 @@ public class PairingSystem extends Thread {
             nextState.setVar(index, pos.opponentIndex());
 
             LinkedList<Constraint> constraints = getConstraintsForVar(index);
-            HashSet<String> constraintNames = constraints.stream().map(Constraint::name)
+            HashSet<String> constraintNames = constraints.parallelStream().map(Constraint::name)
                     .collect(Collectors.toCollection(HashSet::new));
 
             if(gacEnforce(constraints, constraintNames, nextState))
@@ -244,8 +243,7 @@ class VariableState {
         this.players = stateToCopy.players;
         this.roundsRemaining = stateToCopy.roundsRemaining;
         this.weightFunction = stateToCopy.weightFunction;
-        for(VariableIndex variableIndex : stateToCopy.variables.keySet())
-            variables.put(variableIndex, new LinkedList<>(stateToCopy.variables.get(variableIndex)));
+        stateToCopy.variables.keySet().forEach(v -> variables.put(v, new LinkedList<>(stateToCopy.variables.get(v))));
     }
 
     public void trivialize() {
