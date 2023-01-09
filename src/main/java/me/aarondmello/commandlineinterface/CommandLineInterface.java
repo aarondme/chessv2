@@ -87,7 +87,9 @@ public class CommandLineInterface implements GUI {
         System.out.println("Round " + tournament.getRoundNumber() + " of " + tournament.getTotalRounds());
         for(Division division : tournament.getDivisions()){
             System.out.println("Division name " + division.getName());
-            System.out.println("| ID | Rank |         Player name         |       Organization       | Score |/////| ID | Rank |         Player name         |       Organization       | Score |");
+            System.out.print("| ID | Rank |         Player name         |       Organization       | Score |");
+            System.out.print("/////");
+            System.out.print("| ID | Rank |         Player name         |       Organization       | Score |");
             ArrayList<String> strings = new ArrayList<>();
             int rank = 1;
             for(Player player : division.getPlayers()){
@@ -127,21 +129,15 @@ public class CommandLineInterface implements GUI {
         System.out.println("Round " + tournament.getRoundNumber() + " of " + tournament.getTotalRounds());
         for(Division division : tournament.getDivisions()){
             System.out.println("Division " + division.getName());
-            System.out.println("| ID |         White Player         |         Black Player         |  result  |/////| ID |         White Player         |         Black Player         |  result  ");
-            String g = null;
+            System.out.print("| ID |         White Player         |         Black Player         |  result  |");
+            System.out.print("/////");
+            System.out.print("| ID |         White Player         |         Black Player         |  result  |");
             int id = 0;
             for(Game game : division.getPairing()){
-                if(g == null){
-                    g = String.format("|%1$-4s|%2$-30s|%3$-30s|%4$-10s", id, formatPlayer(game.getWhitePlayer()), formatPlayer(game.getBlackPlayer()), game.getResult());
-                }
-                else {
-                    System.out.printf("%1s|/////|%2$-4s|%3$-30s|%4$-30s|%5$-10s\n", g, id, formatPlayer(game.getWhitePlayer()), formatPlayer(game.getBlackPlayer()), game.getResult());
-                    g = null;
-                }
+                System.out.printf("|%1$-4s|%2$-30s|%3$-30s|%4$-10s|\n", id, formatPlayer(game.getWhitePlayer()), formatPlayer(game.getBlackPlayer()), game.getResult());
+                System.out.print((id % 2 == 0)? "/////":"\n");
                 id++;
             }
-            if(g != null)
-                System.out.println(g);
         }
     }
 
@@ -280,19 +276,15 @@ public class CommandLineInterface implements GUI {
         System.out.println("Number of rounds " + tournament.getTotalRounds());
         for(Division division : tournament.getDivisions()){
             System.out.println("Division name " + division.getName());
-            System.out.println("| ID |         Player name         |         Organization        | Active |/////| ID |         Player name         |         Organization        | Active |");
-            String g = null;
+            System.out.print("| ID |         Player name         |         Organization        | Active |");
+            System.out.print("/////");
+            System.out.print("| ID |         Player name         |         Organization        | Active |");
+            boolean shouldStartNewLine = false;
             for(Player p : division.getPlayers()){
-                if(g == null){
-                    g = String.format("|%1$-4s|%2$-29s|%3$-29s|%4$-8s|", p.getID(), p.getName(), p.getOrganization(), p.isActive());
-                }
-                else {
-                    System.out.printf("%1s/////|%2$-4s|%3$-29s|%4$-29s|%5$-8s|\n", g, p.getID(), p.getName(),  p.getOrganization(), p.isActive());
-                    g = null;
-                }
+                System.out.printf("|%1$-4s|%2$-29s|%3$-29s|%4$-8s|", p.getID(), p.getName(), p.getOrganization(), p.isActive());
+                System.out.print((shouldStartNewLine)?"\n":"/////");
+                shouldStartNewLine = !shouldStartNewLine;
             }
-            if(g != null)
-                System.out.println(g);
         }
     }
 

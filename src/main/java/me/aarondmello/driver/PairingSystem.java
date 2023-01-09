@@ -105,7 +105,7 @@ public class PairingSystem extends Thread {
                 List<Constraint> toAdd = getConstraintsForVar(variableIndex);
                 toAdd.removeIf((d -> constraintNames.contains(d.name())));
                 gacQueue.addAll(toAdd);
-                constraintNames.addAll(gacQueue.stream().map(Constraint::name).collect(Collectors.toList()));
+                constraintNames.addAll(toAdd.parallelStream().map(Constraint::name).collect(Collectors.toList()));
             }
         }
         return true;

@@ -54,12 +54,12 @@ public class Tournament{
         division.addPlayer(player);
     }
 
-    public Division getDivisionWithName(String name, boolean createIfDoesntExist){
+    public Division getDivisionWithName(String name, boolean createIfNotFound){
         for (Division division : divisions) {
             if(division.getName().equals(name))
                 return division;
         }
-        if(createIfDoesntExist){
+        if(createIfNotFound){
             Division division = new Division(name);
             division.setTotalRounds(totalRounds);
             divisions.add(division);
@@ -68,15 +68,19 @@ public class Tournament{
         return null;
     }
 
+    public Division getDivisionWithName(String name){
+        return getDivisionWithName(name, false);
+    }
+
     public Player getPlayer(String divisionName, int playerID){
-        Division division = getDivisionWithName(divisionName, false);
+        Division division = getDivisionWithName(divisionName);
         if(division == null)
             return null;
         return division.getPlayerById(playerID);
     }
 
     public void removePlayer(String divisionName, int playerID){
-        Division division = getDivisionWithName(divisionName, false);
+        Division division = getDivisionWithName(divisionName);
         if(division != null)
             division.removePlayer(playerID);
     }
@@ -90,7 +94,7 @@ public class Tournament{
     }
 
     public void createRound() {
-        divisions.parallelStream().forEach(d -> d.pairRound(roundNumber));
+        divisions.forEach(d -> d.pairRound(roundNumber));
     }
 
     public boolean confirmRoundResults() {
@@ -103,7 +107,7 @@ public class Tournament{
     }
 
     public void setResultByDivisionAndGameID(String divisionName, int id, GameResult result) {
-        Division division = getDivisionWithName(divisionName, false);
+        Division division = getDivisionWithName(divisionName);
         if(division != null)
             division.setGameResultByID(id, result);
     }
