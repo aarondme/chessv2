@@ -42,7 +42,7 @@ public class PairingSystem extends Thread {
     public static Round pairRound(int roundNumber, ArrayList<Player> players, int totalRounds, WeightFunction function){
         PairingSystem s = new PairingSystem(roundNumber, players, totalRounds, function);
         s.start();
-        try {s.join(80_000);}
+        try {s.join(30_000);}
         catch (InterruptedException ignored){}
         Round r = getRound(s.bestSolution);
         s.interrupt();
