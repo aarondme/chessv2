@@ -12,18 +12,22 @@ public class AdvancedWeightFunction implements WeightFunction {
     private static final int WEAK_COST_OF_SAME_ORG = 10_000;
     private final int scoreCutoff;
 
-    public AdvancedWeightFunction(List<Player> players, int roundsRemaining){
-        scoreCutoff = getScoreCutoff(players, roundsRemaining);
+    public AdvancedWeightFunction(List<Player> players, int roundsRemaining, int cutoff){
+        scoreCutoff = getScoreCutoff(players, roundsRemaining, cutoff);
     }
 
-    private int getScoreCutoff(List<Player> players, int roundsRemaining){
+    public AdvancedWeightFunction(List<Player> players, int roundsRemaining){
+        scoreCutoff = getScoreCutoff(players, roundsRemaining, 3);
+    }
+
+    private int getScoreCutoff(List<Player> players, int roundsRemaining, int cutoff){
         ArrayList<Integer> scores = new ArrayList<>();
         for (Player p : players) {
             int score = p.getScore();
             scores.add(score);
         }
         scores.sort(Comparator.reverseOrder());
-        return scores.get(2) - 2 * roundsRemaining;
+        return scores.get(cutoff-1) - 2 * roundsRemaining;
     }
     @Override
     public Constraint getWeightConstraint(int bestWeight) {
@@ -32,24 +36,20 @@ public class AdvancedWeightFunction implements WeightFunction {
 
     @Override
     public int calculateWeight(int opponentIndex, Player player, int roundIndex, List<Player> players) {
+        int pointFactor = (player.getScore() >= scoreCutoff)? NORMAL_POINT_FACTOR:WEAK_POINT_FACTOR;
+        int orgFactor = (player.getScore() >= scoreCutoff)? NORMAL_COST_OF_SAME_ORG:WEAK_COST_OF_SAME_ORG;
+
         if(opponentIndex == -1){
-            if(player.getScore() >= scoreCutoff)
-                return (player.hasSatOut()? 2* WEIGHT_OF_SIT_OUT : WEIGHT_OF_SIT_OUT) +
-                        ((roundIndex == 0)? player.getScore() * player.getScore() * 5 * NORMAL_POINT_FACTOR : 0);
-            return (player.hasSatOut()? 2* WEIGHT_OF_SIT_OUT : WEIGHT_OF_SIT_OUT) +
-                    ((roundIndex == 0)? player.getScore() * player.getScore() * 5 * WEAK_POINT_FACTOR : 0);
+            return WEIGHT_OF_SIT_OUT + (player.hasSatOut()? WEIGHT_OF_SIT_OUT:0)
+                    + ((roundIndex==0)? player.getScore() * player.getScore() * 5 * pointFactor:0);
         }
 
 
         Player opponent = players.get(opponentIndex);
         if (roundIndex == 0){
-            if(player.getScore() >= scoreCutoff)
-                return (player.getScore() - opponent.getScore()) *
-                    (player.getScore() - opponent.getScore()) * NORMAL_POINT_FACTOR +
-                    (player.getOrganization().equals(opponent.getOrganization())? NORMAL_COST_OF_SAME_ORG:0);
             return (player.getScore() - opponent.getScore()) *
-                    (player.getScore() - opponent.getScore()) * WEAK_POINT_FACTOR +
-                    (player.getOrganization().equals(opponent.getOrganization())? WEAK_COST_OF_SAME_ORG:0);
+                    (player.getScore() - opponent.getScore()) * pointFactor +
+                    (player.getOrganization().equals(opponent.getOrganization())? orgFactor:0);
         }
 
         return 0;
@@ -97,24 +97,21 @@ public class AdvancedWeightFunction implements WeightFunction {
             return weightForOtherRounds;
         }
 
-        private void addToScoreTable(TreeMap<Integer, HashMap<String, Integer>> a, Player p, int score){
-            HashMap<String, Integer> freqMap = a.getOrDefault(score, new HashMap<>());
-            freqMap.put("TOTAL",
-                    freqMap.getOrDefault("TOTAL", 0) + 1);
-            freqMap.put(p.getOrganization(),
-                    freqMap.getOrDefault(p.getOrganization(), 0) + 1);
-            a.put(score, freqMap);
-        }
+
 
         private int getWeightForFirstRound(VariableState state, VariableIndex variableIndex, VariableAssignment assignment, List<Player> players) {
             if(bestWeightForFirstRound != Integer.MIN_VALUE && variableIndex.round() != 0)
                 return bestWeightForFirstRound;
 
             int weightForFirstRound = 0;
+            int mostCommonWeakOrgFreq = 0;
+            int mostCommonStrongOrgFreq = 0;
+            int numStrongPlayers = 0;
+            int numWeakPlayers = 0;
             HashSet<Integer> firstRoundPlayersPaired = new HashSet<>();
-            TreeMap<Integer, HashMap<String, Integer>> strongScoreToOrgToCount = new TreeMap<>();
+            TreeMap<Integer, Integer> scoreToCount = new TreeMap<>();
+            HashMap<String, Integer> strongOrgToCount = new HashMap<>();
             HashMap<String, Integer> weakOrgToCount = new HashMap<>();
-            TreeMap<Integer, Integer> weakScoreToCount = new TreeMap<>();
             if(variableIndex.round() == 0){
                 firstRoundPlayersPaired.add(variableIndex.player());
                 weightForFirstRound += assignment.weight();
@@ -137,102 +134,59 @@ public class AdvancedWeightFunction implements WeightFunction {
                         firstRoundPlayersPaired.add(opponentIndex);
                         firstRoundPlayersPaired.add(i);
                     }
+                    continue;
                 }
-                else if(playerI.getScore() >= scoreCutoff)
-                    addToScoreTable(strongScoreToOrgToCount, playerI, playerI.getScore());
+
+                if(playerI.getScore() >= scoreCutoff){
+                    int count =  strongOrgToCount.getOrDefault(playerI.getOrganization(), 0) + 1;
+                    strongOrgToCount.put(playerI.getOrganization(), count);
+                    numStrongPlayers++;
+                    mostCommonStrongOrgFreq = Math.max(mostCommonStrongOrgFreq, count);
+                }
+
                 else{
-                    weakOrgToCount.put(playerI.getOrganization(), weakOrgToCount.getOrDefault(playerI.getOrganization(), 0) + 1);
-                    weakOrgToCount.put(null, -2);
-                    weakScoreToCount.put(playerI.getScore(), weakScoreToCount.getOrDefault(playerI.getScore(), 0) + 1);
+                    int count = weakOrgToCount.getOrDefault(playerI.getOrganization(), 0) + 1;
+                    weakOrgToCount.put(playerI.getOrganization(), count);
+                    numWeakPlayers++;
+                    mostCommonWeakOrgFreq = Math.max(mostCommonWeakOrgFreq, count);
+                }
+                scoreToCount.put(playerI.getScore(), scoreToCount.getOrDefault(playerI.getScore(), 0) + 1);
+            }
+
+            boolean wasPreviousOdd = false;
+            int prevScore = -1;
+            for (int score :
+                    scoreToCount.descendingKeySet()) {
+                int freq = scoreToCount.get(score);
+                if(wasPreviousOdd){
+                    weightForFirstRound += (prevScore - score) * (prevScore - score) *
+                            (
+                                    ((prevScore >= scoreCutoff)? NORMAL_POINT_FACTOR:WEAK_POINT_FACTOR) +
+                                            ((score>=scoreCutoff)? NORMAL_POINT_FACTOR:WEAK_POINT_FACTOR)
+                            );
+                    freq--;
+                }
+
+                if((freq & 1) == 1){
+                    wasPreviousOdd = true;
+                    prevScore = score;
+                }
+                else{
+                    wasPreviousOdd = false;
                 }
             }
 
-            Iterator<Integer> strongScoreTableIterator = strongScoreToOrgToCount.navigableKeySet().descendingIterator();
-            Iterator<Integer> weakScoreTableIterator = weakScoreToCount.navigableKeySet().descendingIterator();
-            int a = -1;
-            int x = -1;
-            HashMap<String, Integer> aFreqTable = null;
-            while (a != -1 || strongScoreTableIterator.hasNext()){
-                if(a == -1){
-                    a = strongScoreTableIterator.next();
-                    aFreqTable = strongScoreToOrgToCount.get(a);
-                }
-                String mostCommonOrg = mostCommonFromOrgTable(aFreqTable, null);
-                int numPlayersSameOrgRemaining = aFreqTable.get(mostCommonOrg) * 2 - aFreqTable.get("TOTAL");
-                weightForFirstRound += Math.max(numPlayersSameOrgRemaining - aFreqTable.get("TOTAL") % 2, 0) * NORMAL_COST_OF_SAME_ORG;
+            if(wasPreviousOdd)
+                weightForFirstRound += WEIGHT_OF_SIT_OUT + prevScore * prevScore * 5 * ((prevScore >= scoreCutoff)? NORMAL_POINT_FACTOR:WEAK_POINT_FACTOR);
 
-                if(aFreqTable.get("TOTAL") % 2 == 0){
-                    a = -1;
-                }
-                else if(strongScoreTableIterator.hasNext()){
-                    int nextScore = strongScoreTableIterator.next();
-                    weightForFirstRound += (a-nextScore) * (a-nextScore) * 2 * NORMAL_POINT_FACTOR; //Add the weight of pairing two players with neighbouring scores
-                    a = nextScore;
-                    aFreqTable = strongScoreToOrgToCount.get(nextScore);
+            weightForFirstRound += NORMAL_COST_OF_SAME_ORG * Math.max((2 * mostCommonStrongOrgFreq - numStrongPlayers - (numStrongPlayers & 1)), 0);
+            weightForFirstRound += WEAK_COST_OF_SAME_ORG * Math.max(2 * mostCommonWeakOrgFreq - numWeakPlayers - (numStrongPlayers & 1) -
+                    ((numWeakPlayers - (numStrongPlayers & 1)) & 1),0);
 
-                    String mostCommonOrgForNextScore = mostCommonFromOrgTable(aFreqTable, (numPlayersSameOrgRemaining > 0)? mostCommonOrg:null);
-                    if(mostCommonOrgForNextScore == null){
-                        mostCommonOrgForNextScore = mostCommonFromOrgTable(aFreqTable, null);
-                        weightForFirstRound += 2;
-                    }
-
-                    aFreqTable.put(mostCommonOrgForNextScore, aFreqTable.get(mostCommonOrgForNextScore) - 1);
-                    aFreqTable.put("TOTAL", aFreqTable.get("TOTAL") - 1);
-                }
-                else if(weakScoreToCount.isEmpty()) {
-                    weightForFirstRound += WEIGHT_OF_SIT_OUT + 5 * x * x * NORMAL_POINT_FACTOR;//Sit out the worst player if there are an odd number
-                    a = -1;
-                }
-                else{
-                    x = weakScoreTableIterator.next();
-                    weightForFirstRound += (x-a) * (x-a) * (NORMAL_POINT_FACTOR + WEAK_POINT_FACTOR);
-                    weakScoreToCount.put(x, weakScoreToCount.get(x) - 1);
-                    String m = weakOrgToCount.keySet().stream().reduce(null, (b, c) -> (weakOrgToCount.get(b) > weakOrgToCount.get(c))? b:c);
-                    int num = weakOrgToCount.values().stream().reduce(0, Integer::sum);
-                    weightForFirstRound += Math.max(weakOrgToCount.get(m) - num - aFreqTable.get("TOTAL") % 2, 0) * WEAK_COST_OF_SAME_ORG;
-                    a = -1;
-                }
-            }
-
-            int xFreq = -1;
-            while (x != -1 || weakScoreTableIterator.hasNext()){
-                if(x == -1){
-                    x = weakScoreTableIterator.next();
-                    xFreq = weakScoreToCount.get(x);
-                }
-
-                if(xFreq % 2 == 0){
-                    x = -1;
-                }
-                else if(weakScoreTableIterator.hasNext()){
-                    int b = weakScoreTableIterator.next();
-                    weightForFirstRound += (x-b) * (x-b) * 2 * WEAK_POINT_FACTOR; //Add the weight of pairing two players with neighbouring scores
-                    x = b;
-                    xFreq = weakScoreToCount.get(b) - 1;
-                }
-                else{
-                    weightForFirstRound += WEIGHT_OF_SIT_OUT + 5 * x * x * WEAK_POINT_FACTOR;//Sit out the worst player if there are an odd number
-                    x = -1;
-                }
-            }
 
             if(variableIndex.round() != 0)
                 bestWeightForFirstRound = weightForFirstRound;
             return weightForFirstRound;
-        }
-
-        private String mostCommonFromOrgTable(HashMap<String, Integer> orgToFreq, String ignoreOrg) {
-            int max = 0;
-            String mostCommon = null;
-            for (String org : orgToFreq.keySet()) {
-                if(org.equals("TOTAL") || (ignoreOrg != null && ignoreOrg.equals(org))) continue;
-                
-                if(orgToFreq.get(org) > max){
-                    max = orgToFreq.get(org);
-                    mostCommon = org;
-                }
-            }
-            return mostCommon;
         }
 
         @Override

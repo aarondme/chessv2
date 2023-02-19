@@ -10,7 +10,7 @@ public class BasicWeightFunction implements WeightFunction {
     @Override
     public int calculateWeight(int opponentIndex, Player player, int roundIndex, List<Player> players) {
         if(opponentIndex == -1)
-            return (player.hasSatOut()? 2* WEIGHT_OF_SIT_OUT : WEIGHT_OF_SIT_OUT) +
+            return WEIGHT_OF_SIT_OUT + (player.hasSatOut()? WEIGHT_OF_SIT_OUT :0) +
                     ((roundIndex == 0)? player.getScore() * player.getScore() * 5 : 0);
 
         Player opponent = players.get(opponentIndex);
@@ -96,29 +96,28 @@ public class BasicWeightFunction implements WeightFunction {
                 }
             }
 
-            Iterator<Integer> iterator = scoreToFreq.navigableKeySet().descendingIterator();
-            int a = -1;
-            int aFreq = -1;
-            while (a != -1 || iterator.hasNext()){
-                if(a == -1){
-                    a = iterator.next();
-                    aFreq = scoreToFreq.get(a);
+            boolean wasPreviousOdd = false;
+            int prevScore = -1;
+
+            for (int score : scoreToFreq.descendingKeySet()) {
+                int freq = scoreToFreq.get(score);
+                if(wasPreviousOdd){
+                    weightForFirstRound += (prevScore - score) * (prevScore - score) * 2;
+                    freq--;
                 }
 
-                if(aFreq % 2 == 0){
-                    a = -1;
-                }
-                else if(iterator.hasNext()){
-                    int b = iterator.next();
-                    weightForFirstRound += (a-b) * (a-b) * 2; //Add the weight of pairing two players with neighbouring scores
-                    a = b;
-                    aFreq = scoreToFreq.get(b) - 1;
+                if((freq & 1) == 1){
+                    wasPreviousOdd = true;
+                    prevScore = score;
                 }
                 else{
-                    weightForFirstRound += WEIGHT_OF_SIT_OUT + 5 * a * a;//Sit out the worst player if there are an odd number
-                    a = -1;
+                    wasPreviousOdd = false;
                 }
             }
+
+
+            if(wasPreviousOdd)
+                weightForFirstRound += WEIGHT_OF_SIT_OUT + prevScore * prevScore * 5;
 
             if(variableIndex.round() != 0)
                 bestWeightForFirstRound = weightForFirstRound;

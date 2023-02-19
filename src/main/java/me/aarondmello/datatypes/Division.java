@@ -50,7 +50,7 @@ public class Division{
         p.setID(maxID++);
         players.add(p);
     }
-    public void addPlayers(List<Player> toAdd){
+    public void addPlayers(Iterable<Player> toAdd){
         for (Player p: toAdd) {
             addPlayer(p);
         }

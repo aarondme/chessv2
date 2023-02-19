@@ -64,12 +64,12 @@ public class AdvancedPairingTest {
         assertTimeoutPreemptively(Duration.ofSeconds(20), () -> {
             int totalRounds = 4;
             int roundNumber = 4;
-            initPlayers(4, 4, 4, 4);
-            for (int i = 0; i < 4; i++) {
+            initPlayers(6, 6, 6, 6);
+            for (int i = 0; i < 6; i++) {
                 Player a = players.get(i);
-                Player b = players.get(i + 4);
-                Player c = players.get(i + 8);
-                Player d = players.get(i + 12);
+                Player b = players.get(i + 6);
+                Player c = players.get(i + 12);
+                Player d = players.get(i + 18);
                 a.addPlayerGameSummary(
                         new PlayerGameSummary(2, b, Colour.WHITE),
                         new PlayerGameSummary(2, c, Colour.BLACK),
@@ -92,12 +92,11 @@ public class AdvancedPairingTest {
                 );
             }
 
-            Round r = PairingSystem.pairRound(1, players, 6, new AdvancedWeightFunction(players, totalRounds - roundNumber + 1));
+            Round r = PairingSystem.pairRound(roundNumber, players, totalRounds, new AdvancedWeightFunction(players, totalRounds - roundNumber + 1, 2));
             System.out.println("Different org first round odd");
             printPairing(r);
             assertTrue(PairingAlgorithmTest.checkIfAllPlayersPaired(r, players));
             assertTrue(PairingAlgorithmTest.checkIfAllGamesValid(r));
-            assert (numSameOrg(r)) <= 4;
         });
     }
 

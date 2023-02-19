@@ -84,7 +84,6 @@ public class PairingSystem extends Thread {
         for(VariableAssignment pos : previousState.getVar(index)){
             VariableState nextState = new VariableState(previousState);
             nextState.setVar(index, pos.opponentIndex());
-
             LinkedList<Constraint> constraints = getConstraintsForVar(index);
             HashSet<String> constraintNames = constraints.parallelStream().map(Constraint::name)
                     .collect(Collectors.toCollection(HashSet::new));
@@ -253,13 +252,29 @@ class VariableState {
     }
 
     public VariableIndex getUnassignedVariable() {
-        for (int j = 0; j < roundsRemaining; j++)
+        int minSize = Integer.MAX_VALUE;
+        VariableIndex minVariableIndex = null;
+        for (int i = 0; i < players.size(); i++){
+            VariableIndex variableIndex = new VariableIndex(i, 0);
+            int domainSize = variables.get(variableIndex).size();
+            if(1 < domainSize && domainSize < minSize) {
+                minSize = domainSize;
+                minVariableIndex = variableIndex;
+            }
+        }
+        if(minVariableIndex != null)
+            return minVariableIndex;
+
+        for (int j = 1; j < roundsRemaining; j++)
             for (int i = 0; i < players.size(); i++){
                 VariableIndex variableIndex = new VariableIndex(i, j);
-                if(variables.get(variableIndex).size() > 1)
-                    return variableIndex;
+                int domainSize = variables.get(variableIndex).size();
+                if(1 < domainSize && domainSize < minSize){
+                    minSize = domainSize;
+                    minVariableIndex = variableIndex;
+                }
             }
-        return null;
+        return minVariableIndex;
     }
 
     public LinkedList<VariableAssignment> getVar(VariableIndex index) {
