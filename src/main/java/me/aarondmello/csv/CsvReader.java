@@ -17,19 +17,17 @@ public class CsvReader implements DataReader{
     String organizationName;
     HashMap<String, ArrayList<Player>> divisionToPlayerList;
     public CsvReader(){}
-    public HashMap<String, ArrayList<Player>> read(BufferedReader reader){
+    public HashMap<String, ArrayList<Player>> read(BufferedReader reader) throws IOException {
         divisionToPlayerList = new HashMap<>();
-        try {
-            organizationName = reader.readLine();
-            reader.readLine();
-            String row = reader.readLine();
-            do {
-                String[] splitRow = row.split(",");
-                addPlayerToList(splitRow[0].trim(), splitRow[1].trim());
-            } while ((row = reader.readLine()) != null);
-        } catch (Exception e) {
-           return null;
-        }
+
+        organizationName = reader.readLine();
+        reader.readLine();
+        String row = reader.readLine();
+        do {
+            String[] splitRow = row.split(",");
+            addPlayerToList(splitRow[0].trim(), splitRow[1].trim());
+        } while ((row = reader.readLine()) != null);
+
         return divisionToPlayerList;
     }
 
@@ -129,7 +127,7 @@ public class CsvReader implements DataReader{
     }
 
     @Override
-    public void readFromStarterFile(BufferedReader reader, Tournament tournament) {
+    public void readFromStarterFile(BufferedReader reader, Tournament tournament) throws IOException {
         tournament.addPlayers(read(reader));
     }
 

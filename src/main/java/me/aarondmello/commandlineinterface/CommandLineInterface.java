@@ -89,11 +89,11 @@ public class CommandLineInterface implements GUI {
             System.out.println("Division name " + division.getName());
             System.out.print("| ID | Rank |         Player name         |       Organization       | Score |");
             System.out.print("/////");
-            System.out.print("| ID | Rank |         Player name         |       Organization       | Score |");
+            System.out.println("| ID | Rank |         Player name         |       Organization       | Score |");
             ArrayList<String> strings = new ArrayList<>();
             int rank = 1;
             for(Player player : division.getPlayers()){
-                strings.add(String.format("|%1$-4s|%2$-6s|%3$-29s|%4$-26s|%5$-7s|", player.getID(), rank, player.getName(), player.getOrganization(), player.getScore()));
+                strings.add(String.format("|%1$-4s|%2$-6s|%3$-29s|%4$-27s|%5$-7s|", player.getID(), rank, player.getName(), player.getOrganization(), player.getScore()));
                 rank++;
             }
             for (int i = 0; i < strings.size() / 2; i++) {
@@ -131,14 +131,15 @@ public class CommandLineInterface implements GUI {
             System.out.println("Division " + division.getName());
             System.out.print("| ID |         White Player         |         Black Player         |  result  |");
             System.out.print("/////");
-            System.out.print("| ID |         White Player         |         Black Player         |  result  |");
+            System.out.println("| ID |         White Player         |         Black Player         |  result  |");
             int id = 0;
             for(Game game : division.getPairing()){
-                System.out.printf("|%1$-4s|%2$-30s|%3$-30s|%4$-10s|\n", id, formatPlayer(game.getWhitePlayer()), formatPlayer(game.getBlackPlayer()), game.getResult());
+                System.out.printf("|%1$-4s|%2$-30s|%3$-30s|%4$-10s|", id, formatPlayer(game.getWhitePlayer()), formatPlayer(game.getBlackPlayer()), game.getResult());
                 System.out.print((id % 2 == 0)? "/////":"\n");
                 id++;
             }
         }
+        System.out.println();
     }
 
     private String formatPlayer(Player player) {
@@ -278,13 +279,14 @@ public class CommandLineInterface implements GUI {
             System.out.println("Division name " + division.getName());
             System.out.print("| ID |         Player name         |         Organization        | Active |");
             System.out.print("/////");
-            System.out.print("| ID |         Player name         |         Organization        | Active |");
+            System.out.println("| ID |         Player name         |         Organization        | Active |");
             boolean shouldStartNewLine = false;
             for(Player p : division.getPlayers()){
-                System.out.printf("|%1$-4s|%2$-29s|%3$-29s|%4$-8s|", p.getID(), p.getName(), p.getOrganization(), p.isActive());
+                System.out.printf("|%1$-4s|%2$-29s|%3$-30s|%4$-8s|", p.getID(), p.getName(), p.getOrganization(), p.isActive());
                 System.out.print((shouldStartNewLine)?"\n":"/////");
                 shouldStartNewLine = !shouldStartNewLine;
             }
+            System.out.println();
         }
     }
 

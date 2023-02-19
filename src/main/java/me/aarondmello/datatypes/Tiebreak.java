@@ -221,6 +221,7 @@ class DirectEncounter implements Tiebreak {
                 ofSameScore.clear();
             }
         }
-        computeSameScore(ofSameScore);
+        if(ofSameScore.size() > 0)
+            computeSameScore(ofSameScore);
     }
 }
