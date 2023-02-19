@@ -42,7 +42,8 @@ public class PairingAlgorithmTest {
         for (Game g:r.getGames()) {
             System.out.println(g.getWhitePlayer().getID() + " " + g.getBlackPlayer().getID());
         }
-        assertTrue(checkIfAllPlayersPaired(r));
+        assertTrue(checkIfAllPlayersPaired(r, players));
+        assertTrue(checkIfAllGamesValid(r));
     }
 
 
@@ -55,8 +56,8 @@ public class PairingAlgorithmTest {
             for (Game g:r.getGames()) {
                 System.out.println(g.getWhitePlayer().getID() + " " + g.getBlackPlayer().getID());
             }
-            assertTrue(checkIfAllPlayersPaired(r));
-            assertTrue(r.getGames().stream().allMatch(this::checkIfGameValid));
+            assertTrue(checkIfAllPlayersPaired(r, players));
+            assertTrue(checkIfAllGamesValid(r));
         });
     }
 
@@ -73,8 +74,8 @@ public class PairingAlgorithmTest {
             for (Game g:r.getGames()) {
                 System.out.println(g.getWhitePlayer().getID() + " " + g.getBlackPlayer().getID());
             }
-            assertTrue(checkIfAllPlayersPaired(r));
-            assertTrue(r.getGames().stream().allMatch(this::checkIfGameValid));
+            assertTrue(checkIfAllPlayersPaired(r, players));
+            assertTrue(checkIfAllGamesValid(r));
         });
     }
 
@@ -100,8 +101,8 @@ public class PairingAlgorithmTest {
             for (Game g:r.getGames()) {
                 System.out.println(g.getWhitePlayer().getID() + " " + g.getBlackPlayer().getID());
             }
-            assertTrue(checkIfAllPlayersPaired(r));
-            assertTrue(r.getGames().stream().allMatch(this::checkIfGameValid));
+            assertTrue(checkIfAllPlayersPaired(r, players));
+            assertTrue(checkIfAllGamesValid(r));
         });
     }
 
@@ -115,8 +116,8 @@ public class PairingAlgorithmTest {
             for (Game g:r.getGames()) {
                 System.out.println(g.getWhitePlayer().getID() + " " + g.getBlackPlayer().getID());
             }
-            assertTrue(checkIfAllPlayersPaired(r));
-            assertTrue(r.getGames().stream().allMatch(this::checkIfGameValid));
+            assertTrue(checkIfAllPlayersPaired(r, players));
+            assertTrue(checkIfAllGamesValid(r));
         });
     }
 
@@ -135,8 +136,8 @@ public class PairingAlgorithmTest {
             for (Game g:r.getGames()) {
                 System.out.println(g.getWhitePlayer().getID() + " " + g.getBlackPlayer().getID());
             }
-            assertTrue(checkIfAllPlayersPaired(r));
-            assertTrue(r.getGames().stream().allMatch(this::checkIfGameValid));
+            assertTrue(checkIfAllPlayersPaired(r, players));
+            assertTrue(checkIfAllGamesValid(r));
         });
     }
 
@@ -164,8 +165,8 @@ public class PairingAlgorithmTest {
             for (Game g:r.getGames()) {
                 System.out.println(g.getWhitePlayer().getID() + " " + g.getBlackPlayer().getID());
             }
-            assertTrue(checkIfAllPlayersPaired(r));
-            assertTrue(r.getGames().stream().allMatch(this::checkIfGameValid));
+            assertTrue(checkIfAllPlayersPaired(r, players));
+            assertTrue(checkIfAllGamesValid(r));
         });
     }
 
@@ -196,8 +197,8 @@ public class PairingAlgorithmTest {
         for (Game g : r.getGames()) {
             System.out.println(g.getWhitePlayer().getID() + " " + g.getBlackPlayer().getID());
         }
-        assertTrue(checkIfAllPlayersPaired(r));
-        assertTrue(r.getGames().stream().allMatch(this::checkIfGameValid));
+        assertTrue(checkIfAllPlayersPaired(r, players));
+        assertTrue(checkIfAllGamesValid(r));
     }
 
     @Test
@@ -225,8 +226,8 @@ public class PairingAlgorithmTest {
         for (Game g : r.getGames()) {
             System.out.println(g.getWhitePlayer().getID() + " " + g.getBlackPlayer().getID());
         }
-        assertTrue(checkIfAllPlayersPaired(r));
-        assertTrue(r.getGames().stream().allMatch(this::checkIfGameValid));
+        assertTrue(checkIfAllPlayersPaired(r, players));
+        assertTrue(checkIfAllGamesValid(r));
     }
 
 
@@ -258,8 +259,8 @@ public class PairingAlgorithmTest {
         for (Game g : r.getGames()) {
             System.out.println(g.getWhitePlayer().getID() + " " + g.getBlackPlayer().getID());
         }
-        assertTrue(checkIfAllPlayersPaired(r));
-        assertTrue(r.getGames().stream().allMatch(this::checkIfGameValid));
+        assertTrue(checkIfAllPlayersPaired(r, players));
+        assertTrue(checkIfAllGamesValid(r));
     }
 
     @Test
@@ -295,11 +296,11 @@ public class PairingAlgorithmTest {
         for (Game g : r.getGames()) {
             System.out.println(g.getWhitePlayer().getID() + " " + g.getBlackPlayer().getID());
         }
-        assertTrue(checkIfAllPlayersPaired(r));
-        assertTrue(r.getGames().stream().allMatch(this::checkIfGameValid));
+        assertTrue(checkIfAllPlayersPaired(r, players));
+        assertTrue(checkIfAllGamesValid(r));
         assertTrue(r.getGames().stream().anyMatch(g -> g.getBlackPlayer().getScore() != g.getWhitePlayer().getScore())); //Otherwise, the fourth round necessarily has two players sit out.
     }
-    private boolean checkIfAllPlayersPaired(Round round){
+    public static boolean checkIfAllPlayersPaired(Round round, ArrayList<Player> players){
         LinkedList<Game> games = round.getGames();
         if(games.size() != (players.size() + 1)/2)
             return false;
@@ -316,7 +317,11 @@ public class PairingAlgorithmTest {
         return true;
     }
 
-    private boolean checkIfGameValid(Game g){
+    public static boolean checkIfAllGamesValid(Round r){
+        return r.getGames().stream().allMatch(PairingAlgorithmTest::checkIfGameValid);
+    }
+
+    private static boolean checkIfGameValid(Game g){
         Player white = g.getWhitePlayer();
         Player black = g.getBlackPlayer();
         

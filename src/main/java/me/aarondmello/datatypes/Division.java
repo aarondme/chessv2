@@ -50,7 +50,7 @@ public class Division{
         p.setID(maxID++);
         players.add(p);
     }
-    public void addPlayers(List<Player> toAdd){
+    public void addPlayers(Iterable<Player> toAdd){
         for (Player p: toAdd) {
             addPlayer(p);
         }
@@ -70,13 +70,10 @@ public class Division{
     }
 
     public void randomizeIds(){
-        ArrayList<Integer> ids = new ArrayList<>();
-        for(int i = 0; i < players.size(); i++)
-            ids.add(i);
-        Collections.shuffle(ids);
+        Collections.shuffle(players);
         for(int i = 0; i < players.size(); i++){
             Player player = players.get(i);
-            player.setID(ids.get(i));
+            player.setID(i);
         }
     }
     public void initialize() {
@@ -87,7 +84,18 @@ public class Division{
         sortPlayers();
     }
     public void pairRound(int roundNumber) {
-        currentRound = PairingSystem.pairRound(roundNumber, players, totalRounds);
+        ArrayList<Player> activePlayers = new ArrayList<>(players);
+        ArrayList<Player> inactivePlayers = new ArrayList<>(players);
+        activePlayers.removeIf(p -> !p.isActive());
+        inactivePlayers.removeIf(Player::isActive);
+
+        currentRound = PairingSystem.pairRound(roundNumber, activePlayers, totalRounds);
+
+        for (Player p : inactivePlayers) {
+            Game g = new Game(p, NullPlayer.getInstance());
+            g.setResult(GameResult.BLACK_WIN);
+            currentRound.addGame(g);
+        }
     }
 
     public void setCurrentRound(Round currentRound) {

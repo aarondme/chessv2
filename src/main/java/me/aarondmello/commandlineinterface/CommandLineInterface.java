@@ -7,6 +7,7 @@ import me.aarondmello.driver.PersisterFactory;
 import me.aarondmello.driver.GUI;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class CommandLineInterface implements GUI {
@@ -48,10 +49,36 @@ public class CommandLineInterface implements GUI {
             tournament.createRound();
             
             getRoundResults(tournament);
-            shouldContinue = tournament.confirmRoundResults(); 
+            shouldContinue = tournament.confirmRoundResults();
+            alterSitOuts(tournament);
 
             printStandings(tournament);
         }
+    }
+
+    private void alterSitOuts(Tournament tournament) {
+        int a = promptForInt("Enter the appropriate number to continue",
+                new String[]{"0: continue", "1: modify players sitting out"}, 0, 1);
+        if(a == 0) return;
+
+        while(true){
+            printPlayerList(tournament);
+
+            System.out.println("Enter \"division\" \"player id\" \"shouldSitOut\", where shouldSitOut is 1 if sitting out, 0 otherwise. Enter \"0\" to exit");
+            String in = input.nextLine();
+            if(in.equals("0"))
+                return;
+            if(validateResultFromInput(in)){
+                String[] abc = in.split("\\s+");
+                String divName = abc[0];
+                int id = Integer.parseInt(abc[1]);
+                int shouldSitOut = Integer.parseInt(abc[2]);
+                tournament.getPlayer(divName, id).setActive(shouldSitOut == 0);
+            }
+
+            System.out.println("Invalid input provided.");
+        }
+
     }
 
     private void printStandings(Tournament tournament) {
@@ -59,11 +86,21 @@ public class CommandLineInterface implements GUI {
         System.out.println("Tournament name " + tournament.getName());
         System.out.println("Round " + tournament.getRoundNumber() + " of " + tournament.getTotalRounds());
         for(Division division : tournament.getDivisions()){
-            System.out.println("  Division name " + division.getName());
-            System.out.println("    Player ID | Player name | Organization | Score");
+            System.out.println("Division name " + division.getName());
+            System.out.print("| ID | Rank |         Player name         |       Organization       | Score |");
+            System.out.print("/////");
+            System.out.print("| ID | Rank |         Player name         |       Organization       | Score |");
+            ArrayList<String> strings = new ArrayList<>();
+            int rank = 1;
             for(Player player : division.getPlayers()){
-                System.out.println("    " + player.getID() + " | " + player.getName() + " | " + player.getOrganization() + " | " + player.getScore());
+                strings.add(String.format("|%1$-4s|%2$-6s|%3$-29s|%4$-26s|%5$-7s|", player.getID(), rank, player.getName(), player.getOrganization(), player.getScore()));
+                rank++;
             }
+            for (int i = 0; i < strings.size() / 2; i++) {
+                System.out.println(strings.get(i) + "/////" + strings.get(strings.size()/2 + i));
+            }
+            if(strings.size() % 2 == 1)
+                System.out.println(strings.get(strings.size() - 1));
         }
     }
 
@@ -91,19 +128,21 @@ public class CommandLineInterface implements GUI {
         System.out.println("Tournament name " + tournament.getName());
         System.out.println("Round " + tournament.getRoundNumber() + " of " + tournament.getTotalRounds());
         for(Division division : tournament.getDivisions()){
-            System.out.println("  Division name " + division.getName());
-            System.out.println("    Game ID | White Player | Black Player | result");
+            System.out.println("Division " + division.getName());
+            System.out.print("| ID |         White Player         |         Black Player         |  result  |");
+            System.out.print("/////");
+            System.out.print("| ID |         White Player         |         Black Player         |  result  |");
             int id = 0;
             for(Game game : division.getPairing()){
-                System.out.println("    " + id + " | " + formatPlayer(game.getWhitePlayer()) + " | " + formatPlayer(game.getBlackPlayer()) + " | " + game.getResult());
+                System.out.printf("|%1$-4s|%2$-30s|%3$-30s|%4$-10s|\n", id, formatPlayer(game.getWhitePlayer()), formatPlayer(game.getBlackPlayer()), game.getResult());
+                System.out.print((id % 2 == 0)? "/////":"\n");
                 id++;
             }
-            
         }
     }
 
     private String formatPlayer(Player player) {
-        return player.getDisplayName() + " [" + player.getScore() + "]";
+        return player.getName() + " [" + player.getScore() + "]";
     }
 
     private String getResultFromInput() {
@@ -236,10 +275,15 @@ public class CommandLineInterface implements GUI {
         System.out.println("Tournament name " + tournament.getName());
         System.out.println("Number of rounds " + tournament.getTotalRounds());
         for(Division division : tournament.getDivisions()){
-            System.out.println("  Division name " + division.getName());
-            System.out.println("    Player ID | Player name | Organization");
-            for(Player player : division.getPlayers()){
-                System.out.println("    " + player.getID() + " | " + player.getName() + " | " + player.getOrganization());
+            System.out.println("Division name " + division.getName());
+            System.out.print("| ID |         Player name         |         Organization        | Active |");
+            System.out.print("/////");
+            System.out.print("| ID |         Player name         |         Organization        | Active |");
+            boolean shouldStartNewLine = false;
+            for(Player p : division.getPlayers()){
+                System.out.printf("|%1$-4s|%2$-29s|%3$-29s|%4$-8s|", p.getID(), p.getName(), p.getOrganization(), p.isActive());
+                System.out.print((shouldStartNewLine)?"\n":"/////");
+                shouldStartNewLine = !shouldStartNewLine;
             }
         }
     }
