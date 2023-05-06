@@ -1,12 +1,21 @@
 package me.aarondmello.datatypes;
 import java.util.*;
 
+
 import me.aarondmello.driver.PairingSystem;
 
+
 public class Division{
+    private boolean isRegional;
+
     public void setTotalRounds(int rounds) {
         totalRounds = rounds;
     }
+
+    public void setRegional(boolean isRegionalTournament) {
+        isRegional = isRegionalTournament;
+    }
+
 
     static class PlayerComparator implements Comparator<Player>{
         Tiebreak[] tiebreaks;
@@ -21,6 +30,18 @@ public class Division{
                     return o1.getTiebreakScore(t.type()) - o2.getTiebreakScore(t.type());
             }
             return 0;
+        }
+    }
+
+    static class SortingPlayerComparator implements Comparator<Player>{
+        Comparator<Player> comparator;
+        SortingPlayerComparator(Comparator<Player> c){comparator = c;}
+
+        @Override
+        public int compare(Player o1, Player o2) {
+            int r = comparator.compare(o1, o2);
+
+            return (r == 0)? o1.getID() - o2.getID() : r;
         }
     }
 
@@ -40,19 +61,26 @@ public class Division{
         return name;
     }
 
-    private Comparator<Player> getPlayerComparator(){
+    public Comparator<Player> getPlayerComparator(){
         return new PlayerComparator(tiebreaks);
     }
     public void sortPlayers(){
-        players.sort(getPlayerComparator().reversed());
+        players.sort((new SortingPlayerComparator(getPlayerComparator())).reversed());
     }
-    public void addPlayer(Player p){
-        p.setID(maxID++);
+    public void addPlayer(Player p, boolean maintainIds){
+        if(!maintainIds)
+            p.setID(maxID++);
         players.add(p);
     }
+    public void addPlayer(Player p){
+        addPlayer(p, false);
+    }
     public void addPlayers(Iterable<Player> toAdd){
+        addPlayers(toAdd, false);
+    }
+    public void addPlayers(Iterable<Player> toAdd, boolean maintainIds){
         for (Player p: toAdd) {
-            addPlayer(p);
+            addPlayer(p, maintainIds);
         }
     }
     public List<Player> getPlayers(){
@@ -84,12 +112,14 @@ public class Division{
         sortPlayers();
     }
     public void pairRound(int roundNumber) {
+        sortPlayers();
         ArrayList<Player> activePlayers = new ArrayList<>(players);
         ArrayList<Player> inactivePlayers = new ArrayList<>(players);
         activePlayers.removeIf(p -> !p.isActive());
         inactivePlayers.removeIf(Player::isActive);
 
-        currentRound = PairingSystem.pairRound(roundNumber, activePlayers, totalRounds);
+        currentRound = PairingSystem.pairRound(roundNumber, activePlayers, totalRounds,
+                PairingSystem.getWeightFunction(isRegional, activePlayers, roundNumber, totalRounds));
 
         for (Player p : inactivePlayers) {
             Game g = new Game(p, NullPlayer.getInstance());

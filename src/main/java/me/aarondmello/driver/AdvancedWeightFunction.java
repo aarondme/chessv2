@@ -17,7 +17,7 @@ public class AdvancedWeightFunction implements WeightFunction {
     }
 
     public AdvancedWeightFunction(List<Player> players, int roundsRemaining){
-        scoreCutoff = getScoreCutoff(players, roundsRemaining, 3);
+        scoreCutoff = getScoreCutoff(players, roundsRemaining, 2);
     }
 
     private int getScoreCutoff(List<Player> players, int roundsRemaining, int cutoff){

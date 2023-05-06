@@ -105,6 +105,8 @@ public class TournamentComparer {
             addToResult("tournament round number");
         if(a.getTotalRounds() != b.getTotalRounds())
             addToResult("tournament total rounds");
+        if(a.isRegionalTournament() != b.isRegionalTournament())
+            addToResult("tournament type");
     }
 
     private void addToResult(String error) {

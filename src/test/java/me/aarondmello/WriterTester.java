@@ -88,6 +88,7 @@ public class WriterTester {
                 .withName("myTournament")
                 .withNRounds(2)
                 .withPlayer("div2", new Player("player", "org"))
+                .asFinals()
                 .execute();
 
         Division division = t.getDivisionWithName("div2", false);
@@ -115,6 +116,7 @@ public class WriterTester {
                 .withPlayer("div2", new Player("p2", "org"))
                 .withDivisionTiebreaks("div1", new TiebreakType[]{})
                 .withDivisionTiebreaks("div2", new TiebreakType[]{})
+                .asFinals()
                 .execute();
 
         writer.saveTournament(t, out);
@@ -143,6 +145,7 @@ public class WriterTester {
                 .withPlayer("div1", p2)
                 .withDivisionTiebreaks("div1", new TiebreakType[]{})
                 .withRound("div1", r)
+                .asFinals()
                 .execute();
         p1.setID(0);
         p2.setID(1);
@@ -203,6 +206,7 @@ public class WriterTester {
                 .withPlayer("div1", p2)
                 .withDivisionTiebreaks("div1", new TiebreakType[]{TiebreakType.WinCount})
                 .withRound("div1", r)
+                .asFinals()
                 .execute();
         p1.setID(0);
         p2.setID(1);

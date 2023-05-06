@@ -6,6 +6,7 @@ public class Tournament{
     private final LinkedList<Division> divisions = new LinkedList<>();
     private int roundNumber = 1;
     private int totalRounds = -1;
+    private boolean isRegionalTournament = true;
 
     public Tournament(){
     }
@@ -90,6 +91,7 @@ public class Tournament{
             if (shouldRandomize) division.randomizeIds();
             division.initialize();
             division.setTotalRounds(totalRounds);
+            division.setRegional(isRegionalTournament);
         }
     }
 
@@ -110,5 +112,17 @@ public class Tournament{
         Division division = getDivisionWithName(divisionName);
         if(division != null)
             division.setGameResultByID(id, result);
+    }
+
+    public void toggleType() {
+        isRegionalTournament = !isRegionalTournament;
+    }
+
+    public boolean isRegionalTournament() {
+        return isRegionalTournament;
+    }
+
+    public void setRegionalTournament(boolean regionalTournament) {
+        isRegionalTournament = regionalTournament;
     }
 }

@@ -47,4 +47,9 @@ public class TournamentBuilder {
         d.confirmRoundResults();
         return this;
     }
+
+    public TournamentBuilder asFinals() {
+        t.setRegionalTournament(false);
+        return this;
+    }
 }

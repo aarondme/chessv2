@@ -15,7 +15,9 @@ public class Round{
     }
 
     public void setResultByID(int id, GameResult result) {
-        if(id < games.size())
+        if(0 < id && id < games.size())
             games.get(id).setResult(result);
+        else
+            System.err.println("Invalid ID provided, no game was changed");
     }
 }

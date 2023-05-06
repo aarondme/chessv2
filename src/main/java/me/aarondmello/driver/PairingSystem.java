@@ -21,6 +21,12 @@ public class PairingSystem extends Thread {
     private int bestWeight = Integer.MAX_VALUE;
     WeightFunction weightFunction;
 
+    public static WeightFunction getWeightFunction(boolean isRegional, ArrayList<Player> activePlayers, int roundNumber, int totalRounds) {
+        if(!isRegional)
+            return new BasicWeightFunction();
+        return new AdvancedWeightFunction(activePlayers, totalRounds - roundNumber + 1);
+    }
+
     @Override
     public void run() {
         gac(initialState);
@@ -77,7 +83,7 @@ public class PairingSystem extends Thread {
         VariableIndex index = previousState.getUnassignedVariable();
         if(index == null){
             bestSolution = previousState;
-            bestWeight = previousState.variables.values().parallelStream().mapToInt(v -> v.get(0).weight()).sum();
+            bestWeight = previousState.variables.values().stream().mapToInt(v -> v.get(0).weight()).sum();
             return;
         }
 
@@ -85,7 +91,7 @@ public class PairingSystem extends Thread {
             VariableState nextState = new VariableState(previousState);
             nextState.setVar(index, pos.opponentIndex());
             LinkedList<Constraint> constraints = getConstraintsForVar(index);
-            HashSet<String> constraintNames = constraints.parallelStream().map(Constraint::name)
+            HashSet<String> constraintNames = constraints.stream().map(Constraint::name)
                     .collect(Collectors.toCollection(HashSet::new));
 
             if(gacEnforce(constraints, constraintNames, nextState))
@@ -104,7 +110,7 @@ public class PairingSystem extends Thread {
                 List<Constraint> toAdd = getConstraintsForVar(variableIndex);
                 toAdd.removeIf((d -> constraintNames.contains(d.name())));
                 gacQueue.addAll(toAdd);
-                constraintNames.addAll(toAdd.parallelStream().map(Constraint::name).collect(Collectors.toList()));
+                constraintNames.addAll(toAdd.stream().map(Constraint::name).collect(Collectors.toList()));
             }
         }
         return true;

@@ -39,11 +39,6 @@ public class Player {
         return summaries.stream().mapToInt(s -> ((s.getColour() == Colour.BLACK)?1:0)).sum();
     }
 
-    public String getDisplayName() {
-        if (organization.trim().length() == 0)
-          return name;
-        return (name + " (" + organization + ")");
-    }
     public int getID() {
         return id;
     }

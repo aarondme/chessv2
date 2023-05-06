@@ -14,6 +14,7 @@ public class CsvWriter implements DataWriter {
 
     public void saveTournament(Tournament tournament, PrintWriter printWriter) {
         printWriter.println("Tournament Name:," + tournament.getName());
+        printWriter.println("Divisional Tournament:," + tournament.isRegionalTournament());
 
         if(tournament.getTotalRounds() < tournament.getRoundNumber())
             printWriter.println(tournament.getTotalRounds() + "-Round Tournament Complete");

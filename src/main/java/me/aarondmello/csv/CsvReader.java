@@ -5,12 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import me.aarondmello.datatypes.Colour;
-import me.aarondmello.datatypes.Division;
-import me.aarondmello.datatypes.Player;
-import me.aarondmello.datatypes.PlayerGameSummary;
-import me.aarondmello.datatypes.Tournament;
-import me.aarondmello.datatypes.TiebreakType;
+import me.aarondmello.datatypes.*;
 import me.aarondmello.driver.DataReader;
 
 public class CsvReader implements DataReader{
@@ -20,7 +15,14 @@ public class CsvReader implements DataReader{
     public HashMap<String, ArrayList<Player>> read(BufferedReader reader) throws IOException {
         divisionToPlayerList = new HashMap<>();
 
-        organizationName = reader.readLine();
+        organizationName = reader.readLine().split(",")[0].strip();
+        int start = 0;
+        while (start < 5 && organizationName.charAt(start) >= 128) {
+            start++;
+        } //Removes BOM from UTF-8/UTF-16 encoded CSVs
+        organizationName = organizationName.substring(start);
+
+
         reader.readLine();
         String row = reader.readLine();
         do {
@@ -62,7 +64,7 @@ public class CsvReader implements DataReader{
         Division d = readDivisionName(header, t);
         readDivisionTiebreaks(reader, d, t.getRoundNumber());
         ArrayList<Player> p = readPlayers(reader, t.getRoundNumber());
-        d.addPlayers(p);
+        d.addPlayers(p, true);
         d.initialize();
     }
 
@@ -70,7 +72,7 @@ public class CsvReader implements DataReader{
         String line;
         ArrayList<Player> players = new ArrayList<>();
         ArrayList<String[]> encoded_games = new ArrayList<>();
-        while ((line = reader.readLine()) != null && !line.equals("")) {
+        while ((line = reader.readLine()) != null && line.matches("(.*)[0-9](.*)")) {
             String[] splitLine = line.split(",");
             Player p = new Player(splitLine[1], splitLine[2]);
             p.setID(Integer.parseInt(splitLine[0]));
@@ -83,7 +85,16 @@ public class CsvReader implements DataReader{
             for(int j = 4; j < 4 + roundNum - 1; j++){
                 int pointsEarned = (games[j].charAt(0) == 'W')? 2 : (games[j].charAt(0) == 'L')? 0 : 1;
                 Colour colour = (games[j].charAt(1) == 'w')? Colour.WHITE : Colour.BLACK;
-                Player opponent = players.get(Integer.parseInt(String.valueOf(games[j].charAt(2))));
+
+                Player opponent = p; //TODO this is here just to make compiler happy, fix
+                int index = Integer.parseInt(games[j].substring(2));
+                if(index >= 0) {
+                    for (Player o : players) {
+                        if (index == o.getID())
+                            opponent = o;
+                    }
+                }
+                else opponent = NullPlayer.getInstance();
                 p.addPlayerGameSummary(new PlayerGameSummary(pointsEarned, opponent, colour));
             }
         }
@@ -102,12 +113,13 @@ public class CsvReader implements DataReader{
     }
 
     private Division readDivisionName(String row, Tournament t){
-        int firstSpace = row.indexOf(' ');
-        return t.getDivisionWithName(row.substring(firstSpace+1), true);
+        String[] cells = row.split(",");
+        int firstSpace = cells[0].indexOf(" ");
+        return t.getDivisionWithName(cells[0].substring(firstSpace+1), true);
     }
 
     private void readRounds(BufferedReader reader, Tournament t) throws IOException {
-        String[] row = reader.readLine().split("\\s+");
+        String[] row = reader.readLine().split(",")[0].split("\\s+");
         if(row[0].equals("Round")){
             t.setRoundNumber(Integer.parseInt(row[1]));
             t.setTotalRounds(Integer.parseInt(row[3]));
@@ -121,9 +133,11 @@ public class CsvReader implements DataReader{
     }
 
     private void readName(BufferedReader reader, Tournament t) throws IOException {
-        String row = reader.readLine();
-        int firstComma = row.indexOf(',');
-        t.setName(row.substring(firstComma+1));
+        String[] row = reader.readLine().split(",");
+        t.setName(row[1]);
+
+        row = reader.readLine().split(",");
+        t.setRegionalTournament(Boolean.parseBoolean(row[1]));
     }
 
     @Override
