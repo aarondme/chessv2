@@ -1,10 +1,7 @@
 package me.aarondmello.commandlineinterface;
 
 import me.aarondmello.datatypes.*;
-import me.aarondmello.driver.DataReader;
-import me.aarondmello.driver.DataWriter;
-import me.aarondmello.driver.PersisterFactory;
-import me.aarondmello.driver.GUI;
+import me.aarondmello.driver.*;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -12,56 +9,14 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Scanner;
 
-public class CommandLineInterface implements GUI {
+public class CommandLineInterface implements SimpleUI {
 
     private final Scanner input = new Scanner(System.in);
 
+
+
     @Override
-    public void start(PersisterFactory persisterFactory){
-        DataReader tournamentReader = persisterFactory.getReaderOfType("csv");
-        DataWriter tournamentWriter = persisterFactory.getWriterOfType("csv");
-        Tournament tournament;
-        displayWelcomeMessage();
-        tournament = getTournament(tournamentReader);
-        runTournament(tournament, tournamentWriter);
-    }
-
-    private void saveTournament(Tournament tournament, DataWriter writer) {
-        if(tournament == null) return;
-
-            try {
-                File f = new File(tournament.getName() + "_" + tournament.getRoundNumber() + ".csv");
-                PrintWriter p = new PrintWriter(f);
-                writer.saveTournament(tournament, p);
-                p.flush();
-                p.close();
-            } catch (FileNotFoundException e) {
-                System.out.println("Unable to save tournament to file");
-            }
-
-    }
-
-    private void runTournament(Tournament tournament, DataWriter writer) {
-        if(tournament == null) return;
-
-        boolean isValid = false;
-        while(tournament.hasRoundsRemaining()){
-            tournament.createRound();
-
-            while(!isValid){
-                getRoundResults(tournament);
-                isValid = tournament.confirmRoundResults();
-            }
-
-            alterSitOuts(tournament);
-
-            printStandings(tournament);
-            isValid = false;
-            saveTournament(tournament, writer);
-        }
-    }
-
-    private void alterSitOuts(Tournament tournament) {
+    public void alterSitOuts(Tournament tournament) {
         int a = promptForInt("Enter the appropriate number to continue",
                 new String[]{"0: continue", "1: modify players sitting out"}, 0, 1);
         if(a == 0) return;
@@ -69,7 +24,8 @@ public class CommandLineInterface implements GUI {
         while(true){
             printPlayerList(tournament);
 
-            System.out.println("Enter \"division\" \"player id\" \"shouldSitOut\", where shouldSitOut is 1 if sitting out, 0 otherwise. Enter \"0\" to exit");
+            System.out.println("Enter \"division\" \"player id\" \"shouldSitOut\"," +
+                    "where shouldSitOut is 1 if sitting out, 0 otherwise. Enter \"0\" to exit");
             String in = input.nextLine();
             if(in.equals("0"))
                 return;
@@ -86,18 +42,20 @@ public class CommandLineInterface implements GUI {
 
     }
 
-    private void printStandings(Tournament tournament) {
+    @Override
+    public void displayStandings(Tournament tournament) {
         System.out.println("--- Tournament standings ---");
         System.out.println("Tournament name " + tournament.getName());
+        String standingFormat = "|%1$-4s|%2$-6s|%3$-29s|%4$-26s|%5$-7s|";
         if(tournament.getRoundNumber() <= tournament.getTotalRounds())
             System.out.println("Round " + tournament.getRoundNumber() + " of " + tournament.getTotalRounds());
         else
             System.out.println(tournament.getTotalRounds() + "-Round Tournament Complete");
         for(Division division : tournament.getDivisions()){
             System.out.println("Division name " + division.getName());
-            System.out.print("| ID | Rank |         Player name         |       Organization       | Score |");
+            System.out.printf(standingFormat, "ID", "Rank", "Player name", "Organization", "Score");
             System.out.print("/////");
-            System.out.println("| ID | Rank |         Player name         |       Organization       | Score |");
+            System.out.printf(standingFormat + "\n", "ID", "Rank", "Player name", "Organization", "Score");
             ArrayList<String> strings = new ArrayList<>();
 
             Comparator<Player> playerComparator = division.getPlayerComparator();
@@ -107,7 +65,8 @@ public class CommandLineInterface implements GUI {
             for(Player player : division.getPlayers()){
                 if(playerComparator.compare(player, players.get(tiedWith - 1)) != 0)
                     tiedWith = rank;
-                strings.add(String.format("|%1$-4s|%2$-6s|%3$-29s|%4$-26s|%5$-7s|", player.getID(), tiedWith, player.getName(), player.getOrganization(), player.getScore()));
+                strings.add(String.format(standingFormat, player.getID(), tiedWith, player.getName(),
+                        player.getOrganization(), player.getScore()));
                 rank++;
             }
             for (int i = 0; i < strings.size() / 2; i++) {
@@ -125,7 +84,8 @@ public class CommandLineInterface implements GUI {
         return null;
     }
 
-    private void getRoundResults(Tournament tournament) {
+    @Override
+    public void getRoundResults(Tournament tournament) {
         while(true){
             printPairing(tournament);
             String in = getResultFromInput();
@@ -138,16 +98,19 @@ public class CommandLineInterface implements GUI {
         }  
     }
 
+
     private void printPairing(Tournament tournament) {
         System.out.println("--- Pairing details ---");
         System.out.println("Tournament name " + tournament.getName());
         System.out.println("Round " + tournament.getRoundNumber() + " of " + tournament.getTotalRounds());
+        String pairingFormat = "|%1$-4s|%2$-50s|%3$-50s|%4$-10s|\n";
         for(Division division : tournament.getDivisions()){
             System.out.println("Division " + division.getName());
-            System.out.printf("|%1$-4s|%2$-50s|%3$-50s|%4$-10s|\n", "ID", "White", "Black", "result");
+            System.out.printf(pairingFormat, "ID", "White", "Black", "result");
             int id = 1;
             for(Game game : division.getPairing()){
-                System.out.printf("|%1$-4s|%2$-50s|%3$-50s|%4$-10s|\n", id, formatPlayer(game.getWhitePlayer()), formatPlayer(game.getBlackPlayer()), game.getResult());
+                System.out.printf(pairingFormat, id,
+                        formatPlayer(game.getWhitePlayer()), formatPlayer(game.getBlackPlayer()), game.getResult());
                 id++;
             }
         }
@@ -160,7 +123,8 @@ public class CommandLineInterface implements GUI {
 
     private String getResultFromInput() {
         while(true){
-            System.out.println("Enter \"division\" \"game number\" \"game result\", where round result is 2 if white win, 1 if draw, 0 if black win. Enter \"DONE\" to exit");
+            System.out.println("Enter \"division\" \"game number\" \"game result\"," +
+                    "where round result is 2 if white win, 1 if draw, 0 if black win. Enter \"DONE\" to exit");
             String in = input.nextLine();
             if(in.equals("DONE"))
                 return null;
@@ -182,7 +146,8 @@ public class CommandLineInterface implements GUI {
         }
     }
 
-    private Tournament getTournament(DataReader tournamentReader) {
+    @Override
+    public Tournament getTournament(DataReader tournamentReader) {
         int in = promptForInt("Enter the appropriate number to continue", 
                         new String[]{"0: exit", "1: starting new tournament", "2: resuming existing tournament"}, 
                         0, 2);
@@ -222,7 +187,8 @@ public class CommandLineInterface implements GUI {
         }
     }
 
-    private void displayWelcomeMessage() {
+    @Override
+    public void displayWelcomeMessage() {
         System.out.println("--- Chess Tournament Manager ---");
     }
 
@@ -270,14 +236,15 @@ public class CommandLineInterface implements GUI {
         System.out.println("Tournament name " + tournament.getName());
         System.out.println("Number of rounds " + tournament.getTotalRounds());
         System.out.println("Divisional Tournament? " + tournament.isRegionalTournament());
+        String playerListFormat = "|%1$-4s|%2$-29s|%3$-29s|%4$-8s|";
         for(Division division : tournament.getDivisions()){
             System.out.println("Division name " + division.getName());
-            System.out.print("| ID |         Player name         |         Organization        | Active |");
+            System.out.printf(playerListFormat, "ID","Player name","Organization","Active");
             System.out.print("/////");
-            System.out.println("| ID |         Player name         |         Organization        | Active |");
+            System.out.printf(playerListFormat + "\n","ID","Player name","Organization","Active");
             boolean shouldStartNewLine = false;
             for(Player p : division.getPlayers()){
-                System.out.printf("|%1$-4s|%2$-29s|%3$-29s|%4$-8s|", p.getID(), p.getName(), p.getOrganization(), p.isActive());
+                System.out.printf(playerListFormat, p.getID(), p.getName(), p.getOrganization(), p.isActive());
                 System.out.print((shouldStartNewLine)?"\n":"/////");
                 shouldStartNewLine = !shouldStartNewLine;
             }

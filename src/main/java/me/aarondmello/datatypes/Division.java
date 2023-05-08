@@ -144,7 +144,7 @@ public class Division{
     public void setGameResultByID(int id, GameResult result) {
         currentRound.setResultByID(id, result);
     }
-    public LinkedList<Game> getPairing() {
+    public List<Game> getPairing() {
         return currentRound.getGames();
     }
 
