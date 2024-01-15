@@ -14,6 +14,20 @@ interface WeightFunction {
 }
 record VariableAssignment(int opponentIndex, int weight) {}
 record VariableIndex(int player, int round) {}
+
+/**
+ * Runs the pairing algorithm (gac; or generalized arc consistency). Pairs players following these rules:
+ * 1. No two players can play each other more than once.
+ * 2. A pairing with the least "weight" as determined by the weight function is chosen. Weight functions do the
+ * following:
+ * a) add a lot of weight for a player sitting out, even more if the player sat out several times.
+ * b) add weight corresponding to the difference of scores of the players who are paired with each other
+ * c) (optionally) add a small weight if players are from the same school.
+ * 3. Players play about as many games as white as they do as black.
+ *
+ * Note: the number of rounds is taken into account, a pairing which may immediately be of less weight may be avoided
+ * if it will force future rounds to have more players sitting out.
+ */
 public class PairingSystem extends Thread {
     VariableState bestSolution, initialState;
     int roundsRemaining;

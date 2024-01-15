@@ -1,5 +1,9 @@
 package me.aarondmello.datatypes;
 
+/**
+ * Handles sitting a player out. Any player sitting out
+ * is paired with the NullPlayer.
+ */
 public class NullPlayer extends Player{
 
     static NullPlayer instanceNullPlayer = new NullPlayer();
