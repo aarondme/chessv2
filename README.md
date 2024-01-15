@@ -41,7 +41,7 @@ used to run the software.
 
 This program does not need an internet connection to run. It runs locally, and creates save
 files throughout the tournament to allow restoring in case the program is closed. 
-###Loading player lists from a csv file
+### Loading player lists from a csv file
 
 If you wish to read data from a file, rather than enter players one-by-one,
 ensure the file is in the following format:
