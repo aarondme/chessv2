@@ -223,7 +223,9 @@ public class CommandLineInterface implements GUI {
     }
 
     private void displayWelcomeMessage() {
-        System.out.println("--- Chess Tournament Manager ---");
+        System.out.println("--- Chess Tournament Manager by Aaron D'Mello---");
+        System.out.println("Licensed under CC BY-SA 4.0");
+        System.out.println("http://creativecommons.org/licenses/by-sa/4.0/?ref=chooser-v1");
     }
 
     private File getLocationToReadSave(){
