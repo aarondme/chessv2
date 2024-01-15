@@ -3,7 +3,11 @@ package me.aarondmello.driver;
 import me.aarondmello.datatypes.Player;
 
 import java.util.*;
-
+/**
+ * Weight Function used for Finals tournaments:
+ * A game is assigned weight according to the difference in scores.
+ * Schools of players are ignored.
+ */
 public class BasicWeightFunction implements WeightFunction {
     private static final int WEIGHT_OF_SIT_OUT = 1_000_000;
 

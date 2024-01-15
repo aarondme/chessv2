@@ -4,6 +4,13 @@ import me.aarondmello.datatypes.Player;
 
 import java.util.*;
 
+/**
+ * Weight Function used for Divisional tournaments:
+ * A game is assigned weight according to the difference in scores,
+ * and if the players are of the same school.
+ * The first is more costly if the players could earn enough points
+ * to tie the top player(s) in the tournament.
+ */
 public class AdvancedWeightFunction implements WeightFunction {
     private static final int WEIGHT_OF_SIT_OUT = 100_000_000;
     private static final int NORMAL_POINT_FACTOR = 1_000_000;
