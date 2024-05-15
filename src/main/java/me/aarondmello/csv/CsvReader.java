@@ -12,27 +12,6 @@ public class CsvReader implements DataReader{
     String organizationName;
     HashMap<String, ArrayList<Player>> divisionToPlayerList;
     public CsvReader(){}
-    public HashMap<String, ArrayList<Player>> read(BufferedReader reader) throws IOException {
-        divisionToPlayerList = new HashMap<>();
-
-        organizationName = reader.readLine().split(",")[0].strip();
-        int start = 0;
-        while (start < 5 && organizationName.charAt(start) >= 128) {
-            start++;
-        } //Removes BOM from UTF-8/UTF-16 encoded CSVs
-        organizationName = organizationName.substring(start);
-
-
-        reader.readLine();
-        String row = reader.readLine();
-        do {
-            String[] splitRow = row.split(",");
-            addPlayerToList(splitRow[0].trim(), splitRow[1].trim());
-        } while ((row = reader.readLine()) != null);
-
-        return divisionToPlayerList;
-    }
-
 
     private void addPlayerToList(String playerName, String division){
         ArrayList<Player> players;
@@ -142,7 +121,24 @@ public class CsvReader implements DataReader{
 
     @Override
     public void readFromStarterFile(BufferedReader reader, Tournament tournament) throws IOException {
-        tournament.addPlayers(read(reader));
+        divisionToPlayerList = new HashMap<>();
+
+        organizationName = reader.readLine().split(",")[0].strip();
+        int start = 0;
+        while (start < 5 && organizationName.charAt(start) >= 128) {
+            start++;
+        } //Removes BOM from UTF-8/UTF-16 encoded CSVs
+        organizationName = organizationName.substring(start);
+
+
+        reader.readLine();
+        String row = reader.readLine();
+        do {
+            String[] splitRow = row.split(",");
+            addPlayerToList(splitRow[0].trim(), splitRow[1].trim());
+        } while ((row = reader.readLine()) != null);
+
+        tournament.addPlayers(divisionToPlayerList);
     }
 
 }
