@@ -14,12 +14,12 @@ import java.util.Scanner;
 
 public class CommandLineInterface implements GUI {
 
-    private final Scanner input = new Scanner(System.in);
-
+    private final Scanner input;
+    public CommandLineInterface(Scanner input){
+        this.input = input;
+    }
     @Override
-    public void start(PersisterFactory persisterFactory){
-        DataReader tournamentReader = persisterFactory.getReaderOfType("csv");
-        DataWriter tournamentWriter = persisterFactory.getWriterOfType("csv");
+    public void start(DataReader tournamentReader, DataWriter tournamentWriter){
         Tournament tournament;
         displayWelcomeMessage();
         tournament = getTournament(tournamentReader);
@@ -36,7 +36,7 @@ public class CommandLineInterface implements GUI {
                 p.flush();
                 p.close();
             } catch (FileNotFoundException e) {
-                System.out.println("Unable to save tournament to file");
+                System.err.println("Unable to save tournament to file");
             }
 
     }

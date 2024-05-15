@@ -2,7 +2,8 @@ package me.aarondmello.swinguserinterface;
 import javax.swing.*;
 
 import me.aarondmello.datatypes.Tournament;
-import me.aarondmello.driver.PersisterFactory;
+import me.aarondmello.driver.DataReader;
+import me.aarondmello.driver.DataWriter;
 import me.aarondmello.driver.GUI;
 
 import java.awt.*;
@@ -14,14 +15,16 @@ public class SwingUserInterface implements GUI{
     boolean wasCancelPressed = false;
     Tournament tournament;
     File tournamentFolder;
-    PersisterFactory tournamentManager;
+    DataReader tournamentReader;
+    DataWriter tournamentWriter;
     WelcomePanel welcomePanel = new WelcomePanel();
     TournamentFolderPanel tournamentFolderPanel = new TournamentFolderPanel();
     NewOrResumeTournamentPanel newOrResumeTournamentPanel = new NewOrResumeTournamentPanel();
     NewTournamentPanel newTournamentpanel = new NewTournamentPanel();
     @Override
-    public void start(PersisterFactory tournamentManager){
-        this.tournamentManager = tournamentManager;
+    public void start(DataReader tournamentReader, DataWriter tournamentWriter){
+        this.tournamentReader = tournamentReader;
+        this.tournamentWriter = tournamentWriter;
         welcomePanel.displayWelcomeMessage();
         getTournament();
         runTournament();

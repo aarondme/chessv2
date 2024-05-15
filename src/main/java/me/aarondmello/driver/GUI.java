@@ -1,5 +1,5 @@
 package me.aarondmello.driver;
 
 public interface GUI{
-    void start(PersisterFactory tournamentManager);
+    void start(DataReader tournamentReader, DataWriter tournamentWriter);
 }
