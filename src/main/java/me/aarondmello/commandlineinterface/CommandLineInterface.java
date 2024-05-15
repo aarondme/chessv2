@@ -3,7 +3,6 @@ package me.aarondmello.commandlineinterface;
 import me.aarondmello.datatypes.*;
 import me.aarondmello.driver.DataReader;
 import me.aarondmello.driver.DataWriter;
-import me.aarondmello.driver.PersisterFactory;
 import me.aarondmello.driver.GUI;
 
 import java.io.*;
