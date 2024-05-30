@@ -22,7 +22,7 @@ public class CsvInterface implements GUI {
         Tournament tournament;
         displayWelcomeMessage();
         tournament = getTournament(tournamentReader);
-        runTournament(tournament, tournamentWriter);
+        runTournament(tournament, tournamentReader, tournamentWriter);
     }
 
     private void saveTournament(Tournament tournament, DataWriter writer) {
@@ -40,16 +40,25 @@ public class CsvInterface implements GUI {
 
     }
 
-    private void runTournament(Tournament tournament, DataWriter writer) {
+    private void runTournament(Tournament tournament, DataReader reader, DataWriter writer) {
         if(tournament == null) return;
 
         saveTournament(tournament, writer);
         boolean isValid = false;
         while(tournament.hasRoundsRemaining()){
             tournament.createRound();
-            String fileName = saveRound(tournament);
+            String fileName = null;
+            try {
+                fileName = writer.saveRound(tournament);
+                System.out.printf("Pairing for round %d saved as csv in file %s\n", tournament.getRoundNumber(), fileName);
+            }catch (IOException e){
+                System.err.println("Error when saving file");
+            }
+
             while(!isValid){
-                getRoundResults(tournament, fileName); //Extract from save
+                System.out.println("Press enter when the csv is filled");
+                input.nextLine();
+                reader.readRoundResults(tournament, fileName); //Extract from save
                 isValid = tournament.confirmRoundResults();
                 if(!isValid)
                     System.out.println("Error in file.");
@@ -58,73 +67,6 @@ public class CsvInterface implements GUI {
             isValid = false;
             saveTournament(tournament, writer);
         }
-    }
-
-    private String saveRound(Tournament tournament){
-        String fileName = String.format("%s_Round %d_Pairing.csv", tournament.getName(), tournament.getRoundNumber());
-        PrintWriter writer;
-        boolean isFinished = false;
-        try {
-            writer = new PrintWriter(fileName);
-            writer.println(tournament.getName());
-            writer.println(String.format("Round,%d", tournament.getRoundNumber()));
-            for (Division d: tournament.getDivisions()) {
-                writer.println(String.format("Division,%s", d.getName()));
-                writer.println("Game ID,White,Black,Result");
-                int i = 1;
-                for (Game g :d.getPairing()) {
-                    writer.println(String.format("%d,%s,%s,%s",
-                            i, formatPlayer(g.getWhitePlayer()), formatPlayer(g.getBlackPlayer()),
-                            (g.getResult() == null)? "":g.getResult().toString().charAt(0)));
-                    i++;
-                }
-            }
-            writer.flush();
-            writer.close();
-            isFinished = true;
-        }catch (IOException e){
-            System.err.println("Error when saving file");
-        }
-        if(isFinished)
-            System.out.printf("Pairing for round %d saved as csv\n", tournament.getRoundNumber());
-        return fileName;
-    }
-
-    private String formatPlayer(Player player) {
-        return player.getName() + " (" + player.getOrganization() + ") [" + player.getScore() + "]";
-    }
-
-    private void getRoundResults(Tournament tournament, String fileName) {
-        System.out.println("Press enter when the csv is filled");
-        input.nextLine();
-        try {
-            String nextLine;
-            String divisionName = "";
-            BufferedReader fileReader = new BufferedReader(new FileReader(fileName));
-            fileReader.readLine();
-            fileReader.readLine();
-            while ((nextLine = fileReader.readLine()) != null){
-                String[] splitLine = nextLine.split(",");
-                if(splitLine[0].equals("Division")){
-                    divisionName = splitLine[1];
-                }
-                else if (!splitLine[0].equals("Game ID") && splitLine.length > 3) {
-                    tournament.setResultByDivisionAndGameID(divisionName, Integer.parseInt(splitLine[0]) - 1,
-                            toGameResult(splitLine[3]));
-                }
-            }
-        }catch (IOException ignored){}
-
-    }
-
-    private GameResult toGameResult(String s){
-        if(s.startsWith("W") || s.startsWith("w"))
-            return GameResult.WHITE_WIN;
-        if(s.startsWith("B") || s.startsWith("b"))
-            return GameResult.BLACK_WIN;
-        if (s.startsWith("D") || s.startsWith("d"))
-            return GameResult.DRAW;
-        return null;
     }
 
     private Tournament getTournament(DataReader tournamentReader) {

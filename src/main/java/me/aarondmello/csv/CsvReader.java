@@ -1,6 +1,7 @@
 package me.aarondmello.csv;
 
 import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -37,6 +38,36 @@ public class CsvReader implements DataReader{
             return null;
         }
         return t;
+    }
+
+    @Override
+    public void readRoundResults(Tournament tournament, String fileName) {
+            try {
+                String nextLine;
+                String divisionName = "";
+                BufferedReader fileReader = new BufferedReader(new FileReader(fileName));
+                fileReader.readLine();
+                fileReader.readLine();
+                while ((nextLine = fileReader.readLine()) != null){
+                    String[] splitLine = nextLine.split(",");
+                    if(splitLine[0].equals("Division")){
+                        divisionName = splitLine[1];
+                    }
+                    else if (!splitLine[0].equals("Game ID") && splitLine.length > 3) {
+                        tournament.setResultByDivisionAndGameID(divisionName, Integer.parseInt(splitLine[0]) - 1,
+                                toGameResult(splitLine[3]));
+                    }
+                }
+            }catch (IOException ignored){}
+    }
+    private GameResult toGameResult(String s){
+        if(s.startsWith("W") || s.startsWith("w"))
+            return GameResult.WHITE_WIN;
+        if(s.startsWith("B") || s.startsWith("b"))
+            return GameResult.BLACK_WIN;
+        if (s.startsWith("D") || s.startsWith("d"))
+            return GameResult.DRAW;
+        return null;
     }
 
     private void readDivisions(BufferedReader reader, Tournament t, String header) throws IOException {

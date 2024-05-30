@@ -1,13 +1,9 @@
 package me.aarondmello.csv;
 
-import me.aarondmello.datatypes.Colour;
-import me.aarondmello.datatypes.Division;
-import me.aarondmello.datatypes.Player;
-import me.aarondmello.datatypes.PlayerGameSummary;
-import me.aarondmello.datatypes.Tournament;
-import me.aarondmello.datatypes.Tiebreak;
+import me.aarondmello.datatypes.*;
 import me.aarondmello.driver.DataWriter;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 
 public class CsvWriter implements DataWriter {
@@ -24,6 +20,33 @@ public class CsvWriter implements DataWriter {
         for(Division division : tournament.getDivisions()){
             saveDivision(division, printWriter, tournament.getRoundNumber());
         }
+    }
+
+    @Override
+    public String saveRound(Tournament tournament) throws IOException {
+        String fileName = String.format("%s_Round %d_Pairing.csv", tournament.getName(), tournament.getRoundNumber());
+        PrintWriter writer;
+        writer = new PrintWriter(fileName);
+        writer.println(tournament.getName());
+        writer.println(String.format("Round,%d", tournament.getRoundNumber()));
+        for (Division d: tournament.getDivisions()) {
+            writer.println(String.format("Division,%s", d.getName()));
+            writer.println("Game ID,White,Black,Result");
+            int i = 1;
+            for (Game g :d.getPairing()) {
+                writer.println(String.format("%d,%s,%s,%s",
+                        i, formatPlayer(g.getWhitePlayer()), formatPlayer(g.getBlackPlayer()),
+                        (g.getResult() == null)? "":g.getResult().toString().charAt(0)));
+                i++;
+            }
+        }
+        writer.flush();
+        writer.close();
+        return fileName;
+    }
+
+    private String formatPlayer(Player player) {
+        return player.getName() + " (" + player.getOrganization() + ") [" + player.getScore() + "]";
     }
 
     private void saveDivision(Division division, PrintWriter printWriter, int numRounds) {
