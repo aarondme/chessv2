@@ -47,9 +47,10 @@ public class CsvInterface implements GUI {
         boolean isValid = false;
         while(tournament.hasRoundsRemaining()){
             tournament.createRound();
-            String fileName = null;
+            String fileName = String.format("%s_Round %d_Pairing.csv", tournament.getName(), tournament.getRoundNumber());
             try {
-                fileName = writer.saveRound(tournament);
+                PrintWriter printWriter = new PrintWriter(fileName);
+                writer.saveRound(tournament, printWriter);
                 System.out.printf("Pairing for round %d saved as csv in file %s\n", tournament.getRoundNumber(), fileName);
             }catch (IOException e){
                 System.err.println("Error when saving file");

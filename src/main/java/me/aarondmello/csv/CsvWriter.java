@@ -23,10 +23,7 @@ public class CsvWriter implements DataWriter {
     }
 
     @Override
-    public String saveRound(Tournament tournament) throws IOException {
-        String fileName = String.format("%s_Round %d_Pairing.csv", tournament.getName(), tournament.getRoundNumber());
-        PrintWriter writer;
-        writer = new PrintWriter(fileName);
+    public void saveRound(Tournament tournament, PrintWriter writer) {
         writer.println(tournament.getName());
         writer.println(String.format("Round,%d", tournament.getRoundNumber()));
         for (Division d: tournament.getDivisions()) {
@@ -40,9 +37,6 @@ public class CsvWriter implements DataWriter {
                 i++;
             }
         }
-        writer.flush();
-        writer.close();
-        return fileName;
     }
 
     private String formatPlayer(Player player) {
