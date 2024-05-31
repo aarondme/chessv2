@@ -53,8 +53,8 @@ public class BasicProgramFlow implements GUI {
 
             input.getRoundResults(tournament, reader);
             input.alterPlayersSittingOut(tournament);
-            input.displayStandings(tournament);
             saveTournament(tournament, writer);
+            input.displayStandings(tournament);
         }
     }
 

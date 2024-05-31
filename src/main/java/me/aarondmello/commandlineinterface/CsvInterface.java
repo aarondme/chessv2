@@ -45,6 +45,7 @@ public class CsvInterface implements BasicPrompts {
 
     @Override
     public Tournament editNewTournamentDetails(Tournament t, DataReader dataReader) {
+        //TODO
         NewTournamentPanel newTournamentPanel = new NewTournamentPanel();
         int input = newTournamentPanel.promptForValidNewTournamentData();
 
@@ -56,7 +57,7 @@ public class CsvInterface implements BasicPrompts {
 
     @Override
     public void alterPlayersSittingOut(Tournament t) {
-
+        //TODO:
     }
 
     @Override
@@ -80,7 +81,10 @@ public class CsvInterface implements BasicPrompts {
 
     @Override
     public void displayStandings(Tournament t) {
+        String prompt = "Current Standings saved in csv";
+        String title = "Chess Tournament Manager";
 
+        showMessageDialog(null, prompt, title, INFORMATION_MESSAGE);
     }
 
     @Override
