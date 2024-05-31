@@ -2,19 +2,10 @@ package me.aarondmello.commandlineinterface;
 
 import me.aarondmello.datatypes.*;
 import me.aarondmello.driver.DataReader;
-import me.aarondmello.driver.DataWriter;
-import me.aarondmello.driver.GUI;
-import me.aarondmello.swinguserinterface.NewOrResumeTournamentPanel;
 import me.aarondmello.swinguserinterface.NewTournamentPanel;
-import me.aarondmello.swinguserinterface.TournamentFolderPanel;
-import me.aarondmello.swinguserinterface.WelcomePanel;
 
 import javax.swing.*;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Scanner;
 
 import static javax.swing.JOptionPane.*;
 
