@@ -38,9 +38,9 @@ public class SwingUserInterface implements GUI{
         if(wasCancelPressed)
             return;
 
-        int input = newOrResumeTournamentPanel.getIfStartingNewTournament();
-        if (input == JOptionPane.CLOSED_OPTION) 
-            return;  
+        newOrResumeTournamentPanel.getIfStartingNewTournament();
+//        if (input == JOptionPane.CLOSED_OPTION)
+//            return;
         //else if(input == JOptionPane.OK_OPTION)
           //  this.tournament = tournamentManager.createTournament();
         //else
@@ -90,16 +90,5 @@ public class SwingUserInterface implements GUI{
     }
 
     
-    public Tournament getNewTournamentDetails(Tournament tournament) {
-        if (wasCancelPressed)
-            return tournament;
 
-        int inputCode = newTournamentpanel.promptForValidNewTournamentData();
-        if(inputCode == NewTournamentPanel.VALID_INPUT_ENTERED)
-            tournament = newTournamentpanel.createNewTournament();
-        else if(inputCode == NewTournamentPanel.EXIT_BUTTON_PRESSED)
-            wasCancelPressed = true;
-
-        return tournament;
-    }
 }

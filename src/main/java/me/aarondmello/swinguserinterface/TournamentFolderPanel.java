@@ -15,5 +15,14 @@ public class TournamentFolderPanel extends JFileChooser{
             return this.getSelectedFile();
         return null;
     }
+
+    public File getFile(){
+        this.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        int option = this.showOpenDialog(null);
+
+        if(option == JFileChooser.APPROVE_OPTION)
+            return this.getSelectedFile();
+        return null;
+    }
     
 }

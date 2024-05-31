@@ -3,11 +3,11 @@ import java.util.HashMap;
 import javax.swing.*;
 
 import me.aarondmello.datatypes.Tournament;
-class NewTournamentPanel extends JPanel{
+public class NewTournamentPanel extends JPanel{
     HashMap<String, JTextField> fieldNameToEnteredText;
     final static int EXIT_BUTTON_PRESSED = 1;
     final static int BACK_BUTTON_PRESSED = 2;
-    final static int VALID_INPUT_ENTERED = 0;
+    public final static int VALID_INPUT_ENTERED = 0;
 
     public NewTournamentPanel(){
         fieldNameToEnteredText = new HashMap<>();
@@ -59,9 +59,9 @@ class NewTournamentPanel extends JPanel{
             return false;
         }
     }
-    public Tournament createNewTournament(){
+    public void createNewTournament(Tournament t){
         //TODO
-        return null;
+
     }
 
     public void addToTextFields(String fieldName, JTextField textField){

@@ -4,256 +4,99 @@ import me.aarondmello.datatypes.*;
 import me.aarondmello.driver.DataReader;
 import me.aarondmello.driver.DataWriter;
 import me.aarondmello.driver.GUI;
+import me.aarondmello.swinguserinterface.NewOrResumeTournamentPanel;
+import me.aarondmello.swinguserinterface.NewTournamentPanel;
+import me.aarondmello.swinguserinterface.TournamentFolderPanel;
+import me.aarondmello.swinguserinterface.WelcomePanel;
 
+import javax.swing.*;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Scanner;
 
-public class CsvInterface implements GUI {
+import static javax.swing.JOptionPane.*;
 
-    private final Scanner input;
-    public CsvInterface(Scanner input){
-        this.input = input;
-    }
+public class CsvInterface implements BasicPrompts {
+
     @Override
-    public void start(DataReader tournamentReader, DataWriter tournamentWriter){
-        Tournament tournament;
-        displayWelcomeMessage();
-        tournament = getTournament(tournamentReader);
-        runTournament(tournament, tournamentReader, tournamentWriter);
+    public void displayWelcomeMessage() {
+        String prompt = """
+                --- Chess Tournament Manager by Aaron D'Mello---
+                Licensed under CC BY-SA 4.0
+                http://creativecommons.org/licenses/by-sa/4.0/?ref=chooser-v1""";
+        String title = "Chess Tournament Manager";
+
+        showMessageDialog(null, prompt, title, INFORMATION_MESSAGE);
     }
 
-    private void saveTournament(Tournament tournament, DataWriter writer) {
-        if(tournament == null) return;
+    @Override
+    public boolean getIfStartingNewTournament() {
+        String[] options = { "New Tournament", "Resume Tournament" };
+        String prompt = "Choose whether to create a new tournament or to resume an existing tournament";
+        String title = "Chess Tournament Manager";
 
-            try {
-                File f = new File(String.format("%s_Round %d.csv", tournament.getName(), tournament.getRoundNumber()));
-                PrintWriter p = new PrintWriter(f);
-                writer.saveTournament(tournament, p);
-                p.flush();
-                p.close();
-            } catch (FileNotFoundException e) {
-                System.err.println("Unable to save tournament to file");
-            }
+        return showOptionDialog(null, prompt, title, YES_NO_CANCEL_OPTION,
+                PLAIN_MESSAGE, null, options, options[0]) == OK_OPTION;
+    }
+
+    @Override
+    public File getLocationOfExistingTournament() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        int option = fileChooser.showOpenDialog(null);
+
+        if(option == JFileChooser.APPROVE_OPTION)
+            return fileChooser.getSelectedFile();
+        return null;
+    }
+
+    @Override
+    public Tournament editNewTournamentDetails(Tournament t, DataReader dataReader) {
+        NewTournamentPanel newTournamentPanel = new NewTournamentPanel();
+        int input = newTournamentPanel.promptForValidNewTournamentData();
+
+        if(input == NewTournamentPanel.VALID_INPUT_ENTERED)
+            newTournamentPanel.createNewTournament(t);
+
+        return t;
+    }
+
+    @Override
+    public void alterPlayersSittingOut(Tournament t) {
 
     }
 
-    private void runTournament(Tournament tournament, DataReader reader, DataWriter writer) {
-        if(tournament == null) return;
+    @Override
+    public void getRoundResults(Tournament t, DataReader reader) {
+        String prompt = "Press confirm when the csv is filled";
+        String title = "Chess Tournament Manager";
 
-        saveTournament(tournament, writer);
-        boolean isValid = false;
-        while(tournament.hasRoundsRemaining()){
-            tournament.createRound();
-            String fileName = String.format("%s_Round %d_Pairing.csv", tournament.getName(), tournament.getRoundNumber());
-            try {
-                PrintWriter printWriter = new PrintWriter(fileName);
-                writer.saveRound(tournament, printWriter);
-                System.out.printf("Pairing for round %d saved as csv in file %s\n", tournament.getRoundNumber(), fileName);
-            }catch (IOException e){
-                System.err.println("Error when saving file");
-            }
+        do {
+            showMessageDialog(null, prompt, title, INFORMATION_MESSAGE);
 
-            while(!isValid){
-                System.out.println("Press enter when the csv is filled");
-                input.nextLine();
-                reader.readRoundResults(tournament, fileName); //Extract from save
-                isValid = tournament.confirmRoundResults();
-                if(!isValid)
-                    System.out.println("Error in file.");
-            }
-
-            isValid = false;
-            saveTournament(tournament, writer);
+            reader.readRoundResults(t, fileNameForTournament(t)); //Extract from save
         }
-    }
-
-    private Tournament getTournament(DataReader tournamentReader) {
-        int in = promptForInt("Enter the appropriate number to continue", 
-                        new String[]{"0: exit", "1: starting new tournament", "2: resuming existing tournament"}, 
-                        0, 2);
-        if(in == 0)
-            return null;
-        else if(in == 1)
-            return editNewTournamentDetails(new Tournament(), tournamentReader);
-        else
-            return getExistingTournamentDetails(tournamentReader);
-    }
-
-
-    private Tournament getExistingTournamentDetails(DataReader tournamentReader) {
-        File toReadFrom = getLocationToReadSave();
-        try {
-            Tournament t = tournamentReader.readFromInProgressFile(new BufferedReader(new FileReader(toReadFrom)));
-            t.initialize(false);
-            return t;
-        }catch (Exception e){
-            return null;
-        }
-    }
-
-    private int promptForInt(String header, String[] options, int min, int max) {
-        System.out.println(header);
-        while(true){
-            for(String option : options)
-                System.out.println(option);
-            String val = input.nextLine().strip();
-            try {
-                int out = Integer.parseInt(val);
-                if(min <= out && out <= max)
-                    return out;
-            } catch (Exception e) {
-                System.out.println("Invalid input provided");
-            }
-        }
-    }
-
-    private void displayWelcomeMessage() {
-        System.out.println("--- Chess Tournament Manager by Aaron D'Mello---");
-        System.out.println("Licensed under CC BY-SA 4.0");
-        System.out.println("http://creativecommons.org/licenses/by-sa/4.0/?ref=chooser-v1");
-    }
-
-    private File getLocationToReadSave(){
-        File result;
-        while (true) {
-            System.out.println("Enter the path where the tournament was saved, or \"0\" to exit");
-            String val = input.nextLine();
-            if (val.equals("0")) {
-                result = null;
-                break;
-            }
-
-            File f = new File(val);
-            if (f.exists() && !f.isDirectory()) {
-                result = f;
-                break;
-            }
-
-            System.out.println("Invalid input provided");
-        }
-
-        return result;
-    }
-
-    private Tournament confirmTournamentDetails(Tournament tournament, DataReader tournamentReader) {
-        printPlayerList(tournament);
-        int in = promptForInt("--- Confirming tournament details ---",
-                new String[]{"0: close program", "1: continue", "2: edit tournament details"},
-                0, 2);
-            
-        if(in == 0)
-            return null;
-        else if(in == 1) {
-            tournament.initialize(true);
-            return tournament;
-        }
-        else
-            return editNewTournamentDetails(tournament, tournamentReader);
+        while(!t.confirmRoundResults());
 
     }
 
-    private void printPlayerList(Tournament tournament) {
-        System.out.println("--- Tournament details ---");
-        System.out.println("Tournament name " + tournament.getName());
-        System.out.println("Number of rounds " + tournament.getTotalRounds());
-        System.out.println("Divisional Tournament? " + tournament.isRegionalTournament());
-        for(Division division : tournament.getDivisions()){
-            System.out.println("Division name " + division.getName());
-            System.out.print("| ID |         Player name         |         Organization        | Active |");
-            System.out.print("/////");
-            System.out.println("| ID |         Player name         |         Organization        | Active |");
-            boolean shouldStartNewLine = false;
-            for(Player p : division.getPlayers()){
-                System.out.printf("|%1$-4s|%2$-29s|%3$-29s|%4$-8s|", p.getID(), p.getName(), p.getOrganization(), p.isActive());
-                System.out.print((shouldStartNewLine)?"\n":"/////");
-                shouldStartNewLine = !shouldStartNewLine;
-            }
-            System.out.println();
-        }
+    private String fileNameForTournament(Tournament tournament){
+        return String.format("%s_Round %d_Pairing.csv", tournament.getName(), tournament.getRoundNumber());
     }
 
-    private Tournament editNewTournamentDetails(Tournament tournament, DataReader tournamentReader) {
-        while(true){
-            printPlayerList(tournament);
-            int in = promptForInt("--- Fetching tournament details ---\nEnter the appropriate number to continue", 
-                        new String[]{"0: close program", "1: edit tournament name", "2: edit number of rounds", "3: add file", "4: add player",
-                        "5: edit player", "6: remove player", "7: Toggle Divisional/Final","8: done"}, 0, 8);
 
-            if(in == 0)
-                return null;
-            else if(in == 1)
-                tournament.setName(getNewTournamentName());
-            else if(in == 2)
-                tournament.setTotalRounds(getNewTournamentTotalRounds());
-            else if(in == 3){
-                try {
-                    tournamentReader.readFromStarterFile(new BufferedReader(new FileReader(getFile())), tournament);
-                }catch (Exception e) {
-                    System.out.println("Error reading file");
-                }
-            }
-            else if(in == 4)
-                addPlayerToTournament(tournament);
-            else if (in == 5)
-                editPlayerInTournament(tournament);
-            else if(in == 6)
-                removePlayerInTournament(tournament);
-            else if(in == 7)
-                tournament.toggleType();
-            else if(in == 8){
-                if(tournament.isDataValid())
-                    return confirmTournamentDetails(tournament, tournamentReader);
-                System.out.println("Tournament data is invalid");
-            }
-        }  
+    @Override
+    public void displayStandings(Tournament t) {
+
     }
 
-    private File getFile() {
-        System.out.println("Enter the file to read");
-        return new File(input.nextLine().trim());
-    }
+    @Override
+    public void displayFileSaveError() {
+        String prompt = "Tournament failed to save";
+        String title = "Chess Tournament Manager";
 
-    private void removePlayerInTournament(Tournament tournament) {
-        System.out.println("Enter the division of the player");
-        String division = input.nextLine().trim();
-        int id = promptForInt("Enter the player id", new String[]{}, 0, 2000);
-        tournament.removePlayer(division, id);
+        showMessageDialog(null, prompt, title, INFORMATION_MESSAGE);
     }
-
-    private void editPlayerInTournament(Tournament tournament) {
-        System.out.println("Enter the division of the player");
-        String division = input.nextLine().trim();
-        int id = promptForInt("Enter the player id to edit", new String[]{}, 0, 2000);
-        Player player = tournament.getPlayer(division, id);
-        System.out.println("Enter the corrected player name");
-        String playerName = input.nextLine().trim();
-        System.out.println("Enter the corrected player organization");
-        String playerOrganization = input.nextLine().trim();
-        player.setName(playerName);
-        player.setOrganization(playerOrganization);
-    }
-
-    private void addPlayerToTournament(Tournament tournament) {
-        System.out.println("Enter the division of the player");
-        String division = input.nextLine().trim();
-        System.out.println("Enter the player name");
-        String playerName = input.nextLine().trim();
-        System.out.println("Enter the player organization");
-        String playerOrganization = input.nextLine().trim();
-
-        tournament.addPlayer(division, new Player(playerName, playerOrganization));
-    }
-
-    private int getNewTournamentTotalRounds() {
-        return promptForInt("Enter the number of rounds", new String[]{}, 1, 30);
-    }
-
-    private String getNewTournamentName() {
-        System.out.println("Enter the name of the tournament");
-        return input.nextLine().trim();
-    }
-    
 }
