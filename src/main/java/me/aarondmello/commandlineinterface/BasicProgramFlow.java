@@ -22,18 +22,11 @@ public class BasicProgramFlow implements GUI {
     }
 
     private void saveTournament(Tournament tournament, DataWriter writer) {
-        if(tournament == null) return;
-
         try {
-            File f = new File(String.format("%s_Round %d.csv", tournament.getName(), tournament.getRoundNumber()));
-            PrintWriter p = new PrintWriter(f);
-            writer.saveTournament(tournament, p);
-            p.flush();
-            p.close();
-        } catch (FileNotFoundException e) {
+            writer.saveTournament(tournament);
+        } catch (IOException e) {
             input.displayFileSaveError();
         }
-
     }
 
     private void runTournament(Tournament tournament, DataReader reader, DataWriter writer) {
@@ -42,13 +35,11 @@ public class BasicProgramFlow implements GUI {
         saveTournament(tournament, writer);
         while(tournament.hasRoundsRemaining()){
             tournament.createRound();
-            String fileName = String.format("%s_Round %d_Pairing.csv", tournament.getName(), tournament.getRoundNumber());
+
             try {
-                PrintWriter printWriter = new PrintWriter(fileName);
-                writer.saveRound(tournament, printWriter);
-                System.out.printf("Pairing for round %d saved as csv in file %s\n", tournament.getRoundNumber(), fileName);
+                writer.saveRound(tournament);
             }catch (IOException e){
-                System.err.println("Error when saving file");
+                input.displayFileSaveError();
             }
 
             input.getRoundResults(tournament, reader);

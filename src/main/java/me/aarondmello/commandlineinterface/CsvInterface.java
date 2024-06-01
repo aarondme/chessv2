@@ -68,16 +68,11 @@ public class CsvInterface implements BasicPrompts {
         do {
             showMessageDialog(null, prompt, title, INFORMATION_MESSAGE);
 
-            reader.readRoundResults(t, fileNameForTournament(t)); //Extract from save
+            reader.readRoundResults(t); //Extract from save
         }
         while(!t.confirmRoundResults());
 
     }
-
-    private String fileNameForTournament(Tournament tournament){
-        return String.format("%s_Round %d_Pairing.csv", tournament.getName(), tournament.getRoundNumber());
-    }
-
 
     @Override
     public void displayStandings(Tournament t) {

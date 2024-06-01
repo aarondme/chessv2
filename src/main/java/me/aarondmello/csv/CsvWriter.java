@@ -8,6 +8,7 @@ import java.io.PrintWriter;
 
 public class CsvWriter implements DataWriter {
 
+    @Override
     public void saveTournament(Tournament tournament, PrintWriter printWriter) {
         printWriter.println("Tournament Name:," + tournament.getName());
         printWriter.println("Divisional Tournament:," + tournament.isRegionalTournament());
@@ -20,6 +21,14 @@ public class CsvWriter implements DataWriter {
         for(Division division : tournament.getDivisions()){
             saveDivision(division, printWriter, tournament.getRoundNumber());
         }
+    }
+
+    @Override
+    public void saveTournament(Tournament tournament) throws IOException {
+        PrintWriter p = new PrintWriter(String.format("%s_Round %d.csv", tournament.getName(), tournament.getRoundNumber()));
+        saveTournament(tournament, p);
+        p.flush();
+        p.close();
     }
 
     @Override
@@ -37,6 +46,15 @@ public class CsvWriter implements DataWriter {
                 i++;
             }
         }
+    }
+
+    @Override
+    public void saveRound(Tournament tournament) throws IOException {
+        String fileName = String.format("%s_Round %d_Pairing.csv", tournament.getName(), tournament.getRoundNumber());
+        PrintWriter p = new PrintWriter(fileName);
+        saveRound(tournament, p);
+        p.flush();
+        p.close();
     }
 
     private String formatPlayer(Player player) {

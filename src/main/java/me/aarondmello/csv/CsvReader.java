@@ -60,6 +60,12 @@ public class CsvReader implements DataReader{
                 }
             }catch (IOException ignored){}
     }
+
+    @Override
+    public void readRoundResults(Tournament t) {
+        readRoundResults(t, String.format("%s_Round %d_Pairing.csv", t.getName(), t.getRoundNumber()));
+    }
+
     private GameResult toGameResult(String s){
         if(s.startsWith("W") || s.startsWith("w"))
             return GameResult.WHITE_WIN;
