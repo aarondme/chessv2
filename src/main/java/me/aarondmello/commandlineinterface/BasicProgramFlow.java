@@ -3,17 +3,16 @@ package me.aarondmello.commandlineinterface;
 import me.aarondmello.datatypes.Tournament;
 import me.aarondmello.driver.DataReader;
 import me.aarondmello.driver.DataWriter;
-import me.aarondmello.driver.GUI;
 
 import java.io.*;
 
-public class BasicProgramFlow implements GUI {
+public class BasicProgramFlow {
     final BasicPrompts input;
 
     public BasicProgramFlow(BasicPrompts input){
         this.input = input;
     }
-    @Override
+
     public void start(DataReader tournamentReader, DataWriter tournamentWriter) {
         Tournament tournament;
         input.displayWelcomeMessage();

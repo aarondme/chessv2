@@ -2,10 +2,10 @@ package me.aarondmello.commandlineinterface;
 
 import me.aarondmello.datatypes.*;
 import me.aarondmello.driver.DataReader;
-import me.aarondmello.driver.DataWriter;
-import me.aarondmello.driver.GUI;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
