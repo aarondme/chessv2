@@ -4,7 +4,7 @@
 ## Summary
 
 This program automatically determines the pairings and rankings for a swiss chess tournament
-(ie. fixed number of rounds, significantly fewer rounds than the number of players
+(i.e. fixed number of rounds, significantly fewer rounds than the number of players
 in the tournament. No eliminations).
 It pairs students based on the following criteria:
 
@@ -26,7 +26,25 @@ At the end of the tournament, automatic tiebreaks are used. These include (but a
 ## Usage
 ### Basic Steps
 Ensure that Java 16 or higher is installed, and you have admin permissions on the device 
-used to run the software. 
+used to run the software. This program does not need an internet connection to run. It runs locally, and creates save
+files throughout the tournament to allow restoring in case the program is closed.
+
+Running the program with the CSV Based interface:
+
+1. Double-click the app
+2. Follow the prompts given.
+
+Note that the CSV Based interface currently does not allow the user to 
+add/edit/remove players individually to the tournament, and only allows
+adding files. It also does not allow marking a player as "sitting out",
+in the case that someone quits the tournament. In order to use these features,
+the command line interface must be used.
+
+This interface creates additional spreadsheets showing the pairings for each round,
+when these spreadsheets are filled with the results of the round and the
+confirm button is pressed, the results will be loaded.
+
+Running the program with the command line interface:
 
 1. Open a terminal/command prompt.
 2. Change directories into the directory that contains this application.
@@ -34,13 +52,11 @@ used to run the software.
    ```cd Desktop\ChessApp```
    On a Mac, or machine running Linux, if the folder is on the Desktop, this can be done by typing:
    ```cd Desktop/ChessApp```
-3. Run the program using ```java -jar chess_jar.jar```
+3. Run the program using ```java -jar chess_jar.jar -c```
 4. Follow the prompts given by the program. When entering a file
    to load, then make sure to include the extension of the file. For example ```data.csv```
    instead of just ```data```
-
-This program does not need an internet connection to run. It runs locally, and creates save
-files throughout the tournament to allow restoring in case the program is closed. 
+ 
 ### Loading player lists from a csv file
 
 If you wish to read data from a file, rather than enter players one-by-one,

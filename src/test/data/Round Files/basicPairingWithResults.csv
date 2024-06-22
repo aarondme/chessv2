@@ -1,0 +1,10 @@
+myTournament
+Round,1
+Division,A
+Game ID,White,Black,Result
+1,A (a) [0],B (b) [0],w
+2,C (c) [0],D (d) [0],d
+Division,B
+Game ID,White,Black,Result
+1,E (e) [0],F (f) [0],w
+2,G (g) [0],H (h) [0],b

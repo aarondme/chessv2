@@ -2,66 +2,24 @@ package me.aarondmello.commandlineinterface;
 
 import me.aarondmello.datatypes.*;
 import me.aarondmello.driver.DataReader;
-import me.aarondmello.driver.DataWriter;
-import me.aarondmello.driver.PersisterFactory;
-import me.aarondmello.driver.GUI;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Scanner;
 
-public class CommandLineInterface implements GUI {
+public class CommandLineInterface implements BasicPrompts {
 
-    private final Scanner input = new Scanner(System.in);
+    private final Scanner input;
+    public CommandLineInterface(Scanner input){
+        this.input = input;
+    }
 
     @Override
-    public void start(PersisterFactory persisterFactory){
-        DataReader tournamentReader = persisterFactory.getReaderOfType("csv");
-        DataWriter tournamentWriter = persisterFactory.getWriterOfType("csv");
-        Tournament tournament;
-        displayWelcomeMessage();
-        tournament = getTournament(tournamentReader);
-        runTournament(tournament, tournamentWriter);
-    }
-
-    private void saveTournament(Tournament tournament, DataWriter writer) {
-        if(tournament == null) return;
-
-            try {
-                File f = new File(tournament.getName() + "_" + tournament.getRoundNumber() + ".csv");
-                PrintWriter p = new PrintWriter(f);
-                writer.saveTournament(tournament, p);
-                p.flush();
-                p.close();
-            } catch (FileNotFoundException e) {
-                System.out.println("Unable to save tournament to file");
-            }
-
-    }
-
-    private void runTournament(Tournament tournament, DataWriter writer) {
-        if(tournament == null) return;
-
-        boolean isValid = false;
-        while(tournament.hasRoundsRemaining()){
-            tournament.createRound();
-
-            while(!isValid){
-                getRoundResults(tournament);
-                isValid = tournament.confirmRoundResults();
-            }
-
-            alterSitOuts(tournament);
-
-            printStandings(tournament);
-            isValid = false;
-            saveTournament(tournament, writer);
-        }
-    }
-
-    private void alterSitOuts(Tournament tournament) {
+    public void alterPlayersSittingOut(Tournament tournament) {
         int a = promptForInt("Enter the appropriate number to continue",
                 new String[]{"0: continue", "1: modify players sitting out"}, 0, 1);
         if(a == 0) return;
@@ -83,10 +41,10 @@ public class CommandLineInterface implements GUI {
 
             System.out.println("Invalid input provided.");
         }
-
     }
 
-    private void printStandings(Tournament tournament) {
+    @Override
+    public void displayStandings(Tournament tournament) {
         System.out.println("--- Tournament standings ---");
         System.out.println("Tournament name " + tournament.getName());
         if(tournament.getRoundNumber() <= tournament.getTotalRounds())
@@ -118,6 +76,11 @@ public class CommandLineInterface implements GUI {
         }
     }
 
+    @Override
+    public void displayFileSaveError() {
+        System.err.println("Error saving tournament");
+    }
+
     private GameResult toGameResult(int num){
         if(num == 2) return GameResult.WHITE_WIN;
         if(num == 1) return GameResult.DRAW;
@@ -125,16 +88,18 @@ public class CommandLineInterface implements GUI {
         return null;
     }
 
-    private void getRoundResults(Tournament tournament) {
+    @Override
+    public void getRoundResults(Tournament tournament, DataReader reader) {
         while(true){
             printPairing(tournament);
             String in = getResultFromInput();
-            if(in == null)
+            if(in == null && tournament.confirmRoundResults())
                 return;
-            String[] split = in.split("\\s+");
-            GameResult result = toGameResult(Integer.parseInt(split[2]));
-
-            tournament.setResultByDivisionAndGameID(split[0], Integer.parseInt(split[1]) - 1, result);
+            try {
+                String[] split = in.split("\\s+");
+                GameResult result = toGameResult(Integer.parseInt(split[2]));
+                tournament.setResultByDivisionAndGameID(split[0], Integer.parseInt(split[1]) - 1, result);
+            }catch (Exception ignored){}
         }  
     }
 
@@ -182,29 +147,7 @@ public class CommandLineInterface implements GUI {
         }
     }
 
-    private Tournament getTournament(DataReader tournamentReader) {
-        int in = promptForInt("Enter the appropriate number to continue", 
-                        new String[]{"0: exit", "1: starting new tournament", "2: resuming existing tournament"}, 
-                        0, 2);
-        if(in == 0)
-            return null;
-        else if(in == 1)
-            return editNewTournamentDetails(new Tournament(), tournamentReader);
-        else
-            return getExistingTournamentDetails(tournamentReader);
-    }
 
-
-    private Tournament getExistingTournamentDetails(DataReader tournamentReader) {
-        File toReadFrom = getLocationToReadSave();
-        try {
-            Tournament t = tournamentReader.readFromInProgressFile(new BufferedReader(new FileReader(toReadFrom)));
-            t.initialize(false);
-            return t;
-        }catch (Exception e){
-            return null;
-        }
-    }
 
     private int promptForInt(String header, String[] options, int min, int max) {
         System.out.println(header);
@@ -222,13 +165,23 @@ public class CommandLineInterface implements GUI {
         }
     }
 
-    private void displayWelcomeMessage() {
+    @Override
+    public void displayWelcomeMessage() {
         System.out.println("--- Chess Tournament Manager by Aaron D'Mello---");
         System.out.println("Licensed under CC BY-SA 4.0");
         System.out.println("http://creativecommons.org/licenses/by-sa/4.0/?ref=chooser-v1");
     }
 
-    private File getLocationToReadSave(){
+    @Override
+    public boolean getIfStartingNewTournament() {
+        int input = promptForInt("Enter the appropriate number to continue",
+                new String[]{"0: exit", "1: starting new tournament", "2: resuming existing tournament"},
+                0, 2);
+        return input == 1; //TODO: exit on 0.
+    }
+
+    @Override
+    public File getLocationOfExistingTournament(){
         File result;
         while (true) {
             System.out.println("Enter the path where the tournament was saved, or \"0\" to exit");
@@ -287,7 +240,8 @@ public class CommandLineInterface implements GUI {
         }
     }
 
-    private Tournament editNewTournamentDetails(Tournament tournament, DataReader tournamentReader) {
+    @Override
+    public Tournament editNewTournamentDetails(Tournament tournament, DataReader tournamentReader) {
         while(true){
             printPlayerList(tournament);
             int in = promptForInt("--- Fetching tournament details ---\nEnter the appropriate number to continue", 
