@@ -47,6 +47,36 @@ public class CsvInterface implements BasicPrompts {
 
     @Override
     public Tournament editNewTournamentDetails(Tournament t, DataReader dataReader) {
+        getTournamentConfig(t);
+        getPlayerList(t, dataReader);
+
+        t.initialize(true);
+        return t;
+    }
+
+    private void getPlayerList(Tournament t, DataReader dataReader) {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        fileChooser.setMultiSelectionEnabled(true);
+        StringBuilder fileNames = new StringBuilder();
+
+        while (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION){
+            for (File f : fileChooser.getSelectedFiles()) {
+                try {
+                    BufferedReader reader = new BufferedReader(new FileReader(f));
+                    dataReader.readFromStarterFile(reader, t);
+                    fileNames.append(f.getName()).append("\n");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            int option = showConfirmDialog(null, "Files added: " + fileNames + "Press confirm to continue, or cancel to add more files");
+            if(option == OK_OPTION || option == CLOSED_OPTION)
+                break;
+        }
+    }
+
+    private void getTournamentConfig(Tournament t){
         JTextField tournamentName = new JTextField();
         JSpinner numRounds = new JSpinner();
         JCheckBox divisional = new JCheckBox();
@@ -66,23 +96,6 @@ public class CsvInterface implements BasicPrompts {
         } else {
             System.out.println("User canceled / closed the dialog, result = " + result);
         }
-
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        fileChooser.setMultiSelectionEnabled(true);
-        fileChooser.showOpenDialog(null);
-
-        for (File f : fileChooser.getSelectedFiles()) {
-            try {
-                BufferedReader reader = new BufferedReader(new FileReader(f));
-                dataReader.readFromStarterFile(reader, t);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-        }
-        t.initialize(true);
-        return t;
     }
 
     @Override
@@ -92,7 +105,7 @@ public class CsvInterface implements BasicPrompts {
 
     @Override
     public void getRoundResults(Tournament t, DataReader reader) {
-        String prompt = "Press confirm when the csv is filled";
+        String prompt = "Press confirm when the csv is filled. Enter W for a white win, B for a black win, D for a draw";
         String title = "Chess Tournament Manager";
 
         do {

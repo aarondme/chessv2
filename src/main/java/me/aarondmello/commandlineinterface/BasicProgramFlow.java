@@ -34,6 +34,7 @@ public class BasicProgramFlow implements GUI {
 
         saveTournament(tournament, writer);
         while(tournament.hasRoundsRemaining()){
+            input.alterPlayersSittingOut(tournament);
             tournament.createRound();
 
             try {
@@ -43,7 +44,6 @@ public class BasicProgramFlow implements GUI {
             }
 
             input.getRoundResults(tournament, reader);
-            input.alterPlayersSittingOut(tournament);
             saveTournament(tournament, writer);
             input.displayStandings(tournament);
         }
