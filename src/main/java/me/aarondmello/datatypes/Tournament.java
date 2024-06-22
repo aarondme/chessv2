@@ -2,14 +2,12 @@ package me.aarondmello.datatypes;
 import java.util.*;
 
 public class Tournament{
-    private String name = null;
+    private String name;
     private final LinkedList<Division> divisions = new LinkedList<>();
     private int roundNumber = 1;
-    private int totalRounds = -1;
-    private boolean isRegionalTournament = true;
+    private int totalRounds;
+    private boolean isRegionalTournament;
 
-    public Tournament(){
-    }
     
     public Tournament(String name, int totalRounds, boolean isRegionalTournament){
         this.name = name;
