@@ -46,7 +46,7 @@ public class CsvInterface implements BasicPrompts {
     }
 
     @Override
-    public Tournament editNewTournamentDetails(DataReader dataReader) {
+    public Tournament getNewTournamentDetails(DataReader dataReader) {
         Tournament t = getTournamentConfig();
         if(t == null)
             return null;

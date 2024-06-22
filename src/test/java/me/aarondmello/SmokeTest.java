@@ -22,10 +22,10 @@ public class SmokeTest {
         programFlow.start(new CsvReader(), new CsvWriter());
 
 
-        Files.delete(Path.of("DefaultName_Round 1.csv"));
-        Files.delete(Path.of( "DefaultName_Round 1_Pairing.csv"));
+        Files.delete(Path.of("BasicSmokeTest_Round 1.csv"));
+        Files.delete(Path.of( "BasicSmokeTest_Round 1_Pairing.csv"));
 
-        BufferedReader reader = new BufferedReader(new FileReader("DefaultName_Round 2.csv"));
+        BufferedReader reader = new BufferedReader(new FileReader("BasicSmokeTest_Round 2.csv"));
         for (int i = 0; i < 6; i++) {
             reader.readLine();
         }
@@ -49,6 +49,6 @@ public class SmokeTest {
         Assertions.assertTrue(reader.readLine().contains("D"));
 
         reader.close();
-        Files.delete(Path.of( "DefaultName_Round 2.csv"));
+        Files.delete(Path.of( "BasicSmokeTest_Round 2.csv"));
     }
 }

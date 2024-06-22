@@ -241,8 +241,12 @@ public class CommandLineInterface implements BasicPrompts {
     }
 
     @Override
-    public Tournament editNewTournamentDetails(DataReader tournamentReader){
-        return editNewTournamentDetails(new Tournament("DefaultName", 5, true), tournamentReader);
+    public Tournament getNewTournamentDetails(DataReader tournamentReader){
+        String tournamentName = getNewTournamentName();
+        int numRounds = getNewTournamentTotalRounds();
+        boolean isDivisional = promptForInt("Enter the appropriate number to continue",
+                new String[]{"0: divisional tournament", "1: finals tournament"}, 0, 1) == 0;
+        return editNewTournamentDetails(new Tournament(tournamentName, numRounds, isDivisional), tournamentReader);
     }
 
     public Tournament editNewTournamentDetails(Tournament tournament, DataReader tournamentReader) {

@@ -9,7 +9,7 @@ public interface BasicPrompts {
     void displayWelcomeMessage();
     boolean getIfStartingNewTournament();
     File getLocationOfExistingTournament();
-    Tournament editNewTournamentDetails(DataReader dataReader);
+    Tournament getNewTournamentDetails(DataReader dataReader);
     void alterPlayersSittingOut(Tournament t);
     void getRoundResults(Tournament t, DataReader reader);
     void displayStandings(Tournament t);

@@ -52,7 +52,7 @@ public class BasicProgramFlow {
         boolean isStartingNewTournament = input.getIfStartingNewTournament();
 
         if(isStartingNewTournament)
-            return input.editNewTournamentDetails(tournamentReader);
+            return input.getNewTournamentDetails(tournamentReader);
         else
             return getExistingTournamentDetails(tournamentReader);
     }
