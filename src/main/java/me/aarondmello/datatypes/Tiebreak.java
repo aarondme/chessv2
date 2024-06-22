@@ -37,12 +37,7 @@ interface ICalculateSimpleTiebreak {
 class Buchholz implements ICalculateSimpleTiebreak {
     @Override
     public int calculateScore(LinkedList<PlayerGameSummary> games) {
-        int score = 0;
-        for (PlayerGameSummary game : games) {
-            int opponentScore = game.getOpponent().getScore();
-            score += opponentScore;
-        }
-        return score;
+        return games.stream().mapToInt(m -> m.getOpponent().getScore()).sum();
     }
 
     @Override
@@ -53,16 +48,11 @@ class Buchholz implements ICalculateSimpleTiebreak {
 class BuchholzCutOne implements ICalculateSimpleTiebreak {
     @Override
     public int calculateScore(LinkedList<PlayerGameSummary> games) {
-        int minOpponentScore = 0;
-        int score = 0;
-        for (PlayerGameSummary game : games) {
-            int opponentScore = game.getOpponent().getScore();
-            score += opponentScore;
-            if (opponentScore < minOpponentScore)
-                minOpponentScore = opponentScore;
-        }
-        score -= minOpponentScore;
-        return score;
+        int score = games.stream().mapToInt(m -> m.getOpponent().getScore()).sum();
+        OptionalInt leastScore = games.stream().mapToInt(m -> m.getOpponent().getScore()).min();
+        if(leastScore.isEmpty())
+            return 0;
+        return score - leastScore.getAsInt();
     }
 
     @Override
@@ -93,12 +83,7 @@ class ProgressiveScores implements ICalculateSimpleTiebreak {
 class SonnebornBerger implements ICalculateSimpleTiebreak {
     @Override
     public int calculateScore(LinkedList<PlayerGameSummary> games) {
-        int score = 0;
-        for (PlayerGameSummary game : games) {
-            int opponentScore = game.getOpponent().getScore();
-            score += opponentScore * game.getPointsEarned();
-        }
-        return score;
+        return games.stream().mapToInt(m -> m.getOpponent().getScore() * m.getPointsEarned()).sum();
     }
 
     @Override
@@ -110,12 +95,7 @@ class SonnebornBerger implements ICalculateSimpleTiebreak {
 class WinCount implements ICalculateSimpleTiebreak {
     @Override
     public int calculateScore(LinkedList<PlayerGameSummary> games) {
-        int score = 0;
-        for (PlayerGameSummary game : games) {
-            if (game.getPointsEarned() == 2)
-                score++;
-        }
-        return score;
+        return (int) games.stream().filter(m -> m.getPointsEarned() == Game.WIN_POINTS).count();
     }
 
     @Override
@@ -127,12 +107,7 @@ class WinCount implements ICalculateSimpleTiebreak {
 class WinCountAsBlack implements ICalculateSimpleTiebreak {
     @Override
     public int calculateScore(LinkedList<PlayerGameSummary> games) {
-        int score = 0;
-        for (PlayerGameSummary game : games) {
-            if (game.getPointsEarned() == 2 && game.getColour() == Colour.BLACK)
-                score++;
-        }
-        return score;
+        return (int) games.stream().filter(m -> m.getPointsEarned() == Game.WIN_POINTS && m.getColour() == Colour.BLACK).count();
     }
 
     @Override
@@ -150,60 +125,40 @@ class DirectEncounter implements Tiebreak {
     @Override
     public TiebreakType type(){return TiebreakType.DirectEncounter;}
 
-    public void computeSameScore(List<Player> players){
+    public void computeSameScore(Set<Player> players){
         if(players.size() == 1){
-            players.get(0).setTiebreak(TiebreakType.DirectEncounter, 0);
+            players.iterator().next().setTiebreak(type(), 0);
             return;
         }
 
-        Map<Player, Integer> playerToTiebreak = new HashMap<>();
-        int[] maxRange = new int[]{0, 0};
-        Player maxPlayer = players.get(0);
-        boolean isOverlap = false;
+        int maxPossibleScore = 0;
+        Player maxDirectEncounter = players.iterator().next();
+        int maxDirectEncounterScore = 0;
         //Get a range
         for(Player p : players){
-            int[] scoreRange = new int[]{0, 0};
-            for(Player q : players){
-                if(p.equals(q))
-                    continue;
-
-                int pointsEarned = p.getScoreAgainst(q);
-                if(pointsEarned == -1){
-                    scoreRange[1] += 2;
-                }
-                else{
-                    scoreRange[0] += pointsEarned;
-                    scoreRange[1] += pointsEarned;
-                }
-            }
-
-            playerToTiebreak.put(p, scoreRange[1]);
-            if(scoreRange[1] > maxRange[1]){
-                maxRange = scoreRange;
-                maxPlayer = p;
+            LinkedList<PlayerGameSummary> playerGameSummaries = p.getPlayerGameSummaries();
+            int gamesAgainstTiedOpponents = (int) playerGameSummaries.stream().filter(q -> players.contains(q.getOpponent()))
+                    .count();
+            int pDirectEncounterScore = playerGameSummaries.stream().filter(q -> players.contains(q.getOpponent()))
+                    .mapToInt(PlayerGameSummary::getPointsEarned).sum();
+            int pMaxPossibleScore = pDirectEncounterScore + (players.size() - gamesAgainstTiedOpponents) * Game.WIN_POINTS;
+            maxPossibleScore = Math.max(maxPossibleScore, pMaxPossibleScore);
+            if(pDirectEncounterScore > maxDirectEncounterScore){
+                maxDirectEncounter = p;
+                maxDirectEncounterScore = pDirectEncounterScore;
             }
 
         }
 
-        for(Player p : players){
-            if(p.equals(maxPlayer))
-                continue;
-            int maxScore = playerToTiebreak.get(p);
-            if(maxScore >= maxRange[0]){
-                isOverlap = true;
-                break;
-            }
-        }
-
-        if(isOverlap){
+        if(maxPossibleScore >= maxDirectEncounterScore){
             for(Player p : players){
-                p.setTiebreak(TiebreakType.DirectEncounter, 0);
+                p.setTiebreak(type(), 0);
             }
         }
 
         else{
-            maxPlayer.setTiebreak(TiebreakType.DirectEncounter, players.size());
-            players.remove(maxPlayer);
+            maxDirectEncounter.setTiebreak(type(), players.size());
+            players.remove(maxDirectEncounter);
             computeSameScore(players);
         }
     }
@@ -211,11 +166,11 @@ class DirectEncounter implements Tiebreak {
     @Override
     public void computeTiebreak(List<Player> players, Comparator<Player> playerComparator) {
         players.sort(playerComparator);
-        ArrayList<Player> ofSameScore = new ArrayList<>();
-
+        Set<Player> ofSameScore = new HashSet<>();
         for(Player p : players){
-            if(ofSameScore.size() == 0 || playerComparator.compare(p, ofSameScore.get(0)) == 0)
+            if(ofSameScore.size() == 0 || playerComparator.compare(p, ofSameScore.iterator().next()) == 0){
                 ofSameScore.add(p);
+            }
             else{
                 computeSameScore(ofSameScore);
                 ofSameScore.clear();

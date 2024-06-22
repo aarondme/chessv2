@@ -4,9 +4,12 @@ public class Game{
     Player white;
     Player black;
     GameResult result;
+    public static final int DRAW_POINTS = 1;
+    public static final int WIN_POINTS = 2;
+    public static final int LOSS_POINTS = 0;
     private int getPointsForPlayer(Colour playerColour, GameResult result){
-        if(result == GameResult.DRAW) return 1;
-        return (result == GameResult.WHITE_WIN ^ playerColour == Colour.WHITE)? 0:2;
+        if(result == GameResult.DRAW) return DRAW_POINTS;
+        return (result == GameResult.WHITE_WIN ^ playerColour == Colour.WHITE)? LOSS_POINTS:WIN_POINTS;
     }
     public Game(Player white, Player black){
         this.white = white;
