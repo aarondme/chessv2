@@ -36,7 +36,7 @@ public class Player {
         return tiebreaks;
     }
     public int getGamesAsBlack() {
-        return summaries.stream().mapToInt(s -> ((s.getColour() == Colour.BLACK)?1:0)).sum();
+        return (int) summaries.stream().filter(s -> (s.getColour() == Colour.BLACK)).count();
     }
 
     public int getID() {
@@ -68,14 +68,6 @@ public class Player {
     }
     public boolean hasPlayedAgainst(Player opponent){
         return summaries.stream().anyMatch(m -> m.getOpponent().equals(opponent));
-    }
-
-    public int getScoreAgainst(Player opponent){
-        for(PlayerGameSummary m : summaries){
-            if(m.getOpponent().equals(opponent))
-                return m.getPointsEarned();
-        }
-        return -1;
     }
 
     public void clearTiebreaks() {

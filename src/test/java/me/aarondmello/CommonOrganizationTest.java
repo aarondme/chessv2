@@ -20,7 +20,7 @@ import static org.mockito.Mockito.when;
 public class CommonOrganizationTest {
     BufferedReader reader = Mockito.mock(BufferedReader.class);
     CsvReader csvReader = new CsvReader();
-    Tournament tournament = new Tournament();
+    Tournament tournament = new Tournament("DefaultName", 5, true);
 
     @ParameterizedTest
     @ValueSource(strings = {"testOrganization","otherOrganization"})

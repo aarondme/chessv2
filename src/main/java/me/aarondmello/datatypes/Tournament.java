@@ -10,6 +10,12 @@ public class Tournament{
 
     public Tournament(){
     }
+    
+    public Tournament(String name, int totalRounds, boolean isRegionalTournament){
+        this.name = name;
+        this.totalRounds = totalRounds;
+        this.isRegionalTournament = isRegionalTournament;
+    }
 
     public String getName() {
         return name;

@@ -46,8 +46,10 @@ public class CsvInterface implements BasicPrompts {
     }
 
     @Override
-    public Tournament editNewTournamentDetails(Tournament t, DataReader dataReader) {
-        getTournamentConfig(t);
+    public Tournament editNewTournamentDetails(DataReader dataReader) {
+        Tournament t = getTournamentConfig();
+        if(t == null)
+            return null;
         getPlayerList(t, dataReader);
 
         t.initialize(true);
@@ -76,7 +78,7 @@ public class CsvInterface implements BasicPrompts {
         }
     }
 
-    private void getTournamentConfig(Tournament t){
+    private Tournament getTournamentConfig(){
         JTextField tournamentName = new JTextField();
         JSpinner numRounds = new JSpinner();
         JCheckBox divisional = new JCheckBox();
@@ -90,11 +92,10 @@ public class CsvInterface implements BasicPrompts {
         };
         int result = JOptionPane.showConfirmDialog(null, inputs, "My custom dialog", DEFAULT_OPTION);
         if (result == JOptionPane.OK_OPTION) {
-            t.setRegionalTournament(divisional.isSelected());
-            t.setTotalRounds((Integer) numRounds.getValue());
-            t.setName(tournamentName.getText());
+            return new Tournament(tournamentName.getText(), (Integer) numRounds.getValue(), divisional.isSelected());
         } else {
             System.out.println("User canceled / closed the dialog, result = " + result);
+            return null;
         }
     }
 

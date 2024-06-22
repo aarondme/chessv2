@@ -39,8 +39,7 @@ public class RoundCsvTest {
     }
 
     private Tournament initializeBasicTournament(){
-        Tournament t = new Tournament();
-        t.setName("myTournament");
+        Tournament t = new Tournament("myTournament", 5, true);
         Player[] divisionAPlayers = new Player[]{new Player("A", "a"),
                 new Player("B", "b"),
                 new Player("C", "c"),
@@ -53,7 +52,6 @@ public class RoundCsvTest {
         div.put("A", new ArrayList<>(Arrays.asList(divisionAPlayers)));
         div.put("B", new ArrayList<>(Arrays.asList(divisionBPlayers)));
         t.addPlayers(div);
-        t.setTotalRounds(5);
         t.initialize(false);
         Round rA = new Round();
         rA.addGame(new Game(divisionAPlayers[0], divisionAPlayers[1]));

@@ -9,7 +9,7 @@ import me.aarondmello.datatypes.TiebreakType;
 public class TournamentBuilder {
     Tournament t;
     TournamentBuilder(){
-        t = new Tournament();
+        t = new Tournament("DefaultName", 5, true);
     }
     public static TournamentBuilder createTournament(){
         return new TournamentBuilder();

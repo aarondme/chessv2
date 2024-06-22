@@ -241,6 +241,10 @@ public class CommandLineInterface implements BasicPrompts {
     }
 
     @Override
+    public Tournament editNewTournamentDetails(DataReader tournamentReader){
+        return editNewTournamentDetails(new Tournament("DefaultName", 5, true), tournamentReader);
+    }
+
     public Tournament editNewTournamentDetails(Tournament tournament, DataReader tournamentReader) {
         while(true){
             printPlayerList(tournament);
