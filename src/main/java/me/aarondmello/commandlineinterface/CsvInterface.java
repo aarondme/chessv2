@@ -1,11 +1,13 @@
 package me.aarondmello.commandlineinterface;
 
-import me.aarondmello.datatypes.*;
+import me.aarondmello.datatypes.Tournament;
 import me.aarondmello.driver.DataReader;
-import me.aarondmello.swinguserinterface.NewTournamentPanel;
 
 import javax.swing.*;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 
 import static javax.swing.JOptionPane.*;
 
@@ -45,13 +47,41 @@ public class CsvInterface implements BasicPrompts {
 
     @Override
     public Tournament editNewTournamentDetails(Tournament t, DataReader dataReader) {
-        //TODO
-        NewTournamentPanel newTournamentPanel = new NewTournamentPanel();
-        int input = newTournamentPanel.promptForValidNewTournamentData();
+        JTextField tournamentName = new JTextField();
+        JSpinner numRounds = new JSpinner();
+        JCheckBox divisional = new JCheckBox();
+        final JComponent[] inputs = new JComponent[] {
+                new JLabel("Tournament Name"),
+                tournamentName,
+                new JLabel("Number of Rounds"),
+                numRounds,
+                new JLabel("Divisional Tournament?"),
+                divisional
+        };
+        int result = JOptionPane.showConfirmDialog(null, inputs, "My custom dialog", DEFAULT_OPTION);
+        if (result == JOptionPane.OK_OPTION) {
+            t.setRegionalTournament(divisional.isSelected());
+            t.setTotalRounds((Integer) numRounds.getValue());
+            t.setName(tournamentName.getText());
+        } else {
+            System.out.println("User canceled / closed the dialog, result = " + result);
+        }
 
-        if(input == NewTournamentPanel.VALID_INPUT_ENTERED)
-            newTournamentPanel.createNewTournament(t);
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        fileChooser.setMultiSelectionEnabled(true);
+        fileChooser.showOpenDialog(null);
 
+        for (File f : fileChooser.getSelectedFiles()) {
+            try {
+                BufferedReader reader = new BufferedReader(new FileReader(f));
+                dataReader.readFromStarterFile(reader, t);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+        }
+        t.initialize(true);
         return t;
     }
 

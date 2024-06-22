@@ -2,16 +2,20 @@ package me.aarondmello;
 
 import me.aarondmello.csv.CsvReader;
 import me.aarondmello.csv.CsvWriter;
-import me.aarondmello.datatypes.*;
+import me.aarondmello.datatypes.Game;
+import me.aarondmello.datatypes.Player;
+import me.aarondmello.datatypes.Round;
+import me.aarondmello.datatypes.Tournament;
 import org.junit.jupiter.api.Test;
 
-import java.io.*;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 
 import static me.aarondmello.WriterTester.filesCompareByLine;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -24,7 +28,6 @@ public class RoundCsvTest {
     String expected;
     String actual;
     PrintWriter out;
-    BufferedReader in;
 
     public RoundCsvTest() {
     }
@@ -33,11 +36,6 @@ public class RoundCsvTest {
         expected = root + name + ".csv";
         actual = root + name + "_actual.csv";
         out = new PrintWriter(new FileWriter(actual));
-    }
-
-    private void setupReader(String r) throws IOException{
-        name = r;
-        in = new BufferedReader(new FileReader(root + name + ".csv"));
     }
 
     private Tournament initializeBasicTournament(){
