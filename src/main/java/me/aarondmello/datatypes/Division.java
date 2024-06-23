@@ -6,16 +6,6 @@ import me.aarondmello.driver.PairingSystem;
 
 
 public class Division{
-    private boolean isRegional;
-
-    public void setTotalRounds(int rounds) {
-        totalRounds = rounds;
-    }
-
-    public void setRegional(boolean isRegionalTournament) {
-        isRegional = isRegionalTournament;
-    }
-
 
     static class PlayerComparator implements Comparator<Player>{
         Tiebreak[] tiebreaks;
@@ -47,7 +37,6 @@ public class Division{
 
     private final String name;
     private final ArrayList<Player> players = new ArrayList<>();
-    private int totalRounds;
     private int maxID = 0;
 
     Tiebreak[] tiebreaks = null;
@@ -111,7 +100,7 @@ public class Division{
             t.computeTiebreak(players, getPlayerComparator());
         sortPlayers();
     }
-    public void pairRound(int roundNumber) {
+    public void pairRound(int roundNumber, int totalRounds, boolean isRegional) {
         sortPlayers();
         ArrayList<Player> activePlayers = new ArrayList<>(players);
         ArrayList<Player> inactivePlayers = new ArrayList<>(players);

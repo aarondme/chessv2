@@ -66,7 +66,6 @@ public class Tournament{
         }
         if(createIfNotFound){
             Division division = new Division(name);
-            division.setTotalRounds(totalRounds);
             divisions.add(division);
             return division;
         }
@@ -94,13 +93,11 @@ public class Tournament{
         for(Division division : divisions){
             if (shouldRandomize) division.randomizeIds();
             division.initialize();
-            division.setTotalRounds(totalRounds);
-            division.setRegional(isRegionalTournament);
         }
     }
 
     public void createRound() {
-        divisions.forEach(d -> d.pairRound(roundNumber));
+        divisions.forEach(d -> d.pairRound(roundNumber, totalRounds, isRegionalTournament));
     }
 
     public boolean confirmRoundResults() {
@@ -116,10 +113,6 @@ public class Tournament{
         Division division = getDivisionWithName(divisionName);
         if(division != null)
             division.setGameResultByID(id, result);
-    }
-
-    public void toggleType() {
-        isRegionalTournament = !isRegionalTournament;
     }
 
     public boolean isRegionalTournament() {

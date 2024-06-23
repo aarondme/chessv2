@@ -283,7 +283,7 @@ public class CommandLineInterface implements BasicPrompts {
             else if(in == 6)
                 removePlayerInTournament(tournament);
             else if(in == 7)
-                tournament.toggleType();
+                tournament.setRegionalTournament(!tournament.isRegionalTournament());
             else if(in == 8){
                 if(tournament.isDataValid())
                     return confirmTournamentDetails(tournament, tournamentReader);
