@@ -40,7 +40,7 @@ public class Division{
     private int maxID = 0;
 
     Tiebreak[] tiebreaks = null;
-    private Round currentRound;
+    private LinkedList<Game> currentRound;
 
     Division(String name){
         this.name = name;
@@ -113,28 +113,29 @@ public class Division{
         for (Player p : inactivePlayers) {
             Game g = new Game(p, NullPlayer.getInstance());
             g.setResult(GameResult.BLACK_WIN);
-            currentRound.addGame(g);
+            currentRound.add(g);
         }
     }
 
-    public void setCurrentRound(Round currentRound) {
+    public void setCurrentRound(LinkedList<Game> currentRound) {
         this.currentRound = currentRound;
     }
     public void confirmRoundResults() {
-        for(Game game : currentRound.getGames())
+        for(Game game : currentRound)
             game.confirmResult();
         initialize();
     }
 
 
     public boolean validateRoundResults() {
-        return currentRound.getGames().stream().allMatch(g -> g.result != null);
+        return currentRound.stream().allMatch(g -> g.result != null);
     }
     public void setGameResultByID(int id, GameResult result) {
-        currentRound.setResultByID(id, result);
+        if(0 <= id && id < currentRound.size())
+            currentRound.get(id).setResult(result);
     }
     public LinkedList<Game> getPairing() {
-        return currentRound.getGames();
+        return currentRound;
     }
 
     public Tiebreak[] getTiebreaks() {

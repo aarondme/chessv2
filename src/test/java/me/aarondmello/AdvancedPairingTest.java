@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.LinkedList;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -20,7 +21,7 @@ public class AdvancedPairingTest {
             int totalRounds = 1;
             int roundNumber = 1;
             initPlayers(4, 2, 4);
-            Round r = PairingSystem.pairRound(roundNumber, players, totalRounds, new AdvancedWeightFunction(players, totalRounds - roundNumber + 1));
+            LinkedList<Game> r = PairingSystem.pairRound(roundNumber, players, totalRounds, new AdvancedWeightFunction(players, totalRounds - roundNumber + 1));
             System.out.println("Different org first round only");
             printPairing(r);
             assertTrue(PairingAlgorithmTest.checkIfAllPlayersPaired(r, players));
@@ -35,7 +36,7 @@ public class AdvancedPairingTest {
             int totalRounds = 6;
             int roundNumber = 1;
             initPlayers(12, 6, 12);
-            Round r = PairingSystem.pairRound(1, players, 6, new AdvancedWeightFunction(players, totalRounds - roundNumber + 1));
+            LinkedList<Game> r = PairingSystem.pairRound(1, players, 6, new AdvancedWeightFunction(players, totalRounds - roundNumber + 1));
             System.out.println("Different org first round even");
             printPairing(r);
             assertTrue(PairingAlgorithmTest.checkIfAllPlayersPaired(r, players));
@@ -50,7 +51,7 @@ public class AdvancedPairingTest {
             int totalRounds = 6;
             int roundNumber = 1;
             initPlayers(12, 6, 13);
-            Round r = PairingSystem.pairRound(1, players, 6, new AdvancedWeightFunction(players, totalRounds - roundNumber + 1));
+            LinkedList<Game> r = PairingSystem.pairRound(1, players, 6, new AdvancedWeightFunction(players, totalRounds - roundNumber + 1));
             System.out.println("Different org first round odd");
             printPairing(r);
             assertTrue(PairingAlgorithmTest.checkIfAllPlayersPaired(r, players));
@@ -92,7 +93,7 @@ public class AdvancedPairingTest {
                 );
             }
 
-            Round r = PairingSystem.pairRound(roundNumber, players, totalRounds, new AdvancedWeightFunction(players, totalRounds - roundNumber + 1, 2));
+            LinkedList<Game> r = PairingSystem.pairRound(roundNumber, players, totalRounds, new AdvancedWeightFunction(players, totalRounds - roundNumber + 1, 2));
             System.out.println("Different org first round odd");
             printPairing(r);
             assertTrue(PairingAlgorithmTest.checkIfAllPlayersPaired(r, players));
@@ -100,8 +101,8 @@ public class AdvancedPairingTest {
         });
     }
 
-    private void printPairing(Round r){
-        for (Game g:r.getGames()) {
+    private void printPairing(LinkedList<Game> r){
+        for (Game g:r) {
             System.out.println(g.getWhitePlayer().getID() + g.getWhitePlayer().getOrganization() + " " +
                     g.getBlackPlayer().getID() + g.getBlackPlayer().getOrganization());
         }
@@ -123,7 +124,7 @@ public class AdvancedPairingTest {
         }
     }
 
-    private int numSameOrg(Round r){
-        return r.getGames().stream().mapToInt(g -> (g.getWhitePlayer().getOrganization()).equals(g.getBlackPlayer().getOrganization())? 1:0).sum();
+    private int numSameOrg(LinkedList<Game> r){
+        return r.stream().mapToInt(g -> (g.getWhitePlayer().getOrganization()).equals(g.getBlackPlayer().getOrganization())? 1:0).sum();
     }
 }

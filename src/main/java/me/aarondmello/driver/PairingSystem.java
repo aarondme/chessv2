@@ -55,23 +55,23 @@ public class PairingSystem extends Thread {
         bestSolution.trivialize();
     }
 
-    public static Round pairRound(int roundNumber, ArrayList<Player> players, int totalRounds){
+    public static LinkedList<Game> pairRound(int roundNumber, ArrayList<Player> players, int totalRounds){
         return pairRound(roundNumber, players, totalRounds, new BasicWeightFunction());
     }
 
-    public static Round pairRound(int roundNumber, ArrayList<Player> players, int totalRounds, WeightFunction function){
+    public static LinkedList<Game> pairRound(int roundNumber, ArrayList<Player> players, int totalRounds, WeightFunction function){
         PairingSystem s = new PairingSystem(roundNumber, players, totalRounds, function);
         s.start();
         try {s.join(30_000);}
         catch (InterruptedException ignored){}
-        Round r = getRound(s.bestSolution);
+        LinkedList<Game> r = getRound(s.bestSolution);
         s.interrupt();
         return r;
     }
 
-    public static Round getRound(VariableState bestSolution) {
+    public static LinkedList<Game> getRound(VariableState bestSolution) {
         HashSet<Integer> pairedIds = new HashSet<>();
-        Round r = new Round();
+        LinkedList<Game> r = new LinkedList<>();
         for(int i = 0; i < bestSolution.players.size(); i++){
             if(pairedIds.contains(i))
                 continue;
@@ -79,11 +79,11 @@ public class PairingSystem extends Thread {
             if(opponent == -1){
                 Game g = new Game(bestSolution.players.get(i), NullPlayer.getInstance());
                 g.setResult(GameResult.WHITE_WIN);
-                r.addGame(g);
+                r.add(g);
                 pairedIds.add(i);
             }
             else{
-                r.addGame(pairPlayers(bestSolution.players.get(i), bestSolution.players.get(opponent)));
+                r.add(pairPlayers(bestSolution.players.get(i), bestSolution.players.get(opponent)));
                 pairedIds.add(i);
                 pairedIds.add(opponent);
             }

@@ -9,6 +9,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -135,9 +136,9 @@ public class WriterTester {
         Player p1 = new Player("p1", "org");
         Player p2 =  new Player("p2", "org");
 
-        Round r = new Round();
+        LinkedList<Game> r = new LinkedList<>();
         Game g = new Game(p1, p2);
-        r.addGame(g);
+        r.add(g);
         g.setResult(GameResult.WHITE_WIN);
 
         Tournament t = TournamentBuilder.createTournament()
@@ -166,9 +167,9 @@ public class WriterTester {
         Player p1 = new Player("p1", "org");
         Player p2 =  new Player("p2", "org");
 
-        Round r = new Round();
+        LinkedList<Game> r = new LinkedList<>();
         Game g = new Game(p1, p2);
-        r.addGame(g);
+        r.add(g);
         g.setResult(GameResult.WHITE_WIN);
 
         Tournament t = TournamentBuilder.createTournament()
@@ -196,9 +197,9 @@ public class WriterTester {
         Player p1 = new Player("p1", "org");
         Player p2 =  new Player("p2", "org");
 
-        Round r = new Round();
+        LinkedList<Game> r = new LinkedList<>();
         Game g = new Game(p1, p2);
-        r.addGame(g);
+        r.add(g);
         g.setResult(GameResult.WHITE_WIN);
 
         Tournament t = TournamentBuilder.createTournament()
