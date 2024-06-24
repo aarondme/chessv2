@@ -6,7 +6,7 @@ import java.util.Map;
 public class Player {
     private String name;
     private String organization;
-    private final PlayerScore score = new PlayerScore();
+    private final PlayerResult results = new PlayerResult();
     private final LinkedList<PlayerGameSummary> summaries = new LinkedList<>();
     private int rank;
     private boolean isActive;
@@ -27,14 +27,14 @@ public class Player {
         return organization;
     }
     public int getScore() {
-        return score.getScore();
+        return results.getScore();
     }
-    public PlayerScore getPlayerScore(){return score;}
+    public PlayerResult getPlayerResult(){return results;}
     public LinkedList<PlayerGameSummary> getPlayerGameSummaries() {
         return summaries;
     }
     public Map<TiebreakType, Integer> getTiebreaks() {
-        return score.getTiebreakScores();
+        return results.getTiebreakScores();
     }
     public int getGamesAsBlack() {
         return (int) summaries.stream().filter(s -> (s.getColour() == Colour.BLACK)).count();
@@ -49,8 +49,8 @@ public class Player {
     public void setOrganization(String organization) {
         this.organization = organization.trim();
     }
-    public void setScore(int score) {
-        this.score.setScore(score);
+    public void setScore(int results) {
+        this.results.setScore(results);
     }
     public void setID(int id){
         this.id = id;
@@ -58,7 +58,7 @@ public class Player {
     public void addPlayerGameSummary(PlayerGameSummary ... playerGameSummaries){
         for (PlayerGameSummary p: playerGameSummaries) {
             summaries.add(p);
-            this.score.setScore(this.score.getScore() + p.getPointsEarned());
+            this.results.setScore(this.results.getScore() + p.getPointsEarned());
         }
 
     }
@@ -72,15 +72,15 @@ public class Player {
     }
 
     public void clearTiebreaks() {
-        score.getTiebreakScores().clear();
+        results.getTiebreakScores().clear();
     }
 
     public void setTiebreak(TiebreakType tiebreakType, int value) {
-        score.getTiebreakScores().put(tiebreakType, value);
+        results.getTiebreakScores().put(tiebreakType, value);
     }
 
     public int getTiebreakScore(TiebreakType type) {
-        Integer a = score.getTiebreakScores().get(type);
+        Integer a = results.getTiebreakScores().get(type);
         if(a == null) return 0;
         else return a;
     }

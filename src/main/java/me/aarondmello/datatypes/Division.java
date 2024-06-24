@@ -8,13 +8,13 @@ import me.aarondmello.driver.PairingSystem;
 
 public class Division{
 
-    static class ScoreComparator implements Comparator<PlayerScore>{
+    static class ScoreComparator implements Comparator<PlayerResult>{
         Tiebreak[] tiebreaks;
         ScoreComparator(Tiebreak[] tb){
             tiebreaks = tb;
         }
         @Override
-        public int compare(PlayerScore o1, PlayerScore o2) {
+        public int compare(PlayerResult o1, PlayerResult o2) {
             if(o1.getScore() != o2.getScore()) return o1.getScore() - o2.getScore();
             for(Tiebreak t : tiebreaks){
                 if(o1.getTiebreakScore(t.type()) != o2.getTiebreakScore(t.type()))
@@ -25,12 +25,12 @@ public class Division{
     }
 
     static class SortingPlayerComparator implements Comparator<Player>{
-        Comparator<PlayerScore> comparator;
-        SortingPlayerComparator(Comparator<PlayerScore> c){comparator = c;}
+        Comparator<PlayerResult> comparator;
+        SortingPlayerComparator(Comparator<PlayerResult> c){comparator = c;}
 
         @Override
         public int compare(Player o1, Player o2) {
-            int r = comparator.compare(o1.getPlayerScore(), o2.getPlayerScore());
+            int r = comparator.compare(o1.getPlayerResult(), o2.getPlayerResult());
 
             return (r == 0)? o1.getID() - o2.getID() : r;
         }
@@ -53,7 +53,7 @@ public class Division{
 
     public Comparator<Player> getPlayerComparatorByScore(){
         ScoreComparator s = new ScoreComparator(tiebreaks);
-        return (m,n) -> s.compare(m.getPlayerScore(),n.getPlayerScore());
+        return (m,n) -> s.compare(m.getPlayerResult(),n.getPlayerResult());
     }
     public void sortPlayers(){
         players.sort((new SortingPlayerComparator(new ScoreComparator(tiebreaks))).reversed());
@@ -100,16 +100,16 @@ public class Division{
             p.clearTiebreaks();
         for(Tiebreak t: tiebreaks)
             t.computeTiebreak(players, getPlayerComparatorByScore());
-        sortPlayers();
         computePlayerRanks();
     }
 
     private void computePlayerRanks() {
+        sortPlayers();
         int rank = 1;
         int tiedWith = 1;
         ScoreComparator scoreComparator = new ScoreComparator(tiebreaks);
         for(Player player : players) {
-            if (scoreComparator.compare(player.getPlayerScore(), players.get(tiedWith - 1).getPlayerScore()) != 0)
+            if (scoreComparator.compare(player.getPlayerResult(), players.get(tiedWith - 1).getPlayerResult()) != 0)
                 tiedWith = rank;
             player.setRank(tiedWith);
             rank++;

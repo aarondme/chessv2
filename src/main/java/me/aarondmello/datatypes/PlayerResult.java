@@ -2,7 +2,7 @@ package me.aarondmello.datatypes;
 
 import java.util.HashMap;
 
-public class PlayerScore {
+public class PlayerResult {
     private int score = 0;
     private final HashMap<TiebreakType, Integer> tiebreakScores = new HashMap<>();
 

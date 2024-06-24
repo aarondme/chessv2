@@ -131,34 +131,35 @@ class DirectEncounter implements Tiebreak {
             return;
         }
 
-        int maxPossibleScore = 0;
-        Player maxDirectEncounter = players.iterator().next();
-        int maxDirectEncounterScore = 0;
-        //Get a range
+        int maxOptimisticScore = 0;
+        Player tiebreakWinner = players.iterator().next();
+        int maxActualScore = 0;
+
         for(Player p : players){
             LinkedList<PlayerGameSummary> playerGameSummaries = p.getPlayerGameSummaries();
-            int gamesAgainstTiedOpponents = (int) playerGameSummaries.stream().filter(q -> players.contains(q.getOpponent()))
+            int gamesPlayedAgainstTiedOpponents = (int) playerGameSummaries.stream().filter(q -> players.contains(q.getOpponent()))
                     .count();
-            int pDirectEncounterScore = playerGameSummaries.stream().filter(q -> players.contains(q.getOpponent()))
+            int scoreAgainstTiedOpponents = playerGameSummaries.stream().filter(q -> players.contains(q.getOpponent()))
                     .mapToInt(PlayerGameSummary::getPointsEarned).sum();
-            int pMaxPossibleScore = pDirectEncounterScore + (players.size() - gamesAgainstTiedOpponents) * Game.WIN_POINTS;
-            maxPossibleScore = Math.max(maxPossibleScore, pMaxPossibleScore);
-            if(pDirectEncounterScore > maxDirectEncounterScore){
-                maxDirectEncounter = p;
-                maxDirectEncounterScore = pDirectEncounterScore;
+            int maxScoreInUnplayedGames = (players.size() - gamesPlayedAgainstTiedOpponents) * Game.WIN_POINTS;
+            int optimisticScoreAgainstTiedOpponents = scoreAgainstTiedOpponents + maxScoreInUnplayedGames;
+            maxOptimisticScore = Math.max(maxOptimisticScore, optimisticScoreAgainstTiedOpponents);
+            if(scoreAgainstTiedOpponents > maxActualScore){
+                tiebreakWinner = p;
+                maxActualScore = scoreAgainstTiedOpponents;
             }
 
         }
 
-        if(maxPossibleScore >= maxDirectEncounterScore){
+        if(maxOptimisticScore >= maxActualScore){
             for(Player p : players){
                 p.setTiebreak(type(), 0);
             }
         }
 
         else{
-            maxDirectEncounter.setTiebreak(type(), players.size());
-            players.remove(maxDirectEncounter);
+            tiebreakWinner.setTiebreak(type(), players.size());
+            players.remove(tiebreakWinner);
             computeSameScore(players);
         }
     }
