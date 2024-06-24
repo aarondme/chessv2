@@ -15,6 +15,34 @@ interface WeightFunction {
     Constraint getWeightConstraint(int bestWeight);
     int calculateWeight(int opponentIndex, Player p, int roundIndex, List<Player> players);
 }
+
+ abstract class WeightConstraint implements Constraint{
+
+     @Override
+     public Iterable<VariableIndex> applyTo(VariableState state, List<Player> players) {
+         List<VariableIndex> modified = new LinkedList<>();
+         for (int i = 0; i < players.size(); i++) {
+             for (int j = 0; j < state.roundsRemaining; j++) {
+                 VariableIndex coordinate = new VariableIndex(i, j);
+                 List<VariableAssignment> v = state.getVar(coordinate);
+                 if(v.removeIf(a -> getBestWeightPossible(state, coordinate, a, players) >= currentBestWeight())){
+                     if(v.isEmpty()) return null;
+                     modified.add(coordinate);
+                 }
+             }
+         }
+         return modified;
+     }
+
+     protected abstract int currentBestWeight();
+
+     protected abstract int getBestWeightPossible(VariableState state, VariableIndex coordinate, VariableAssignment a, List<Player> players);
+
+     @Override
+     public String name() {
+         return "w";
+     }
+ }
 record VariableAssignment(int opponentIndex, int weight) {}
 record VariableIndex(int player, int round) {}
 

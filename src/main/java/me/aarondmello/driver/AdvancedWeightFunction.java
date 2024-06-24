@@ -62,7 +62,7 @@ public class AdvancedWeightFunction implements WeightFunction {
         return 0;
     }
 
-    class AdvancedWeightConstraint implements Constraint{
+    class AdvancedWeightConstraint extends WeightConstraint{
         int bestWeight;
         int bestWeightForFirstRound = Integer.MIN_VALUE;
         int bestWeightForOtherRounds = Integer.MIN_VALUE;
@@ -174,13 +174,8 @@ public class AdvancedWeightFunction implements WeightFunction {
                     freq--;
                 }
 
-                if((freq & 1) == 1){
-                    wasPreviousOdd = true;
-                    prevScore = score;
-                }
-                else{
-                    wasPreviousOdd = false;
-                }
+                wasPreviousOdd = (freq & 1) == 1;
+                prevScore = score;
             }
 
             if(wasPreviousOdd)
@@ -197,24 +192,9 @@ public class AdvancedWeightFunction implements WeightFunction {
         }
 
         @Override
-        public Iterable<VariableIndex> applyTo(VariableState state, List<Player> players) {
-            List<VariableIndex> modified = new LinkedList<>();
-            for (int i = 0; i < players.size(); i++) {
-                for (int j = 0; j < state.roundsRemaining; j++) {
-                    List<VariableAssignment> v = state.getVar(i, j);
-                    VariableIndex coordinate = new VariableIndex(i, j);
-                    if(v.removeIf(a -> getBestWeightPossible(state, coordinate, a, players) >= bestWeight)){
-                        if(v.isEmpty()) return null;
-                        modified.add(coordinate);
-                    }
-                }
-            }
-            return modified;
+        protected int currentBestWeight() {
+            return bestWeight;
         }
 
-        @Override
-        public String name() {
-            return "w";
-        }
     }
 }

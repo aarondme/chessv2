@@ -27,7 +27,7 @@ public class BasicWeightFunction implements WeightFunction {
     public Constraint getWeightConstraint(int bestWeight) {
         return new BasicWeightConstraint(bestWeight);
     }
-    class BasicWeightConstraint implements Constraint{
+    class BasicWeightConstraint extends WeightConstraint{
         int bestWeight;
         int bestWeightForFirstRound = Integer.MIN_VALUE;
         int bestWeightForOtherRounds = Integer.MIN_VALUE;
@@ -35,6 +35,10 @@ public class BasicWeightFunction implements WeightFunction {
             this.bestWeight = bestWeight;
         }
 
+        @Override
+        protected int currentBestWeight() {
+            return bestWeight;
+        }
 
         public int getBestWeightPossible(VariableState state, VariableIndex variableIndex, VariableAssignment assignment, List<Player> players) {
             int weightForFirstRound = getWeightForFirstRound(state, variableIndex, assignment, players);
@@ -110,13 +114,8 @@ public class BasicWeightFunction implements WeightFunction {
                     freq--;
                 }
 
-                if((freq & 1) == 1){
-                    wasPreviousOdd = true;
-                    prevScore = score;
-                }
-                else{
-                    wasPreviousOdd = false;
-                }
+                wasPreviousOdd = (freq & 1) == 1;
+                prevScore = score;
             }
 
 
@@ -126,27 +125,6 @@ public class BasicWeightFunction implements WeightFunction {
             if(variableIndex.round() != 0)
                 bestWeightForFirstRound = weightForFirstRound;
             return weightForFirstRound;
-        }
-
-        @Override
-        public Iterable<VariableIndex> applyTo(VariableState state, List<Player> players) {
-            List<VariableIndex> modified = new LinkedList<>();
-            for (int i = 0; i < players.size(); i++) {
-                for (int j = 0; j < state.roundsRemaining; j++) {
-                    VariableIndex coordinate = new VariableIndex(i, j);
-                    List<VariableAssignment> v = state.getVar(coordinate);
-                    if(v.removeIf(a -> getBestWeightPossible(state, coordinate, a, players) >= bestWeight)){
-                        if(v.isEmpty()) return null;
-                        modified.add(coordinate);
-                    }
-                }
-            }
-            return modified;
-        }
-
-        @Override
-        public String name() {
-            return "w";
         }
     }
 }
