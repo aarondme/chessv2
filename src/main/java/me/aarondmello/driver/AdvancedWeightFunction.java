@@ -90,7 +90,7 @@ public class AdvancedWeightFunction implements WeightFunction {
                     VariableIndex index = new VariableIndex(i, r);
                     if(index.equals(variableIndex))
                         continue;
-                    LinkedList<VariableAssignment> domain = state.getVar(index);
+                    List<VariableAssignment> domain = state.getVar(index);
 
                     if(domain.size() == 1 && domain.get(0).opponentIndex() == -1)
                         weightForOtherRounds += state.getWeightOf(index);
@@ -130,7 +130,7 @@ public class AdvancedWeightFunction implements WeightFunction {
             for (int i = 0; i < players.size(); i++) {
                 if(firstRoundPlayersPaired.contains(i)) continue;
                 VariableIndex index = new VariableIndex(i, 0);
-                LinkedList<VariableAssignment> domain = state.getVar(index);
+                List<VariableAssignment> domain = state.getVar(index);
                 Player playerI = players.get(i);
 
                 if(domain.size() == 1){
@@ -201,7 +201,7 @@ public class AdvancedWeightFunction implements WeightFunction {
             List<VariableIndex> modified = new LinkedList<>();
             for (int i = 0; i < players.size(); i++) {
                 for (int j = 0; j < state.roundsRemaining; j++) {
-                    LinkedList<VariableAssignment> v = state.getVar(i, j);
+                    List<VariableAssignment> v = state.getVar(i, j);
                     VariableIndex coordinate = new VariableIndex(i, j);
                     if(v.removeIf(a -> getBestWeightPossible(state, coordinate, a, players) >= bestWeight)){
                         if(v.isEmpty()) return null;

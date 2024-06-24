@@ -83,7 +83,7 @@ public class BasicWeightFunction implements WeightFunction {
             for (int i = 0; i < players.size(); i++) {
                 if(firstRoundPlayersPaired.contains(i)) continue;
                 VariableIndex indexToGet = new VariableIndex(i, 0);
-                LinkedList<VariableAssignment> domain = state.getVar(indexToGet);
+                List<VariableAssignment> domain = state.getVar(indexToGet);
                 if(domain.size() == 1){
                     weightForFirstRound += state.getWeightOf(indexToGet);
                     int opponentIndex = domain.get(0).opponentIndex();
@@ -134,7 +134,7 @@ public class BasicWeightFunction implements WeightFunction {
             for (int i = 0; i < players.size(); i++) {
                 for (int j = 0; j < state.roundsRemaining; j++) {
                     VariableIndex coordinate = new VariableIndex(i, j);
-                    LinkedList<VariableAssignment> v = state.getVar(coordinate);
+                    List<VariableAssignment> v = state.getVar(coordinate);
                     if(v.removeIf(a -> getBestWeightPossible(state, coordinate, a, players) >= bestWeight)){
                         if(v.isEmpty()) return null;
                         modified.add(coordinate);

@@ -105,8 +105,6 @@ public class PairingSystem extends Thread {
     }
 
     private void gac(VariableState previousState) {
-        if(previousState == null) previousState = initialState;
-
         VariableIndex index = previousState.getUnassignedVariable();
         if(index == null){
             bestSolution = previousState;
@@ -137,7 +135,7 @@ public class PairingSystem extends Thread {
                 List<Constraint> toAdd = getConstraintsForVar(variableIndex);
                 toAdd.removeIf((d -> constraintNames.contains(d.name())));
                 gacQueue.addAll(toAdd);
-                constraintNames.addAll(toAdd.stream().map(Constraint::name).collect(Collectors.toList()));
+                constraintNames.addAll(toAdd.stream().map(Constraint::name).toList());
             }
         }
         return true;
@@ -169,17 +167,21 @@ class PlayerConstraint implements Constraint {
 
     @Override
     public Iterable<VariableIndex> applyTo(VariableState state, List<Player> players) {
-        LinkedList<VariableIndex> modified = new LinkedList<>();
-        HashSet<Integer> usedValues = new HashSet<>();
+        List<VariableIndex> modified = new ArrayList<>();
+        Set<Integer> usedValues = new HashSet<>();
         for (int i = 0; i < state.roundsRemaining; i++) {
-            LinkedList<VariableAssignment> w = state.getVar(playerIndex, i);
+            List<VariableAssignment> w = state.getVar(playerIndex, i);
+            if(w.size() != 1) continue;
             int opponentIndex = w.get(0).opponentIndex();
-            if(w.size() == 1 && opponentIndex != -1)
-                usedValues.add(opponentIndex);
+            if(opponentIndex == -1) continue;
+
+            if(usedValues.contains(opponentIndex))
+                return null;
+            usedValues.add(opponentIndex);
         }
 
         for (int i = 0; i < state.roundsRemaining; i++) {
-            LinkedList<VariableAssignment> w = state.getVar(playerIndex, i);
+            List<VariableAssignment> w = state.getVar(playerIndex, i);
             if(w.size() == 1) continue;
 
             if(w.removeIf(v -> usedValues.contains(v.opponentIndex()))){
@@ -207,12 +209,13 @@ class RoundConstraint implements Constraint {
 
     @Override
     public Iterable<VariableIndex> applyTo(VariableState state, List<Player> players) {
-        LinkedList<VariableIndex> modified = new LinkedList<>();
-        HashSet<Integer> usedValues = new HashSet<>();
+        List<VariableIndex> modified = new ArrayList<>();
+        Set<Integer> usedValues = new HashSet<>();
         for (int i = 0; i < players.size(); i++) {
-            LinkedList<VariableAssignment> w = state.getVar(i, roundIndex);
+            List<VariableAssignment> w = state.getVar(i, roundIndex);
+            if(w.size() != 1) continue;
             int opponentIndex = w.get(0).opponentIndex();
-            if(w.size() == 1 && opponentIndex != -1){
+            if(opponentIndex != -1){
                 usedValues.add(opponentIndex);
                 usedValues.add(i);
                 if(state.setVar(opponentIndex, roundIndex, i)){
@@ -223,7 +226,7 @@ class RoundConstraint implements Constraint {
         }
 
         for (int i = 0; i < players.size(); i++) {
-            LinkedList<VariableAssignment> w = state.getVar(i, roundIndex);
+            List<VariableAssignment> w = state.getVar(i, roundIndex);
             if(w.size() == 1) continue;
 
             if(w.removeIf(v -> usedValues.contains(v.opponentIndex()))){
@@ -241,7 +244,7 @@ class RoundConstraint implements Constraint {
 }
 
 class VariableState {
-    public HashMap<VariableIndex, LinkedList<VariableAssignment>> variables;
+    public Map<VariableIndex, List<VariableAssignment>> variables;
     WeightFunction weightFunction;
     int roundsRemaining;
     ArrayList<Player> players;
@@ -257,15 +260,15 @@ class VariableState {
             }
     }
 
-    private LinkedList<VariableAssignment> initializeVariable(int numPlayers, VariableIndex variableIndex) {
-        LinkedList<VariableAssignment> values = new LinkedList<>();
+    private List<VariableAssignment> initializeVariable(int numPlayers, VariableIndex variableIndex) {
+        List<VariableAssignment> values = new LinkedList<>();
         Player p = players.get(variableIndex.player());
         for(int opponentIndex = 0; opponentIndex < numPlayers; opponentIndex++){
             if(opponentIndex == variableIndex.player() || p.hasPlayedAgainst(players.get(opponentIndex)))
                 continue;
             values.add(new VariableAssignment(opponentIndex, weightFunction.calculateWeight(opponentIndex, p, variableIndex.round(), players)));
         }
-        values.addLast(new VariableAssignment(-1, weightFunction.calculateWeight(-1, p, variableIndex.round(), players)));
+        values.add(new VariableAssignment(-1, weightFunction.calculateWeight(-1, p, variableIndex.round(), players)));
         values.sort(Comparator.comparing(VariableAssignment::weight));
         return values;
     }
@@ -279,7 +282,7 @@ class VariableState {
     }
 
     public void trivialize() {
-        for(LinkedList<VariableAssignment> value : variables.values())
+        for(List<VariableAssignment> value : variables.values())
             if (value.size() > 1)
                 value.removeIf(x -> x.opponentIndex() != -1);
     }
@@ -310,10 +313,10 @@ class VariableState {
         return minVariableIndex;
     }
 
-    public LinkedList<VariableAssignment> getVar(VariableIndex index) {
+    public List<VariableAssignment> getVar(VariableIndex index) {
         return variables.get(index);
     }
-    public LinkedList<VariableAssignment> getVar(int playerIndex, int roundIndex) {
+    public List<VariableAssignment> getVar(int playerIndex, int roundIndex) {
         return variables.get(new VariableIndex(playerIndex, roundIndex));
     }
 
@@ -328,7 +331,7 @@ class VariableState {
     public int numSitOuts(int r) {
         int num = 0;
         for (int i = 0; i < players.size(); i++){
-            LinkedList<VariableAssignment> domain = variables.get(new VariableIndex(i, r));
+            List<VariableAssignment> domain = variables.get(new VariableIndex(i, r));
             if (domain.size() == 1 && domain.get(0).opponentIndex() == -1)
                 num++;
         }
