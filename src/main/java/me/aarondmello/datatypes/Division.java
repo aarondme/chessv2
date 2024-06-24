@@ -1,5 +1,6 @@
 package me.aarondmello.datatypes;
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 import me.aarondmello.driver.PairingSystem;
@@ -102,19 +103,11 @@ public class Division{
     }
     public void pairRound(int roundNumber, int totalRounds, boolean isRegional) {
         sortPlayers();
-        ArrayList<Player> activePlayers = new ArrayList<>(players);
-        ArrayList<Player> inactivePlayers = new ArrayList<>(players);
-        activePlayers.removeIf(p -> !p.isActive());
-        inactivePlayers.removeIf(Player::isActive);
+        ArrayList<Player> activePlayers = players.stream().filter(Player::isActive).collect(Collectors.toCollection(ArrayList::new));
+        ArrayList<Player> inactivePlayers = players.stream().filter(p -> !p.isActive()).collect(Collectors.toCollection(ArrayList::new));
 
-        currentRound = PairingSystem.pairRound(roundNumber, activePlayers, totalRounds,
+        currentRound = PairingSystem.pairRound(roundNumber, activePlayers, inactivePlayers, totalRounds,
                 PairingSystem.getWeightFunction(isRegional, activePlayers, roundNumber, totalRounds));
-
-        for (Player p : inactivePlayers) {
-            Game g = new Game(p, NullPlayer.getInstance());
-            g.setResult(GameResult.BLACK_WIN);
-            currentRound.add(g);
-        }
     }
 
     public void setCurrentRound(LinkedList<Game> currentRound) {

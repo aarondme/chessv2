@@ -56,16 +56,26 @@ public class PairingSystem extends Thread {
     }
 
     public static LinkedList<Game> pairRound(int roundNumber, ArrayList<Player> players, int totalRounds){
-        return pairRound(roundNumber, players, totalRounds, new BasicWeightFunction());
+        return pairRound(roundNumber, players, new ArrayList<>(), totalRounds, new BasicWeightFunction());
     }
 
-    public static LinkedList<Game> pairRound(int roundNumber, ArrayList<Player> players, int totalRounds, WeightFunction function){
+    public static LinkedList<Game> pairRound(int roundNumber, ArrayList<Player> players, int totalRounds, WeightFunction weightFunction){
+        return pairRound(roundNumber, players, new ArrayList<>(), totalRounds, weightFunction);
+    }
+
+
+    public static LinkedList<Game> pairRound(int roundNumber, ArrayList<Player> players, ArrayList<Player> inactivePlayers, int totalRounds, WeightFunction function){
         PairingSystem s = new PairingSystem(roundNumber, players, totalRounds, function);
         s.start();
         try {s.join(30_000);}
         catch (InterruptedException ignored){}
         LinkedList<Game> r = getRound(s.bestSolution);
         s.interrupt();
+        for (Player p: inactivePlayers) {
+            Game g = new Game(p, NullPlayer.getInstance());
+            g.setResult(GameResult.BLACK_WIN);
+            r.add(g);
+        }
         return r;
     }
 
