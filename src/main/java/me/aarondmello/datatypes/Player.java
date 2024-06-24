@@ -60,6 +60,7 @@ public class Player {
     }
     public void addPlayerGameSummary(PlayerGameSummary ... playerGameSummaries){
         summaries.addAll(Arrays.asList(playerGameSummaries));
+        score += Arrays.stream(playerGameSummaries).mapToInt(PlayerGameSummary::getPointsEarned).sum();
     }
     public void computeScore(){
         score = summaries.stream().mapToInt(PlayerGameSummary::getPointsEarned).sum();
