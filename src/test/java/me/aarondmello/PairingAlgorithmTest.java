@@ -1,6 +1,5 @@
 package me.aarondmello;
 
-import me.aarondmello.datatypes.Colour;
 import me.aarondmello.datatypes.*;
 import me.aarondmello.driver.PairingSystem;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,7 +10,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.LinkedList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -37,7 +36,7 @@ public class PairingAlgorithmTest {
     @ValueSource(ints = {2, 3, 4, 5,6})
     public void pairPlayersFirstRound(int numPlayers){
         initPlayers(numPlayers);
-        LinkedList<Game> r = PairingSystem.pairRound(1, players, Math.min(3, numPlayers-1));
+        List<Game> r = PairingSystem.pairRound(1, players, Math.min(3, numPlayers-1));
         System.out.println("Pair players first round: " + numPlayers);
         for (Game g:r) {
             System.out.println(g.getWhitePlayer().getID() + " " + g.getBlackPlayer().getID());
@@ -51,7 +50,7 @@ public class PairingAlgorithmTest {
     public void manyPlayersEvenFirstRound() {
         assertTimeoutPreemptively(Duration.ofSeconds(20), () -> {
             initPlayers(30);
-            LinkedList<Game> r = PairingSystem.pairRound(1, players, 6);
+            List<Game> r = PairingSystem.pairRound(1, players, 6);
             System.out.println("Many players Even first round");
             for (Game g:r) {
                 System.out.println(g.getWhitePlayer().getID() + " " + g.getBlackPlayer().getID());
@@ -69,7 +68,7 @@ public class PairingAlgorithmTest {
             players.get(i + 1).addPlayerGameSummary(new PlayerGameSummary(0, players.get(i), Colour.BLACK));
         }
         assertTimeoutPreemptively(Duration.ofSeconds(20), () -> {
-            LinkedList<Game> r = PairingSystem.pairRound(2, players, 6);
+            List<Game> r = PairingSystem.pairRound(2, players, 6);
             System.out.println("Many players Even second round");
             for (Game g:r) {
                 System.out.println(g.getWhitePlayer().getID() + " " + g.getBlackPlayer().getID());
@@ -96,7 +95,7 @@ public class PairingAlgorithmTest {
         players.get(29).addPlayerGameSummary(new PlayerGameSummary(0, players.get(28), Colour.BLACK));
 
         assertTimeoutPreemptively(Duration.ofSeconds(20), () -> {
-            LinkedList<Game> r = PairingSystem.pairRound(3, players, 6);
+            List<Game> r = PairingSystem.pairRound(3, players, 6);
             System.out.println("Many players Even third round");
             for (Game g:r) {
                 System.out.println(g.getWhitePlayer().getID() + " " + g.getBlackPlayer().getID());
@@ -111,7 +110,7 @@ public class PairingAlgorithmTest {
     public void manyPlayersOddFirstRound() {
         assertTimeoutPreemptively(Duration.ofSeconds(20), () -> {
             initPlayers(31);
-            LinkedList<Game> r = PairingSystem.pairRound(1, players, 6);
+            List<Game> r = PairingSystem.pairRound(1, players, 6);
             System.out.println("Many players Odd first round");
             for (Game g:r) {
                 System.out.println(g.getWhitePlayer().getID() + " " + g.getBlackPlayer().getID());
@@ -131,7 +130,7 @@ public class PairingAlgorithmTest {
         players.get(30).addPlayerGameSummary(new PlayerGameSummary(2, NullPlayer.getInstance(), Colour.WHITE));
 
         assertTimeoutPreemptively(Duration.ofSeconds(20), () -> {
-            LinkedList<Game> r = PairingSystem.pairRound(2, players, 6);
+            List<Game> r = PairingSystem.pairRound(2, players, 6);
             System.out.println("Many players Even second round");
             for (Game g:r) {
                 System.out.println(g.getWhitePlayer().getID() + " " + g.getBlackPlayer().getID());
@@ -160,7 +159,7 @@ public class PairingAlgorithmTest {
         players.get(29).addPlayerGameSummary(new PlayerGameSummary(2, NullPlayer.getInstance(), Colour.WHITE));
 
         assertTimeoutPreemptively(Duration.ofSeconds(20), () -> {
-            LinkedList<Game> r = PairingSystem.pairRound(3, players, 6);
+            List<Game> r = PairingSystem.pairRound(3, players, 6);
             System.out.println("Many players Odd third round");
             for (Game g:r) {
                 System.out.println(g.getWhitePlayer().getID() + " " + g.getBlackPlayer().getID());
@@ -192,7 +191,7 @@ public class PairingAlgorithmTest {
         );
 
 
-        LinkedList<Game> r = PairingSystem.pairRound(3, players, 3);
+        List<Game> r = PairingSystem.pairRound(3, players, 3);
         System.out.println("Pair last option");
         for (Game g : r) {
             System.out.println(g.getWhitePlayer().getID() + " " + g.getBlackPlayer().getID());
@@ -221,7 +220,7 @@ public class PairingAlgorithmTest {
         );
 
 
-        LinkedList<Game> r = PairingSystem.pairRound(2, players, 4);
+        List<Game> r = PairingSystem.pairRound(2, players, 4);
         System.out.println("Pair second round");
         for (Game g : r) {
             System.out.println(g.getWhitePlayer().getID() + " " + g.getBlackPlayer().getID());
@@ -254,7 +253,7 @@ public class PairingAlgorithmTest {
                 new PlayerGameSummary(2, NullPlayer.getInstance(), Colour.WHITE),
                 new PlayerGameSummary(2, players.get(1), Colour.BLACK)
         );
-        LinkedList<Game> r = PairingSystem.pairRound(3, players, 4);
+        List<Game> r = PairingSystem.pairRound(3, players, 4);
         System.out.println("Pair third round");
         for (Game g : r) {
             System.out.println(g.getWhitePlayer().getID() + " " + g.getBlackPlayer().getID());
@@ -291,7 +290,7 @@ public class PairingAlgorithmTest {
                 new PlayerGameSummary(0, players.get(0), Colour.WHITE)
         );
 
-        LinkedList<Game> r = PairingSystem.pairRound(3, players, 4);
+        List<Game> r = PairingSystem.pairRound(3, players, 4);
         System.out.println("Pair looking ahead");
         for (Game g : r) {
             System.out.println(g.getWhitePlayer().getID() + " " + g.getBlackPlayer().getID());
@@ -300,7 +299,7 @@ public class PairingAlgorithmTest {
         assertTrue(checkIfAllGamesValid(r));
         assertTrue(r.stream().anyMatch(g -> g.getBlackPlayer().getScore() != g.getWhitePlayer().getScore())); //Otherwise, the fourth round necessarily has two players sit out.
     }
-    public static boolean checkIfAllPlayersPaired(LinkedList<Game> games, ArrayList<Player> players){
+    public static boolean checkIfAllPlayersPaired(List<Game> games, ArrayList<Player> players){
         if(games.size() != (players.size() + 1)/2)
             return false;
         HashSet<Integer> uniquePairedPlayers = new HashSet<>();
@@ -316,7 +315,7 @@ public class PairingAlgorithmTest {
         return true;
     }
 
-    public static boolean checkIfAllGamesValid(LinkedList<Game> games){
+    public static boolean checkIfAllGamesValid(List<Game> games){
         return games.stream().allMatch(PairingAlgorithmTest::checkIfGameValid);
     }
 

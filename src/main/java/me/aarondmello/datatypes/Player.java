@@ -1,16 +1,13 @@
 package me.aarondmello.datatypes;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Map;
+import java.util.*;
 
 public class Player {
     private String name;
     private String organization;
     private final HashMap<TiebreakType, Integer> tiebreakScores = new HashMap<>();
     private int score;
-    private final LinkedList<PlayerGameSummary> summaries = new LinkedList<>();
+    private final List<PlayerGameSummary> summaries = new LinkedList<>();
     private int rank;
     private boolean isActive;
     /**
@@ -33,7 +30,7 @@ public class Player {
         return score;
     }
 
-    public LinkedList<PlayerGameSummary> getPlayerGameSummaries() {
+    public List<PlayerGameSummary> getPlayerGameSummaries() {
         return summaries;
     }
     public Map<TiebreakType, Integer> getTiebreaks() {

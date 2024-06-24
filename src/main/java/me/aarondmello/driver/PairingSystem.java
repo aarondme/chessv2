@@ -1,9 +1,12 @@
 package me.aarondmello.driver;
 
+import me.aarondmello.datatypes.Game;
+import me.aarondmello.datatypes.GameResult;
+import me.aarondmello.datatypes.NullPlayer;
+import me.aarondmello.datatypes.Player;
+
 import java.util.*;
 import java.util.stream.Collectors;
-
-import me.aarondmello.datatypes.*;
 interface Constraint {
     Iterable<VariableIndex> applyTo(VariableState state, List<Player> players);
     String name();
@@ -55,16 +58,16 @@ public class PairingSystem extends Thread {
         bestSolution.trivialize();
     }
 
-    public static LinkedList<Game> pairRound(int roundNumber, ArrayList<Player> players, int totalRounds){
+    public static List<Game> pairRound(int roundNumber, ArrayList<Player> players, int totalRounds){
         return pairRound(roundNumber, players, new ArrayList<>(), totalRounds, new BasicWeightFunction());
     }
 
-    public static LinkedList<Game> pairRound(int roundNumber, ArrayList<Player> players, int totalRounds, WeightFunction weightFunction){
+    public static List<Game> pairRound(int roundNumber, ArrayList<Player> players, int totalRounds, WeightFunction weightFunction){
         return pairRound(roundNumber, players, new ArrayList<>(), totalRounds, weightFunction);
     }
 
 
-    public static LinkedList<Game> pairRound(int roundNumber, ArrayList<Player> players, ArrayList<Player> inactivePlayers, int totalRounds, WeightFunction function){
+    public static List<Game> pairRound(int roundNumber, ArrayList<Player> players, Iterable<Player> inactivePlayers, int totalRounds, WeightFunction function){
         PairingSystem s = new PairingSystem(roundNumber, players, totalRounds, function);
         s.start();
         try {s.join(30_000);}

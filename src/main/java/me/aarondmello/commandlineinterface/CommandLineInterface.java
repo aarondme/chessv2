@@ -7,8 +7,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
 import java.util.Scanner;
 
 public class CommandLineInterface implements BasicPrompts {

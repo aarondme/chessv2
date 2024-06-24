@@ -3,7 +3,7 @@ import java.util.*;
 
 public class Tournament{
     private String name;
-    private final LinkedList<Division> divisions = new LinkedList<>();
+    private final List<Division> divisions = new LinkedList<>();
     private int roundNumber = 1;
     private int totalRounds;
     private boolean isRegionalTournament;
@@ -18,7 +18,7 @@ public class Tournament{
     public String getName() {
         return name;
     }
-    public LinkedList<Division> getDivisions() {
+    public List<Division> getDivisions() {
         return divisions;
     }
     public int getRoundNumber() {
@@ -43,7 +43,7 @@ public class Tournament{
         this.roundNumber = roundNumber;
     }
 
-    public void addPlayers(HashMap<String, ArrayList<Player>> divisionNameToPlayerListMap){
+    public void addPlayers(Map<String, ArrayList<Player>> divisionNameToPlayerListMap){
         for (String divisionName : divisionNameToPlayerListMap.keySet()) {
             Division division = getDivisionWithName(divisionName, true);
             division.addPlayers(divisionNameToPlayerListMap.get(divisionName));

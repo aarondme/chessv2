@@ -1,17 +1,18 @@
 package me.aarondmello.csv;
 
+import me.aarondmello.datatypes.*;
+import me.aarondmello.driver.DataReader;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-
-import me.aarondmello.datatypes.*;
-import me.aarondmello.driver.DataReader;
+import java.util.Map;
 
 public class CsvReader implements DataReader{
     String organizationName;
-    HashMap<String, ArrayList<Player>> divisionToPlayerList;
+    Map<String, ArrayList<Player>> divisionToPlayerList;
     public CsvReader(){}
 
     private void addPlayerToList(String playerName, String division){

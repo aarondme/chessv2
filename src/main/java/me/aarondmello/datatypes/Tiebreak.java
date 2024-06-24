@@ -69,14 +69,14 @@ class SimpleTiebreak implements Tiebreak{
     }
 }
 interface ICalculateSimpleTiebreak {
-    int calculateScore(LinkedList<PlayerGameSummary> games);
+    int calculateScore(List<PlayerGameSummary> games);
 
     TiebreakType type();
 }
 
 class Buchholz implements ICalculateSimpleTiebreak {
     @Override
-    public int calculateScore(LinkedList<PlayerGameSummary> games) {
+    public int calculateScore(List<PlayerGameSummary> games) {
         return games.stream().mapToInt(m -> m.getOpponent().getScore()).sum();
     }
 
@@ -87,7 +87,7 @@ class Buchholz implements ICalculateSimpleTiebreak {
 }
 class BuchholzCutOne implements ICalculateSimpleTiebreak {
     @Override
-    public int calculateScore(LinkedList<PlayerGameSummary> games) {
+    public int calculateScore(List<PlayerGameSummary> games) {
         int score = games.stream().mapToInt(m -> m.getOpponent().getScore()).sum();
         OptionalInt leastScore = games.stream().mapToInt(m -> m.getOpponent().getScore()).min();
         if(leastScore.isEmpty())
@@ -103,7 +103,7 @@ class BuchholzCutOne implements ICalculateSimpleTiebreak {
 
 class ProgressiveScores implements ICalculateSimpleTiebreak {
     @Override
-    public int calculateScore(LinkedList<PlayerGameSummary> games) {
+    public int calculateScore(List<PlayerGameSummary> games) {
         int score = 0;
         int runningTotal = 0;
         for (PlayerGameSummary game : games) {
@@ -122,7 +122,7 @@ class ProgressiveScores implements ICalculateSimpleTiebreak {
 
 class SonnebornBerger implements ICalculateSimpleTiebreak {
     @Override
-    public int calculateScore(LinkedList<PlayerGameSummary> games) {
+    public int calculateScore(List<PlayerGameSummary> games) {
         return games.stream().mapToInt(m -> m.getOpponent().getScore() * m.getPointsEarned()).sum();
     }
 
@@ -134,7 +134,7 @@ class SonnebornBerger implements ICalculateSimpleTiebreak {
 
 class WinCount implements ICalculateSimpleTiebreak {
     @Override
-    public int calculateScore(LinkedList<PlayerGameSummary> games) {
+    public int calculateScore(List<PlayerGameSummary> games) {
         return (int) games.stream().filter(m -> m.getPointsEarned() == Game.WIN_POINTS).count();
     }
 
@@ -146,7 +146,7 @@ class WinCount implements ICalculateSimpleTiebreak {
 
 class WinCountAsBlack implements ICalculateSimpleTiebreak {
     @Override
-    public int calculateScore(LinkedList<PlayerGameSummary> games) {
+    public int calculateScore(List<PlayerGameSummary> games) {
         return (int) games.stream().filter(m -> m.getPointsEarned() == Game.WIN_POINTS && m.getColour() == Colour.BLACK).count();
     }
 
@@ -176,7 +176,7 @@ class DirectEncounter implements Tiebreak {
         int maxActualScore = 0;
 
         for(Player p : players){
-            LinkedList<PlayerGameSummary> playerGameSummaries = p.getPlayerGameSummaries();
+            List<PlayerGameSummary> playerGameSummaries = p.getPlayerGameSummaries();
             int gamesPlayedAgainstTiedOpponents = (int) playerGameSummaries.stream().filter(q -> players.contains(q.getOpponent()))
                     .count();
             int scoreAgainstTiedOpponents = playerGameSummaries.stream().filter(q -> players.contains(q.getOpponent()))

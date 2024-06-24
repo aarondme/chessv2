@@ -1,9 +1,9 @@
 package me.aarondmello.datatypes;
-import java.util.*;
-import java.util.stream.Collectors;
-
 
 import me.aarondmello.driver.PairingSystem;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 
 public class Division{
@@ -30,13 +30,13 @@ public class Division{
     }
 
     private final String name;
-    private final ArrayList<Player> players = new ArrayList<>();
+    private final List<Player> players = new ArrayList<>();
     private int maxID = 0;
     private final ScoreComparator scoreComparator = new ScoreComparator();
     private final SortingPlayerComparator sortingPlayerComparator = new SortingPlayerComparator();
 
     private Tiebreak[] tiebreaks = Tiebreak.getDefaultTiebreaks();
-    private LinkedList<Game> currentRound;
+    private List<Game> currentRound;
 
     Division(String name){
         this.name = name;
@@ -115,13 +115,13 @@ public class Division{
     public void pairRound(int roundNumber, int totalRounds, boolean isRegional) {
         sortPlayers();
         ArrayList<Player> activePlayers = players.stream().filter(Player::isActive).collect(Collectors.toCollection(ArrayList::new));
-        ArrayList<Player> inactivePlayers = players.stream().filter(p -> !p.isActive()).collect(Collectors.toCollection(ArrayList::new));
+        List<Player> inactivePlayers = players.stream().filter(p -> !p.isActive()).toList();
 
         currentRound = PairingSystem.pairRound(roundNumber, activePlayers, inactivePlayers, totalRounds,
                 PairingSystem.getWeightFunction(isRegional, activePlayers, roundNumber, totalRounds));
     }
 
-    public void setCurrentRound(LinkedList<Game> currentRound) {
+    public void setCurrentRound(List<Game> currentRound) {
         this.currentRound = currentRound;
     }
     public void confirmRoundResults() {
@@ -139,7 +139,7 @@ public class Division{
         if(0 <= id && id < currentRound.size())
             currentRound.get(id).setResult(result);
     }
-    public LinkedList<Game> getPairing() {
+    public List<Game> getPairing() {
         return currentRound;
     }
 
