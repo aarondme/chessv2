@@ -1,10 +1,11 @@
 package me.aarondmello.datatypes;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public interface Tiebreak {
     String name();
-    void computeTiebreak(List<Player> players, Comparator<Player> playerComparator);
+    void computeTiebreak(List<Player> players);
 
     TiebreakType type();
 }
@@ -23,7 +24,7 @@ class SimpleTiebreak implements Tiebreak{
     public TiebreakType type(){return calculator.type();}
 
     @Override
-    public void computeTiebreak(List<Player> players, Comparator<Player> playerComparator) {
+    public void computeTiebreak(List<Player> players) {
         for(Player p : players)
             p.setTiebreak(calculator.type(), calculator.calculateScore(p.getPlayerGameSummaries()));
     }
@@ -165,19 +166,9 @@ class DirectEncounter implements Tiebreak {
     }
 
     @Override
-    public void computeTiebreak(List<Player> players, Comparator<Player> playerComparator) {
-        players.sort(playerComparator);
-        Set<Player> ofSameScore = new HashSet<>();
-        for(Player p : players){
-            if(ofSameScore.size() == 0 || playerComparator.compare(p, ofSameScore.iterator().next()) == 0){
-                ofSameScore.add(p);
-            }
-            else{
-                computeSameScore(ofSameScore);
-                ofSameScore.clear();
-            }
-        }
-        if(ofSameScore.size() > 0)
-            computeSameScore(ofSameScore);
+    public void computeTiebreak(List<Player> players) {
+        Map<Integer, List<Player>> playersByRank = players.stream().collect(Collectors.groupingBy(Player::getRank));
+        for (List<Player> p : playersByRank.values())
+            computeSameScore(Set.copyOf(p));
     }
 }

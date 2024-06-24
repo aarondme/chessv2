@@ -8,13 +8,9 @@ import me.aarondmello.driver.PairingSystem;
 
 public class Division{
 
-    static class ScoreComparator implements Comparator<PlayerResult>{
-        Tiebreak[] tiebreaks;
-        ScoreComparator(Tiebreak[] tb){
-            tiebreaks = tb;
-        }
+    class ScoreComparator implements Comparator<Player>{
         @Override
-        public int compare(PlayerResult o1, PlayerResult o2) {
+        public int compare(Player o1, Player o2) {
             if(o1.getScore() != o2.getScore()) return o1.getScore() - o2.getScore();
             for(Tiebreak t : tiebreaks){
                 if(o1.getTiebreakScore(t.type()) != o2.getTiebreakScore(t.type()))
@@ -24,13 +20,10 @@ public class Division{
         }
     }
 
-    static class SortingPlayerComparator implements Comparator<Player>{
-        Comparator<PlayerResult> comparator;
-        SortingPlayerComparator(Comparator<PlayerResult> c){comparator = c;}
-
+    class SortingPlayerComparator implements Comparator<Player>{
         @Override
         public int compare(Player o1, Player o2) {
-            int r = comparator.compare(o1.getPlayerResult(), o2.getPlayerResult());
+            int r = scoreComparator.compare(o1, o2);
 
             return (r == 0)? o1.getID() - o2.getID() : r;
         }
@@ -39,6 +32,8 @@ public class Division{
     private final String name;
     private final ArrayList<Player> players = new ArrayList<>();
     private int maxID = 0;
+    private final ScoreComparator scoreComparator = new ScoreComparator();
+    private final SortingPlayerComparator sortingPlayerComparator = new SortingPlayerComparator();
 
     Tiebreak[] tiebreaks = null;
     private LinkedList<Game> currentRound;
@@ -51,12 +46,8 @@ public class Division{
         return name;
     }
 
-    public Comparator<Player> getPlayerComparatorByScore(){
-        ScoreComparator s = new ScoreComparator(tiebreaks);
-        return (m,n) -> s.compare(m.getPlayerResult(),n.getPlayerResult());
-    }
     public void sortPlayers(){
-        players.sort((new SortingPlayerComparator(new ScoreComparator(tiebreaks))).reversed());
+        players.sort((sortingPlayerComparator).reversed());
     }
     public void addPlayer(Player p, boolean maintainIds){
         if(!maintainIds)
@@ -96,10 +87,16 @@ public class Division{
         }
     }
     public void initialize() {
-        for(Player p : players)
+        for(Player p : players){
             p.clearTiebreaks();
-        for(Tiebreak t: tiebreaks)
-            t.computeTiebreak(players, getPlayerComparatorByScore());
+            p.computeScore();
+        }
+        for(Tiebreak t: tiebreaks){
+            if(t instanceof DirectEncounter)
+                computePlayerRanks();
+            t.computeTiebreak(players);
+        }
+
         computePlayerRanks();
     }
 
@@ -107,9 +104,8 @@ public class Division{
         sortPlayers();
         int rank = 1;
         int tiedWith = 1;
-        ScoreComparator scoreComparator = new ScoreComparator(tiebreaks);
         for(Player player : players) {
-            if (scoreComparator.compare(player.getPlayerResult(), players.get(tiedWith - 1).getPlayerResult()) != 0)
+            if (scoreComparator.compare(player, players.get(tiedWith - 1)) != 0)
                 tiedWith = rank;
             player.setRank(tiedWith);
             rank++;

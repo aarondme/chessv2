@@ -1,12 +1,15 @@
 package me.aarondmello.datatypes;
 
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
 public class Player {
     private String name;
     private String organization;
-    private final PlayerResult results = new PlayerResult();
+    private final HashMap<TiebreakType, Integer> tiebreakScores = new HashMap<>();
+    private int score;
     private final LinkedList<PlayerGameSummary> summaries = new LinkedList<>();
     private int rank;
     private boolean isActive;
@@ -27,14 +30,14 @@ public class Player {
         return organization;
     }
     public int getScore() {
-        return results.getScore();
+        return score;
     }
-    public PlayerResult getPlayerResult(){return results;}
+
     public LinkedList<PlayerGameSummary> getPlayerGameSummaries() {
         return summaries;
     }
     public Map<TiebreakType, Integer> getTiebreaks() {
-        return results.getTiebreakScores();
+        return tiebreakScores;
     }
     public int getGamesAsBlack() {
         return (int) summaries.stream().filter(s -> (s.getColour() == Colour.BLACK)).count();
@@ -49,18 +52,17 @@ public class Player {
     public void setOrganization(String organization) {
         this.organization = organization.trim();
     }
-    public void setScore(int results) {
-        this.results.setScore(results);
+    public void setScore(int score) {
+        this.score = score;
     }
     public void setID(int id){
         this.id = id;
     }
     public void addPlayerGameSummary(PlayerGameSummary ... playerGameSummaries){
-        for (PlayerGameSummary p: playerGameSummaries) {
-            summaries.add(p);
-            this.results.setScore(this.results.getScore() + p.getPointsEarned());
-        }
-
+        summaries.addAll(Arrays.asList(playerGameSummaries));
+    }
+    public void computeScore(){
+        score = summaries.stream().mapToInt(PlayerGameSummary::getPointsEarned).sum();
     }
 
     
@@ -72,17 +74,15 @@ public class Player {
     }
 
     public void clearTiebreaks() {
-        results.getTiebreakScores().clear();
+        tiebreakScores.clear();
     }
 
     public void setTiebreak(TiebreakType tiebreakType, int value) {
-        results.getTiebreakScores().put(tiebreakType, value);
+        tiebreakScores.put(tiebreakType, value);
     }
 
     public int getTiebreakScore(TiebreakType type) {
-        Integer a = results.getTiebreakScores().get(type);
-        if(a == null) return 0;
-        else return a;
+        return tiebreakScores.getOrDefault(type, 0);
     }
 
     public boolean isActive() {
