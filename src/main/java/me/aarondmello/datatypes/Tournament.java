@@ -43,10 +43,6 @@ public class Tournament{
         this.roundNumber = roundNumber;
     }
 
-    public boolean isDataValid(){
-        return name != null && totalRounds > 0 && divisions.size() > 0;
-    }
-
     public void addPlayers(HashMap<String, ArrayList<Player>> divisionNameToPlayerListMap){
         for (String divisionName : divisionNameToPlayerListMap.keySet()) {
             Division division = getDivisionWithName(divisionName, true);

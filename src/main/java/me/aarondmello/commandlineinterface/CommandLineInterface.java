@@ -285,9 +285,7 @@ public class CommandLineInterface implements BasicPrompts {
             else if(in == 7)
                 tournament.setRegionalTournament(!tournament.isRegionalTournament());
             else if(in == 8){
-                if(tournament.isDataValid())
-                    return confirmTournamentDetails(tournament, tournamentReader);
-                System.out.println("Tournament data is invalid");
+                confirmTournamentDetails(tournament, tournamentReader);
             }
         }  
     }
