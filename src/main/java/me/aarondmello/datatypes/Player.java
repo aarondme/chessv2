@@ -1,14 +1,13 @@
 package me.aarondmello.datatypes;
-import java.util.HashMap;
+
 import java.util.LinkedList;
 import java.util.Map;
 
 public class Player {
     private String name;
     private String organization;
-    private int score = 0;
+    private final PlayerScore score = new PlayerScore();
     private final LinkedList<PlayerGameSummary> summaries = new LinkedList<>();
-    private final HashMap<TiebreakType, Integer> tiebreaks = new HashMap<>();
     private boolean isActive;
     /**
      * IDs for players within a division are expected to be unique integers 
@@ -27,13 +26,14 @@ public class Player {
         return organization;
     }
     public int getScore() {
-        return score;
+        return score.getScore();
     }
+    public PlayerScore getPlayerScore(){return score;}
     public LinkedList<PlayerGameSummary> getPlayerGameSummaries() {
         return summaries;
     }
     public Map<TiebreakType, Integer> getTiebreaks() {
-        return tiebreaks;
+        return score.getTiebreakScores();
     }
     public int getGamesAsBlack() {
         return (int) summaries.stream().filter(s -> (s.getColour() == Colour.BLACK)).count();
@@ -49,7 +49,7 @@ public class Player {
         this.organization = organization.trim();
     }
     public void setScore(int score) {
-        this.score = score;
+        this.score.setScore(score);
     }
     public void setID(int id){
         this.id = id;
@@ -57,7 +57,7 @@ public class Player {
     public void addPlayerGameSummary(PlayerGameSummary ... playerGameSummaries){
         for (PlayerGameSummary p: playerGameSummaries) {
             summaries.add(p);
-            score += p.getPointsEarned();
+            this.score.setScore(this.score.getScore() + p.getPointsEarned());
         }
 
     }
@@ -71,15 +71,15 @@ public class Player {
     }
 
     public void clearTiebreaks() {
-        tiebreaks.clear();
+        score.getTiebreakScores().clear();
     }
 
     public void setTiebreak(TiebreakType tiebreakType, int value) {
-        tiebreaks.put(tiebreakType, value);
+        score.getTiebreakScores().put(tiebreakType, value);
     }
 
     public int getTiebreakScore(TiebreakType type) {
-        Integer a = tiebreaks.get(type);
+        Integer a = score.getTiebreakScores().get(type);
         if(a == null) return 0;
         else return a;
     }

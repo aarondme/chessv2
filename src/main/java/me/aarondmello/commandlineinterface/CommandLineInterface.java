@@ -58,7 +58,7 @@ public class CommandLineInterface implements BasicPrompts {
             System.out.println("| ID | Rank |         Player name         |       Organization       | Score |");
             ArrayList<String> strings = new ArrayList<>();
 
-            Comparator<Player> playerComparator = division.getPlayerComparator();
+            Comparator<Player> playerComparator = division.getPlayerComparatorByScore();
             int rank = 1;
             int tiedWith = 1;
             List<Player> players = division.getPlayers();

@@ -8,13 +8,13 @@ import me.aarondmello.driver.PairingSystem;
 
 public class Division{
 
-    static class PlayerComparator implements Comparator<Player>{
+    static class ScoreComparator implements Comparator<PlayerScore>{
         Tiebreak[] tiebreaks;
-        PlayerComparator(Tiebreak[] tb){
+        ScoreComparator(Tiebreak[] tb){
             tiebreaks = tb;
         }
         @Override
-        public int compare(Player o1, Player o2) {
+        public int compare(PlayerScore o1, PlayerScore o2) {
             if(o1.getScore() != o2.getScore()) return o1.getScore() - o2.getScore();
             for(Tiebreak t : tiebreaks){
                 if(o1.getTiebreakScore(t.type()) != o2.getTiebreakScore(t.type()))
@@ -25,12 +25,12 @@ public class Division{
     }
 
     static class SortingPlayerComparator implements Comparator<Player>{
-        Comparator<Player> comparator;
-        SortingPlayerComparator(Comparator<Player> c){comparator = c;}
+        Comparator<PlayerScore> comparator;
+        SortingPlayerComparator(Comparator<PlayerScore> c){comparator = c;}
 
         @Override
         public int compare(Player o1, Player o2) {
-            int r = comparator.compare(o1, o2);
+            int r = comparator.compare(o1.getPlayerScore(), o2.getPlayerScore());
 
             return (r == 0)? o1.getID() - o2.getID() : r;
         }
@@ -51,11 +51,12 @@ public class Division{
         return name;
     }
 
-    public Comparator<Player> getPlayerComparator(){
-        return new PlayerComparator(tiebreaks);
+    public Comparator<Player> getPlayerComparatorByScore(){
+        ScoreComparator s = new ScoreComparator(tiebreaks);
+        return (m,n) -> s.compare(m.getPlayerScore(),n.getPlayerScore());
     }
     public void sortPlayers(){
-        players.sort((new SortingPlayerComparator(getPlayerComparator())).reversed());
+        players.sort((new SortingPlayerComparator(new ScoreComparator(tiebreaks))).reversed());
     }
     public void addPlayer(Player p, boolean maintainIds){
         if(!maintainIds)
@@ -98,7 +99,7 @@ public class Division{
         for(Player p : players)
             p.clearTiebreaks();
         for(Tiebreak t: tiebreaks)
-            t.computeTiebreak(players, getPlayerComparator());
+            t.computeTiebreak(players, getPlayerComparatorByScore());
         sortPlayers();
     }
     public void pairRound(int roundNumber, int totalRounds, boolean isRegional) {
