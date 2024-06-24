@@ -81,8 +81,12 @@ public class Tournament{
 
     public void removePlayer(String divisionName, int playerID){
         Division division = getDivisionWithName(divisionName);
-        if(division != null)
+        if(division != null){
             division.removePlayer(playerID);
+            if(division.getPlayers().size() > 0)
+                divisions.remove(division);
+        }
+
     }
 
     public void initialize(boolean shouldRandomize) {

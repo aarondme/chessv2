@@ -35,7 +35,7 @@ public class Division{
     private final ScoreComparator scoreComparator = new ScoreComparator();
     private final SortingPlayerComparator sortingPlayerComparator = new SortingPlayerComparator();
 
-    Tiebreak[] tiebreaks = null;
+    private Tiebreak[] tiebreaks = Tiebreak.getDefaultTiebreaks();
     private LinkedList<Game> currentRound;
 
     Division(String name){
@@ -127,6 +127,7 @@ public class Division{
     public void confirmRoundResults() {
         for(Game game : currentRound)
             game.confirmResult();
+        currentRound = null;
         initialize();
     }
 
@@ -148,27 +149,18 @@ public class Division{
 
 
     public void setTiebreaks(TiebreakType[] tiebreakTypes){
-        TiebreakType[] defaultTiebreaks = {TiebreakType.BuchholzCutOne, TiebreakType.Buchholz,
-                TiebreakType.SonnebornBerger, TiebreakType.ProgressiveScores,
-                TiebreakType.DirectEncounter, TiebreakType.WinCount,
-                TiebreakType.WinCountAsBlack};
-
-        if(tiebreakTypes == null)
-            tiebreakTypes = defaultTiebreaks;
+        if(tiebreakTypes == null){
+            tiebreaks = Tiebreak.getDefaultTiebreaks();
+            return;
+        }
 
         Tiebreak[] tbs = new Tiebreak[tiebreakTypes.length];
         for(int i = 0; i < tiebreakTypes.length; i++){
-            switch (tiebreakTypes[i]){
-                case Buchholz -> tbs[i] = new SimpleTiebreak(new Buchholz());
-                case BuchholzCutOne -> tbs[i] = new SimpleTiebreak(new BuchholzCutOne());
-                case DirectEncounter -> tbs[i] = new DirectEncounter();
-                case SonnebornBerger -> tbs[i] = new SimpleTiebreak(new SonnebornBerger());
-                case ProgressiveScores -> tbs[i] = new SimpleTiebreak(new ProgressiveScores());
-                case WinCount -> tbs[i] = new SimpleTiebreak(new WinCount());
-                case WinCountAsBlack -> tbs[i] = new SimpleTiebreak(new WinCountAsBlack());
-            }
+            tbs[i] = Tiebreak.fromTiebreakType(tiebreakTypes[i]);
+
         }
         tiebreaks = tbs;
     }
+
 
 }
