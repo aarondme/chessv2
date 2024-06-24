@@ -58,15 +58,9 @@ public class CommandLineInterface implements BasicPrompts {
             System.out.println("| ID | Rank |         Player name         |       Organization       | Score |");
             ArrayList<String> strings = new ArrayList<>();
 
-            Comparator<Player> playerComparator = division.getPlayerComparatorByScore();
-            int rank = 1;
-            int tiedWith = 1;
-            List<Player> players = division.getPlayers();
+
             for(Player player : division.getPlayers()){
-                if(playerComparator.compare(player, players.get(tiedWith - 1)) != 0)
-                    tiedWith = rank;
-                strings.add(String.format("|%1$-4s|%2$-6s|%3$-29s|%4$-26s|%5$-7s|", player.getID(), tiedWith, player.getName(), player.getOrganization(), player.getScore()));
-                rank++;
+                strings.add(String.format("|%1$-4s|%2$-6s|%3$-29s|%4$-26s|%5$-7s|", player.getID(), player.getRank(), player.getName(), player.getOrganization(), player.getScore()));
             }
             for (int i = 0; i < strings.size() / 2; i++) {
                 System.out.println(strings.get(i) + "/////" + strings.get(strings.size()/2 + i));

@@ -8,6 +8,7 @@ public class Player {
     private String organization;
     private final PlayerScore score = new PlayerScore();
     private final LinkedList<PlayerGameSummary> summaries = new LinkedList<>();
+    private int rank;
     private boolean isActive;
     /**
      * IDs for players within a division are expected to be unique integers 
@@ -90,5 +91,13 @@ public class Player {
 
     public void setActive(boolean active) {
         isActive = active;
+    }
+
+    public int getRank() {
+        return rank;
+    }
+
+    public void setRank(int rank) {
+        this.rank = rank;
     }
 }

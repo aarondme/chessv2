@@ -101,7 +101,21 @@ public class Division{
         for(Tiebreak t: tiebreaks)
             t.computeTiebreak(players, getPlayerComparatorByScore());
         sortPlayers();
+        computePlayerRanks();
     }
+
+    private void computePlayerRanks() {
+        int rank = 1;
+        int tiedWith = 1;
+        ScoreComparator scoreComparator = new ScoreComparator(tiebreaks);
+        for(Player player : players) {
+            if (scoreComparator.compare(player.getPlayerScore(), players.get(tiedWith - 1).getPlayerScore()) != 0)
+                tiedWith = rank;
+            player.setRank(tiedWith);
+            rank++;
+        }
+    }
+
     public void pairRound(int roundNumber, int totalRounds, boolean isRegional) {
         sortPlayers();
         ArrayList<Player> activePlayers = players.stream().filter(Player::isActive).collect(Collectors.toCollection(ArrayList::new));
