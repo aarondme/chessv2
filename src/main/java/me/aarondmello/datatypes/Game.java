@@ -24,7 +24,7 @@ public class Game{
         return result;
     }
 
-    public void confirmResult() {
+    void confirmResult() {
         white.addPlayerGameSummary(
                 new PlayerGameSummary(getPointsForPlayer(Colour.WHITE, result), black, Colour.WHITE)
         );

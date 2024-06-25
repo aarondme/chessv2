@@ -86,10 +86,9 @@ public class Division{
             player.setID(i);
         }
     }
-    public void initialize() {
+    void initialize() {
         for(Player p : players){
             p.clearTiebreaks();
-            p.computeScore();
         }
         for(Tiebreak t: tiebreaks){
             if(t instanceof DirectEncounter)
@@ -153,13 +152,7 @@ public class Division{
             tiebreaks = Tiebreak.getDefaultTiebreaks();
             return;
         }
-
-        Tiebreak[] tbs = new Tiebreak[tiebreakTypes.length];
-        for(int i = 0; i < tiebreakTypes.length; i++){
-            tbs[i] = Tiebreak.fromTiebreakType(tiebreakTypes[i]);
-
-        }
-        tiebreaks = tbs;
+        tiebreaks = Tiebreak.getTiebreaks(tiebreakTypes);
     }
 
 

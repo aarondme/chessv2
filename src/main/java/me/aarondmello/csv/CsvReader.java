@@ -38,6 +38,7 @@ public class CsvReader implements DataReader{
             String header;
             while((header = reader.readLine()) != null)
                 readDivisions(reader, t, header);
+            t.initialize(false);
             return t;
         }catch (IOException e){
             return null;
@@ -85,7 +86,6 @@ public class CsvReader implements DataReader{
         readDivisionTiebreaks(reader, d, t.getRoundNumber());
         ArrayList<Player> p = readPlayers(reader, t.getRoundNumber());
         d.addPlayers(p, true);
-        d.initialize();
     }
 
     private ArrayList<Player> readPlayers(BufferedReader reader, int roundNum) throws IOException {

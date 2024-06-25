@@ -4,6 +4,14 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public interface Tiebreak {
+    static Tiebreak[] getTiebreaks(TiebreakType[] tiebreakTypes) {
+        Tiebreak[] tbs = new Tiebreak[tiebreakTypes.length];
+        for(int i = 0; i < tiebreakTypes.length; i++){
+            tbs[i] = Tiebreak.fromTiebreakType(tiebreakTypes[i]);
+        }
+        return tbs;
+    }
+
     String name();
     void computeTiebreak(List<Player> players);
 
@@ -41,11 +49,7 @@ public interface Tiebreak {
                 TiebreakType.SonnebornBerger, TiebreakType.ProgressiveScores,
                 TiebreakType.DirectEncounter, TiebreakType.WinCount,
                 TiebreakType.WinCountAsBlack};
-        Tiebreak[] out = new Tiebreak[defaultTiebreaks.length];
-        for (int i = 0; i < out.length; i++) {
-            out[i] =  fromTiebreakType(defaultTiebreaks[i]);
-        }
-        return out;
+        return getTiebreaks(defaultTiebreaks);
     }
 }
 class SimpleTiebreak implements Tiebreak{
@@ -159,7 +163,7 @@ class WinCountAsBlack implements ICalculateSimpleTiebreak {
 class DirectEncounter implements Tiebreak {
     @Override
     public String name() {
-        return TiebreakType.DirectEncounter.name();
+        return type().name();
     }
 
     @Override

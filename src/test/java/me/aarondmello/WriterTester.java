@@ -2,15 +2,15 @@ package me.aarondmello;
 
 import me.aarondmello.csv.CsvWriter;
 import me.aarondmello.datatypes.*;
-import me.aarondmello.datatypes.TiebreakType;
 import org.junit.jupiter.api.Test;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.LinkedList;
-import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -91,15 +91,12 @@ public class WriterTester {
                 .withName("myTournament")
                 .withNRounds(2)
                 .withPlayer("div2", new Player("player", "org"))
+                .withDivisionTiebreaks("div2", new TiebreakType[]{TiebreakType.BuchholzCutOne, TiebreakType.Buchholz,
+                        TiebreakType.SonnebornBerger, TiebreakType.ProgressiveScores,
+                        TiebreakType.DirectEncounter, TiebreakType.WinCount,
+                        TiebreakType.WinCountAsBlack})
                 .asFinals()
                 .execute();
-
-        Division division = t.getDivisionWithName("div2", false);
-        division.setTiebreaks(new TiebreakType[]{TiebreakType.BuchholzCutOne, TiebreakType.Buchholz,
-                TiebreakType.SonnebornBerger, TiebreakType.ProgressiveScores,
-                TiebreakType.DirectEncounter, TiebreakType.WinCount,
-                TiebreakType.WinCountAsBlack});
-        division.initialize();
 
         writer.saveTournament(t, out);
         out.close();

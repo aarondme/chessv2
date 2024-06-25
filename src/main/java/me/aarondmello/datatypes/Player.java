@@ -49,9 +49,7 @@ public class Player {
     public void setOrganization(String organization) {
         this.organization = organization.trim();
     }
-    public void setScore(int score) {
-        this.score = score;
-    }
+
     public void setID(int id){
         this.id = id;
     }
@@ -59,10 +57,6 @@ public class Player {
         summaries.addAll(Arrays.asList(playerGameSummaries));
         score += Arrays.stream(playerGameSummaries).mapToInt(PlayerGameSummary::getPointsEarned).sum();
     }
-    public void computeScore(){
-        score = summaries.stream().mapToInt(PlayerGameSummary::getPointsEarned).sum();
-    }
-
     
     public boolean hasSatOut(){
         return hasPlayedAgainst(NullPlayer.getInstance());
@@ -75,7 +69,7 @@ public class Player {
         tiebreakScores.clear();
     }
 
-    public void setTiebreak(TiebreakType tiebreakType, int value) {
+    void setTiebreak(TiebreakType tiebreakType, int value) {
         tiebreakScores.put(tiebreakType, value);
     }
 
@@ -95,7 +89,7 @@ public class Player {
         return rank;
     }
 
-    public void setRank(int rank) {
+    void setRank(int rank) {
         this.rank = rank;
     }
 }
