@@ -25,7 +25,7 @@ interface WeightFunction {
              for (int j = 0; j < state.roundsRemaining; j++) {
                  VariableIndex coordinate = new VariableIndex(i, j);
                  List<VariableAssignment> v = state.getVar(coordinate);
-                 if(v.removeIf(a -> getBestWeightPossible(state, coordinate, a, players) >= currentBestWeight())){
+                 if(v.removeIf(a -> getBestWeightPossible(state, coordinate, a, players) >= weightToBeat())){
                      if(v.isEmpty()) return null;
                      modified.add(coordinate);
                  }
@@ -34,7 +34,7 @@ interface WeightFunction {
          return modified;
      }
 
-     protected abstract int currentBestWeight();
+     protected abstract int weightToBeat();
 
      protected abstract int getBestWeightPossible(VariableState state, VariableIndex coordinate, VariableAssignment a, List<Player> players);
 
@@ -43,7 +43,12 @@ interface WeightFunction {
          return "w";
      }
  }
-record VariableAssignment(int opponentIndex, int weight) {}
+record VariableAssignment(int opponentIndex, int weight) {
+    public static final int SIT_OUT_INDEX = -1;
+    boolean isSittingOut(){
+        return opponentIndex == SIT_OUT_INDEX;
+    }
+}
 record VariableIndex(int player, int round) {}
 
 /**
@@ -117,7 +122,7 @@ public class PairingSystem extends Thread {
             if(pairedIds.contains(i))
                 continue;
             int opponent = bestSolution.variables.get(new VariableIndex(i, 0)).get(0).opponentIndex();
-            if(opponent == -1){
+            if(opponent == VariableAssignment.SIT_OUT_INDEX){
                 Game g = new Game(bestSolution.players.get(i), NullPlayer.getInstance());
                 g.setResult(GameResult.WHITE_WIN);
                 r.add(g);
@@ -201,7 +206,7 @@ class PlayerConstraint implements Constraint {
             List<VariableAssignment> w = state.getVar(playerIndex, i);
             if(w.size() != 1) continue;
             int opponentIndex = w.get(0).opponentIndex();
-            if(opponentIndex == -1) continue;
+            if(opponentIndex == VariableAssignment.SIT_OUT_INDEX) continue;
 
             if(usedValues.contains(opponentIndex))
                 return null;
@@ -243,7 +248,7 @@ class RoundConstraint implements Constraint {
             List<VariableAssignment> w = state.getVar(i, roundIndex);
             if(w.size() != 1) continue;
             int opponentIndex = w.get(0).opponentIndex();
-            if(opponentIndex != -1){
+            if(opponentIndex != VariableAssignment.SIT_OUT_INDEX){
                 usedValues.add(opponentIndex);
                 usedValues.add(i);
                 if(state.setVar(opponentIndex, roundIndex, i)){
@@ -296,7 +301,7 @@ class VariableState {
                 continue;
             values.add(new VariableAssignment(opponentIndex, weightFunction.calculateWeight(opponentIndex, p, variableIndex.round(), players)));
         }
-        values.add(new VariableAssignment(-1, weightFunction.calculateWeight(-1, p, variableIndex.round(), players)));
+        values.add(new VariableAssignment(VariableAssignment.SIT_OUT_INDEX, weightFunction.calculateWeight(VariableAssignment.SIT_OUT_INDEX, p, variableIndex.round(), players)));
         values.sort(Comparator.comparing(VariableAssignment::weight));
         return values;
     }
@@ -312,7 +317,7 @@ class VariableState {
     public void trivialize() {
         for(List<VariableAssignment> value : variables.values())
             if (value.size() > 1)
-                value.removeIf(x -> x.opponentIndex() != -1);
+                value.removeIf(x -> !x.isSittingOut());
     }
 
     public VariableIndex getUnassignedVariable() {
@@ -360,7 +365,7 @@ class VariableState {
         int num = 0;
         for (int i = 0; i < players.size(); i++){
             List<VariableAssignment> domain = variables.get(new VariableIndex(i, r));
-            if (domain.size() == 1 && domain.get(0).opponentIndex() == -1)
+            if (domain.size() == 1 && domain.get(0).isSittingOut())
                 num++;
         }
         return num;
