@@ -1,15 +1,13 @@
 package me.aarondmello;
 
-import me.aarondmello.datatypes.Division;
-import me.aarondmello.datatypes.Player;
-import me.aarondmello.datatypes.Round;
-import me.aarondmello.datatypes.Tournament;
-import me.aarondmello.datatypes.TiebreakType;
+import me.aarondmello.datatypes.*;
+
+import java.util.LinkedList;
 
 public class TournamentBuilder {
     Tournament t;
     TournamentBuilder(){
-        t = new Tournament();
+        t = new Tournament("DefaultName", 5, true);
     }
     public static TournamentBuilder createTournament(){
         return new TournamentBuilder();
@@ -40,7 +38,7 @@ public class TournamentBuilder {
         return t;
     }
 
-    public TournamentBuilder withRound(String division, Round r) {
+    public TournamentBuilder withRound(String division, LinkedList<Game> r) {
         Division d = t.getDivisionWithName(division, true);
         t.setRoundNumber(t.getRoundNumber() + 1);
         d.setCurrentRound(r);

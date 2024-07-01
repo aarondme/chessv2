@@ -7,8 +7,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
 import java.util.Scanner;
 
 public class CommandLineInterface implements BasicPrompts {
@@ -31,15 +29,15 @@ public class CommandLineInterface implements BasicPrompts {
             String in = input.nextLine();
             if(in.equals("0"))
                 return;
-            if(validateResultFromInput(in)){
+            try{
                 String[] abc = in.split("\\s+");
                 String divName = abc[0];
                 int id = Integer.parseInt(abc[1]);
                 int shouldSitOut = Integer.parseInt(abc[2]);
                 tournament.getPlayer(divName, id).setActive(shouldSitOut == 0);
+            }catch (Exception e){
+                System.out.println("Invalid input provided.");
             }
-
-            System.out.println("Invalid input provided.");
         }
     }
 
@@ -58,15 +56,9 @@ public class CommandLineInterface implements BasicPrompts {
             System.out.println("| ID | Rank |         Player name         |       Organization       | Score |");
             ArrayList<String> strings = new ArrayList<>();
 
-            Comparator<Player> playerComparator = division.getPlayerComparator();
-            int rank = 1;
-            int tiedWith = 1;
-            List<Player> players = division.getPlayers();
+
             for(Player player : division.getPlayers()){
-                if(playerComparator.compare(player, players.get(tiedWith - 1)) != 0)
-                    tiedWith = rank;
-                strings.add(String.format("|%1$-4s|%2$-6s|%3$-29s|%4$-26s|%5$-7s|", player.getID(), tiedWith, player.getName(), player.getOrganization(), player.getScore()));
-                rank++;
+                strings.add(String.format("|%1$-4s|%2$-6s|%3$-29s|%4$-26s|%5$-7s|", player.getID(), player.getRank(), player.getName(), player.getOrganization(), player.getScore()));
             }
             for (int i = 0; i < strings.size() / 2; i++) {
                 System.out.println(strings.get(i) + "/////" + strings.get(strings.size()/2 + i));
@@ -91,15 +83,10 @@ public class CommandLineInterface implements BasicPrompts {
     @Override
     public void getRoundResults(Tournament tournament, DataReader reader) {
         while(true){
-            printPairing(tournament);
-            String in = getResultFromInput();
-            if(in == null && tournament.confirmRoundResults())
+            getResultFromInput(tournament);
+            if(tournament.confirmRoundResults())
                 return;
-            try {
-                String[] split = in.split("\\s+");
-                GameResult result = toGameResult(Integer.parseInt(split[2]));
-                tournament.setResultByDivisionAndGameID(split[0], Integer.parseInt(split[1]) - 1, result);
-            }catch (Exception ignored){}
+            System.out.println("Round results not filled");
         }  
     }
 
@@ -123,30 +110,42 @@ public class CommandLineInterface implements BasicPrompts {
         return player.getName() + " (" + player.getOrganization() + ") [" + player.getScore() + "]";
     }
 
-    private String getResultFromInput() {
+    private void getResultFromInput(Tournament tournament) {
         while(true){
-            System.out.println("Enter \"division\" \"game number\" \"game result\", where round result is 2 if white win, 1 if draw, 0 if black win. Enter \"DONE\" to exit");
+            printPairing(tournament);
+            System.out.println("To enter results individually, enter \"division\" \"game number\" \"game result\", where round result is 2 if white win, 1 if draw, 0 if black win.");
+            System.out.println("To enter results sequentially, enter \"0\"");
+            System.out.println("Enter \"DONE\" to exit");
             String in = input.nextLine();
+            if(in.equals("0"))
+                getResultsSequentially(tournament);
             if(in.equals("DONE"))
-                return null;
-            if(validateResultFromInput(in))
-                return in;
-            System.out.println("Invalid input provided.");
+                return;
+            try {
+                String[] split = in.split("\\s+");
+                GameResult result = toGameResult(Integer.parseInt(split[2]));
+                tournament.setResultByDivisionAndGameID(split[0], Integer.parseInt(split[1]) - 1, result);
+            } catch (Exception e) {
+                System.out.println("Invalid input provided.");
+            }
         }
     }
 
-    private boolean validateResultFromInput(String line){
-        try {
-            String[] split = line.split("\\s+");
-            Integer.parseInt(split[1]);
-            Integer.parseInt(split[2]);
-            return true;
-        } catch (Exception e) {
+    private void getResultsSequentially(Tournament tournament) {
+        for (Division d: tournament.getDivisions()) {
+            int id = 1;
+            for (Game g: d.getPairing()) {
+                int resultAsInt = promptForInt("Enter the result of the following game. Enter 2 for white win," +
+                        "1 for a draw, 0 for black win\n" + "Division " + d.getName() + " Game id " + id +
+                        "White: " + formatPlayer(g.getWhitePlayer()) + " Black: " +
+                        formatPlayer(g.getBlackPlayer()), new String[0], 0, 2);
+                GameResult result = toGameResult(resultAsInt);
+                g.setResult(result);
+                id++;
+            }
 
-            return false;
         }
     }
-
 
 
     private int promptForInt(String header, String[] options, int min, int max) {
@@ -241,6 +240,14 @@ public class CommandLineInterface implements BasicPrompts {
     }
 
     @Override
+    public Tournament getNewTournamentDetails(DataReader tournamentReader){
+        String tournamentName = getNewTournamentName();
+        int numRounds = getNewTournamentTotalRounds();
+        boolean isDivisional = promptForInt("Enter the appropriate number to continue",
+                new String[]{"0: divisional tournament", "1: finals tournament"}, 0, 1) == 0;
+        return editNewTournamentDetails(new Tournament(tournamentName, numRounds, isDivisional), tournamentReader);
+    }
+
     public Tournament editNewTournamentDetails(Tournament tournament, DataReader tournamentReader) {
         while(true){
             printPlayerList(tournament);
@@ -268,11 +275,9 @@ public class CommandLineInterface implements BasicPrompts {
             else if(in == 6)
                 removePlayerInTournament(tournament);
             else if(in == 7)
-                tournament.toggleType();
+                tournament.setRegionalTournament(!tournament.isRegionalTournament());
             else if(in == 8){
-                if(tournament.isDataValid())
-                    return confirmTournamentDetails(tournament, tournamentReader);
-                System.out.println("Tournament data is invalid");
+                return confirmTournamentDetails(tournament, tournamentReader);
             }
         }  
     }

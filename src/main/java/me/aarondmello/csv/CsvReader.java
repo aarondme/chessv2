@@ -1,17 +1,18 @@
 package me.aarondmello.csv;
 
+import me.aarondmello.datatypes.*;
+import me.aarondmello.driver.DataReader;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-
-import me.aarondmello.datatypes.*;
-import me.aarondmello.driver.DataReader;
+import java.util.Map;
 
 public class CsvReader implements DataReader{
     String organizationName;
-    HashMap<String, ArrayList<Player>> divisionToPlayerList;
+    Map<String, ArrayList<Player>> divisionToPlayerList;
     public CsvReader(){}
 
     private void addPlayerToList(String playerName, String division){
@@ -26,18 +27,22 @@ public class CsvReader implements DataReader{
     }
 
     public Tournament readFromInProgressFile(BufferedReader reader) {
-        Tournament t = new Tournament();
+
         try {
-            readName(reader, t);
-            readRounds(reader, t);
+            String name = readName(reader);
+            boolean isRegionalTournament = readIsRegionalTournament(reader);
+            int[] rounds = readRounds(reader);
+            Tournament t = new Tournament(name, rounds[1], isRegionalTournament);
+            t.setRoundNumber(rounds[0]);
             reader.readLine();
             String header;
             while((header = reader.readLine()) != null)
                 readDivisions(reader, t, header);
+            t.initialize(false);
+            return t;
         }catch (IOException e){
             return null;
         }
-        return t;
     }
 
     @Override
@@ -81,7 +86,6 @@ public class CsvReader implements DataReader{
         readDivisionTiebreaks(reader, d, t.getRoundNumber());
         ArrayList<Player> p = readPlayers(reader, t.getRoundNumber());
         d.addPlayers(p, true);
-        d.initialize();
     }
 
     private ArrayList<Player> readPlayers(BufferedReader reader, int roundNum) throws IOException {
@@ -134,26 +138,25 @@ public class CsvReader implements DataReader{
         return t.getDivisionWithName(cells[0].substring(firstSpace+1), true);
     }
 
-    private void readRounds(BufferedReader reader, Tournament t) throws IOException {
+    private int[] readRounds(BufferedReader reader) throws IOException {
         String[] row = reader.readLine().split(",")[0].split("\\s+");
         if(row[0].equals("Round")){
-            t.setRoundNumber(Integer.parseInt(row[1]));
-            t.setTotalRounds(Integer.parseInt(row[3]));
+            return new int[]{Integer.parseInt(row[1]), Integer.parseInt(row[3])};
+
         }else{
             int x = Integer.parseInt(row[0].split("-")[0]);
-            t.setRoundNumber(x + 1);
-            t.setTotalRounds(x);
+            return new int[]{x+1, x};
         }
 
 
     }
 
-    private void readName(BufferedReader reader, Tournament t) throws IOException {
-        String[] row = reader.readLine().split(",");
-        t.setName(row[1]);
+    private String readName(BufferedReader reader) throws IOException {
+        return reader.readLine().split(",")[1];
+    }
 
-        row = reader.readLine().split(",");
-        t.setRegionalTournament(Boolean.parseBoolean(row[1]));
+    private boolean readIsRegionalTournament(BufferedReader reader) throws IOException{
+        return Boolean.parseBoolean(reader.readLine().split(",")[1]);
     }
 
     @Override

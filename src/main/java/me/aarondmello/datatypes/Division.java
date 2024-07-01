@@ -1,27 +1,14 @@
 package me.aarondmello.datatypes;
-import java.util.*;
-
 
 import me.aarondmello.driver.PairingSystem;
 
+import java.util.*;
+import java.util.stream.Collectors;
+
 
 public class Division{
-    private boolean isRegional;
 
-    public void setTotalRounds(int rounds) {
-        totalRounds = rounds;
-    }
-
-    public void setRegional(boolean isRegionalTournament) {
-        isRegional = isRegionalTournament;
-    }
-
-
-    static class PlayerComparator implements Comparator<Player>{
-        Tiebreak[] tiebreaks;
-        PlayerComparator(Tiebreak[] tb){
-            tiebreaks = tb;
-        }
+    class ScoreComparator implements Comparator<Player>{
         @Override
         public int compare(Player o1, Player o2) {
             if(o1.getScore() != o2.getScore()) return o1.getScore() - o2.getScore();
@@ -33,25 +20,23 @@ public class Division{
         }
     }
 
-    static class SortingPlayerComparator implements Comparator<Player>{
-        Comparator<Player> comparator;
-        SortingPlayerComparator(Comparator<Player> c){comparator = c;}
-
+    class SortingPlayerComparator implements Comparator<Player>{
         @Override
         public int compare(Player o1, Player o2) {
-            int r = comparator.compare(o1, o2);
+            int r = scoreComparator.compare(o1, o2);
 
             return (r == 0)? o1.getID() - o2.getID() : r;
         }
     }
 
     private final String name;
-    private final ArrayList<Player> players = new ArrayList<>();
-    private int totalRounds;
+    private final List<Player> players = new ArrayList<>();
     private int maxID = 0;
+    private final ScoreComparator scoreComparator = new ScoreComparator();
+    private final SortingPlayerComparator sortingPlayerComparator = new SortingPlayerComparator();
 
-    Tiebreak[] tiebreaks = null;
-    private Round currentRound;
+    private Tiebreak[] tiebreaks = Tiebreak.getDefaultTiebreaks();
+    private List<Game> currentRound;
 
     Division(String name){
         this.name = name;
@@ -61,11 +46,8 @@ public class Division{
         return name;
     }
 
-    public Comparator<Player> getPlayerComparator(){
-        return new PlayerComparator(tiebreaks);
-    }
     public void sortPlayers(){
-        players.sort((new SortingPlayerComparator(getPlayerComparator())).reversed());
+        players.sort((sortingPlayerComparator).reversed());
     }
     public void addPlayer(Player p, boolean maintainIds){
         if(!maintainIds)
@@ -104,48 +86,60 @@ public class Division{
             player.setID(i);
         }
     }
-    public void initialize() {
-        for(Player p : players)
+    void initialize() {
+        for(Player p : players){
             p.clearTiebreaks();
-        for(Tiebreak t: tiebreaks)
-            t.computeTiebreak(players, getPlayerComparator());
-        sortPlayers();
+        }
+        for(Tiebreak t: tiebreaks){
+            if(t instanceof DirectEncounter)
+                computePlayerRanks();
+            t.computeTiebreak(players);
+        }
+
+        computePlayerRanks();
     }
-    public void pairRound(int roundNumber) {
+
+    private void computePlayerRanks() {
         sortPlayers();
-        ArrayList<Player> activePlayers = new ArrayList<>(players);
-        ArrayList<Player> inactivePlayers = new ArrayList<>(players);
-        activePlayers.removeIf(p -> !p.isActive());
-        inactivePlayers.removeIf(Player::isActive);
-
-        currentRound = PairingSystem.pairRound(roundNumber, activePlayers, totalRounds,
-                PairingSystem.getWeightFunction(isRegional, activePlayers, roundNumber, totalRounds));
-
-        for (Player p : inactivePlayers) {
-            Game g = new Game(p, NullPlayer.getInstance());
-            g.setResult(GameResult.BLACK_WIN);
-            currentRound.addGame(g);
+        int rank = 1;
+        int tiedWith = 1;
+        for(Player player : players) {
+            if (scoreComparator.compare(player, players.get(tiedWith - 1)) != 0)
+                tiedWith = rank;
+            player.setRank(tiedWith);
+            rank++;
         }
     }
 
-    public void setCurrentRound(Round currentRound) {
+    public void pairRound(int roundNumber, int totalRounds, boolean isRegional) {
+        sortPlayers();
+        ArrayList<Player> activePlayers = players.stream().filter(Player::isActive).collect(Collectors.toCollection(ArrayList::new));
+        List<Player> inactivePlayers = players.stream().filter(p -> !p.isActive()).toList();
+
+        currentRound = PairingSystem.pairRound(roundNumber, activePlayers, inactivePlayers, totalRounds,
+                PairingSystem.getWeightFunction(isRegional, activePlayers, roundNumber, totalRounds));
+    }
+
+    public void setCurrentRound(List<Game> currentRound) {
         this.currentRound = currentRound;
     }
     public void confirmRoundResults() {
-        for(Game game : currentRound.getGames())
+        for(Game game : currentRound)
             game.confirmResult();
+        currentRound = null;
         initialize();
     }
 
 
     public boolean validateRoundResults() {
-        return currentRound.getGames().stream().allMatch(g -> g.result != null);
+        return currentRound.stream().allMatch(g -> g.result != null);
     }
     public void setGameResultByID(int id, GameResult result) {
-        currentRound.setResultByID(id, result);
+        if(0 <= id && id < currentRound.size())
+            currentRound.get(id).setResult(result);
     }
-    public LinkedList<Game> getPairing() {
-        return currentRound.getGames();
+    public List<Game> getPairing() {
+        return currentRound;
     }
 
     public Tiebreak[] getTiebreaks() {
@@ -154,27 +148,12 @@ public class Division{
 
 
     public void setTiebreaks(TiebreakType[] tiebreakTypes){
-        TiebreakType[] defaultTiebreaks = {TiebreakType.BuchholzCutOne, TiebreakType.Buchholz,
-                TiebreakType.SonnebornBerger, TiebreakType.ProgressiveScores,
-                TiebreakType.DirectEncounter, TiebreakType.WinCount,
-                TiebreakType.WinCountAsBlack};
-
-        if(tiebreakTypes == null)
-            tiebreakTypes = defaultTiebreaks;
-
-        Tiebreak[] tbs = new Tiebreak[tiebreakTypes.length];
-        for(int i = 0; i < tiebreakTypes.length; i++){
-            switch (tiebreakTypes[i]){
-                case Buchholz -> tbs[i] = new SimpleTiebreak(new Buchholz());
-                case BuchholzCutOne -> tbs[i] = new SimpleTiebreak(new BuchholzCutOne());
-                case DirectEncounter -> tbs[i] = new DirectEncounter();
-                case SonnebornBerger -> tbs[i] = new SimpleTiebreak(new SonnebornBerger());
-                case ProgressiveScores -> tbs[i] = new SimpleTiebreak(new ProgressiveScores());
-                case WinCount -> tbs[i] = new SimpleTiebreak(new WinCount());
-                case WinCountAsBlack -> tbs[i] = new SimpleTiebreak(new WinCountAsBlack());
-            }
+        if(tiebreakTypes == null){
+            tiebreaks = Tiebreak.getDefaultTiebreaks();
+            return;
         }
-        tiebreaks = tbs;
+        tiebreaks = Tiebreak.getTiebreaks(tiebreakTypes);
     }
+
 
 }

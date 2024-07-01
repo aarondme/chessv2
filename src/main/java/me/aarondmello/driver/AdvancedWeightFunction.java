@@ -13,6 +13,7 @@ import java.util.*;
  */
 public class AdvancedWeightFunction implements WeightFunction {
     private static final int WEIGHT_OF_SIT_OUT = 100_000_000;
+    private static final int MULTIPLIER_OF_SIT_OUT = 5;
     private static final int NORMAL_POINT_FACTOR = 1_000_000;
     private static final int NORMAL_COST_OF_SAME_ORG = 1;
     private static final int WEAK_POINT_FACTOR = 100;
@@ -36,6 +37,14 @@ public class AdvancedWeightFunction implements WeightFunction {
         scores.sort(Comparator.reverseOrder());
         return scores.get(cutoff-1) - 2 * roundsRemaining;
     }
+
+    private int getCostOfSameOrg(int score){
+        return (score >= scoreCutoff)? NORMAL_COST_OF_SAME_ORG:WEAK_COST_OF_SAME_ORG;
+    }
+
+    private int getCostFactorOfScoreDifference(int score){
+        return (score >= scoreCutoff)? NORMAL_POINT_FACTOR:WEAK_POINT_FACTOR;
+    }
     @Override
     public Constraint getWeightConstraint(int bestWeight) {
         return new AdvancedWeightConstraint(bestWeight);
@@ -43,26 +52,28 @@ public class AdvancedWeightFunction implements WeightFunction {
 
     @Override
     public int calculateWeight(int opponentIndex, Player player, int roundIndex, List<Player> players) {
-        int pointFactor = (player.getScore() >= scoreCutoff)? NORMAL_POINT_FACTOR:WEAK_POINT_FACTOR;
-        int orgFactor = (player.getScore() >= scoreCutoff)? NORMAL_COST_OF_SAME_ORG:WEAK_COST_OF_SAME_ORG;
+        int playerScore = player.getScore();
+        int pointFactor = getCostFactorOfScoreDifference(playerScore);
+        int orgFactor = getCostOfSameOrg(playerScore);
 
-        if(opponentIndex == -1){
+        if(opponentIndex == VariableAssignment.SIT_OUT_INDEX){
             return WEIGHT_OF_SIT_OUT + (player.hasSatOut()? WEIGHT_OF_SIT_OUT:0)
-                    + ((roundIndex==0)? player.getScore() * player.getScore() * 5 * pointFactor:0);
+                    + ((roundIndex==0)? playerScore * playerScore * MULTIPLIER_OF_SIT_OUT * pointFactor:0);
         }
 
 
         Player opponent = players.get(opponentIndex);
+        int opponentScore = opponent.getScore();
         if (roundIndex == 0){
-            return (player.getScore() - opponent.getScore()) *
-                    (player.getScore() - opponent.getScore()) * pointFactor +
+            return (playerScore - opponentScore) *
+                    (playerScore - opponentScore) * pointFactor +
                     (player.getOrganization().equals(opponent.getOrganization())? orgFactor:0);
         }
 
         return 0;
     }
 
-    class AdvancedWeightConstraint implements Constraint{
+    class AdvancedWeightConstraint extends WeightConstraint{
         int bestWeight;
         int bestWeightForFirstRound = Integer.MIN_VALUE;
         int bestWeightForOtherRounds = Integer.MIN_VALUE;
@@ -71,6 +82,7 @@ public class AdvancedWeightFunction implements WeightFunction {
             this.bestWeight = bestWeight;
         }
 
+        @Override
         public int getBestWeightPossible(VariableState state, VariableIndex index, VariableAssignment assignment, List<Player> players) {
             int weightForFirstRound = getWeightForFirstRound(state, index, assignment, players);
             int weightForOtherRounds = getWeightForOtherRounds(state, index, assignment, players);
@@ -79,7 +91,7 @@ public class AdvancedWeightFunction implements WeightFunction {
 
         private int getWeightForOtherRounds(VariableState state, VariableIndex variableIndex, VariableAssignment assignment, List<Player> players) {
             if(bestWeightForOtherRounds != Integer.MIN_VALUE){
-                if(variableIndex.round() == 0 || assignment.opponentIndex() != -1) return bestWeightForOtherRounds;
+                if(variableIndex.round() == 0 || !assignment.isSittingOut()) return bestWeightForOtherRounds;
                 int numPlayersNotSittingOut = (players.size() - state.numSitOuts(variableIndex.round())) + ((state.getVar(variableIndex).size() == 1)? 0:1);
                 return bestWeightForOtherRounds + (numPlayersNotSittingOut & 1) * WEIGHT_OF_SIT_OUT;
             }
@@ -90,12 +102,12 @@ public class AdvancedWeightFunction implements WeightFunction {
                     VariableIndex index = new VariableIndex(i, r);
                     if(index.equals(variableIndex))
                         continue;
-                    LinkedList<VariableAssignment> domain = state.getVar(index);
+                    List<VariableAssignment> domain = state.getVar(index);
 
-                    if(domain.size() == 1 && domain.get(0).opponentIndex() == -1)
+                    if(domain.size() == 1 && domain.get(0).isSittingOut())
                         weightForOtherRounds += state.getWeightOf(index);
                 }
-                int numPlayersNotSittingOut = players.size() - state.numSitOuts(r) + ((r == variableIndex.round() && assignment.opponentIndex() == -1)? 1:0);
+                int numPlayersNotSittingOut = players.size() - state.numSitOuts(r) + ((r == variableIndex.round() && assignment.isSittingOut())? 1:0);
                 weightForOtherRounds += (numPlayersNotSittingOut & 1) * WEIGHT_OF_SIT_OUT; //If an odd number of players are not marked as sitting out in a round, we will find one more
             }
 
@@ -122,7 +134,7 @@ public class AdvancedWeightFunction implements WeightFunction {
             if(variableIndex.round() == 0){
                 firstRoundPlayersPaired.add(variableIndex.player());
                 weightForFirstRound += assignment.weight();
-                if(assignment.opponentIndex() != -1){
+                if(!assignment.isSittingOut()){
                     firstRoundPlayersPaired.add(assignment.opponentIndex());
                     weightForFirstRound += calculateWeight(variableIndex.player(), players.get(assignment.opponentIndex()), 0, players);
                 }
@@ -130,13 +142,13 @@ public class AdvancedWeightFunction implements WeightFunction {
             for (int i = 0; i < players.size(); i++) {
                 if(firstRoundPlayersPaired.contains(i)) continue;
                 VariableIndex index = new VariableIndex(i, 0);
-                LinkedList<VariableAssignment> domain = state.getVar(index);
+                List<VariableAssignment> domain = state.getVar(index);
                 Player playerI = players.get(i);
 
                 if(domain.size() == 1){
                     weightForFirstRound += state.getWeightOf(index);
                     int opponentIndex = domain.get(0).opponentIndex();
-                    if (opponentIndex != -1) {
+                    if (opponentIndex != VariableAssignment.SIT_OUT_INDEX) {
                         weightForFirstRound += calculateWeight(i, players.get(opponentIndex), 0, players);
                         firstRoundPlayersPaired.add(opponentIndex);
                         firstRoundPlayersPaired.add(i);
@@ -168,23 +180,18 @@ public class AdvancedWeightFunction implements WeightFunction {
                 if(wasPreviousOdd){
                     weightForFirstRound += (prevScore - score) * (prevScore - score) *
                             (
-                                    ((prevScore >= scoreCutoff)? NORMAL_POINT_FACTOR:WEAK_POINT_FACTOR) +
-                                            ((score>=scoreCutoff)? NORMAL_POINT_FACTOR:WEAK_POINT_FACTOR)
+                                    getCostFactorOfScoreDifference(prevScore) +
+                                            getCostFactorOfScoreDifference(score)
                             );
                     freq--;
                 }
 
-                if((freq & 1) == 1){
-                    wasPreviousOdd = true;
-                    prevScore = score;
-                }
-                else{
-                    wasPreviousOdd = false;
-                }
+                wasPreviousOdd = (freq & 1) == 1;
+                prevScore = score;
             }
 
             if(wasPreviousOdd)
-                weightForFirstRound += WEIGHT_OF_SIT_OUT + prevScore * prevScore * 5 * ((prevScore >= scoreCutoff)? NORMAL_POINT_FACTOR:WEAK_POINT_FACTOR);
+                weightForFirstRound += WEIGHT_OF_SIT_OUT + prevScore * prevScore * MULTIPLIER_OF_SIT_OUT * getCostFactorOfScoreDifference(prevScore);
 
             weightForFirstRound += NORMAL_COST_OF_SAME_ORG * Math.max((2 * mostCommonStrongOrgFreq - numStrongPlayers - (numStrongPlayers & 1)), 0);
             weightForFirstRound += WEAK_COST_OF_SAME_ORG * Math.max(2 * mostCommonWeakOrgFreq - numWeakPlayers - (numStrongPlayers & 1) -
@@ -197,24 +204,9 @@ public class AdvancedWeightFunction implements WeightFunction {
         }
 
         @Override
-        public Iterable<VariableIndex> applyTo(VariableState state, List<Player> players) {
-            List<VariableIndex> modified = new LinkedList<>();
-            for (int i = 0; i < players.size(); i++) {
-                for (int j = 0; j < state.roundsRemaining; j++) {
-                    LinkedList<VariableAssignment> v = state.getVar(i, j);
-                    VariableIndex coordinate = new VariableIndex(i, j);
-                    if(v.removeIf(a -> getBestWeightPossible(state, coordinate, a, players) >= bestWeight)){
-                        if(v.isEmpty()) return null;
-                        modified.add(coordinate);
-                    }
-                }
-            }
-            return modified;
+        protected int weightToBeat() {
+            return bestWeight;
         }
 
-        @Override
-        public String name() {
-            return "w";
-        }
     }
 }

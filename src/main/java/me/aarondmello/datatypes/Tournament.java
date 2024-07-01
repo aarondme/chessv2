@@ -2,19 +2,23 @@ package me.aarondmello.datatypes;
 import java.util.*;
 
 public class Tournament{
-    private String name = null;
-    private final LinkedList<Division> divisions = new LinkedList<>();
+    private String name;
+    private final List<Division> divisions = new LinkedList<>();
     private int roundNumber = 1;
-    private int totalRounds = -1;
-    private boolean isRegionalTournament = true;
+    private int totalRounds;
+    private boolean isRegionalTournament;
 
-    public Tournament(){
+    
+    public Tournament(String name, int totalRounds, boolean isRegionalTournament){
+        this.name = name;
+        this.totalRounds = totalRounds;
+        this.isRegionalTournament = isRegionalTournament;
     }
 
     public String getName() {
         return name;
     }
-    public LinkedList<Division> getDivisions() {
+    public List<Division> getDivisions() {
         return divisions;
     }
     public int getRoundNumber() {
@@ -39,11 +43,7 @@ public class Tournament{
         this.roundNumber = roundNumber;
     }
 
-    public boolean isDataValid(){
-        return name != null && totalRounds > 0 && divisions.size() > 0;
-    }
-
-    public void addPlayers(HashMap<String, ArrayList<Player>> divisionNameToPlayerListMap){
+    public void addPlayers(Map<String, ArrayList<Player>> divisionNameToPlayerListMap){
         for (String divisionName : divisionNameToPlayerListMap.keySet()) {
             Division division = getDivisionWithName(divisionName, true);
             division.addPlayers(divisionNameToPlayerListMap.get(divisionName));
@@ -62,7 +62,6 @@ public class Tournament{
         }
         if(createIfNotFound){
             Division division = new Division(name);
-            division.setTotalRounds(totalRounds);
             divisions.add(division);
             return division;
         }
@@ -82,21 +81,23 @@ public class Tournament{
 
     public void removePlayer(String divisionName, int playerID){
         Division division = getDivisionWithName(divisionName);
-        if(division != null)
+        if(division != null){
             division.removePlayer(playerID);
+            if(division.getPlayers().size() > 0)
+                divisions.remove(division);
+        }
+
     }
 
     public void initialize(boolean shouldRandomize) {
         for(Division division : divisions){
             if (shouldRandomize) division.randomizeIds();
             division.initialize();
-            division.setTotalRounds(totalRounds);
-            division.setRegional(isRegionalTournament);
         }
     }
 
     public void createRound() {
-        divisions.forEach(d -> d.pairRound(roundNumber));
+        divisions.forEach(d -> d.pairRound(roundNumber, totalRounds, isRegionalTournament));
     }
 
     public boolean confirmRoundResults() {
@@ -112,10 +113,6 @@ public class Tournament{
         Division division = getDivisionWithName(divisionName);
         if(division != null)
             division.setGameResultByID(id, result);
-    }
-
-    public void toggleType() {
-        isRegionalTournament = !isRegionalTournament;
     }
 
     public boolean isRegionalTournament() {

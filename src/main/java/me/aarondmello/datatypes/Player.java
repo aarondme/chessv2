@@ -1,14 +1,14 @@
 package me.aarondmello.datatypes;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Map;
+
+import java.util.*;
 
 public class Player {
     private String name;
     private String organization;
-    private int score = 0;
-    private final LinkedList<PlayerGameSummary> summaries = new LinkedList<>();
-    private final HashMap<TiebreakType, Integer> tiebreaks = new HashMap<>();
+    private final HashMap<TiebreakType, Integer> tiebreakScores = new HashMap<>();
+    private int score;
+    private final List<PlayerGameSummary> summaries = new LinkedList<>();
+    private int rank;
     private boolean isActive;
     /**
      * IDs for players within a division are expected to be unique integers 
@@ -29,14 +29,15 @@ public class Player {
     public int getScore() {
         return score;
     }
-    public LinkedList<PlayerGameSummary> getPlayerGameSummaries() {
+
+    public List<PlayerGameSummary> getPlayerGameSummaries() {
         return summaries;
     }
     public Map<TiebreakType, Integer> getTiebreaks() {
-        return tiebreaks;
+        return tiebreakScores;
     }
     public int getGamesAsBlack() {
-        return summaries.stream().mapToInt(s -> ((s.getColour() == Colour.BLACK)?1:0)).sum();
+        return (int) summaries.stream().filter(s -> (s.getColour() == Colour.BLACK)).count();
     }
 
     public int getID() {
@@ -48,20 +49,14 @@ public class Player {
     public void setOrganization(String organization) {
         this.organization = organization.trim();
     }
-    public void setScore(int score) {
-        this.score = score;
-    }
+
     public void setID(int id){
         this.id = id;
     }
     public void addPlayerGameSummary(PlayerGameSummary ... playerGameSummaries){
-        for (PlayerGameSummary p: playerGameSummaries) {
-            summaries.add(p);
-            score += p.getPointsEarned();
-        }
-
+        summaries.addAll(Arrays.asList(playerGameSummaries));
+        score += Arrays.stream(playerGameSummaries).mapToInt(PlayerGameSummary::getPointsEarned).sum();
     }
-
     
     public boolean hasSatOut(){
         return hasPlayedAgainst(NullPlayer.getInstance());
@@ -70,26 +65,16 @@ public class Player {
         return summaries.stream().anyMatch(m -> m.getOpponent().equals(opponent));
     }
 
-    public int getScoreAgainst(Player opponent){
-        for(PlayerGameSummary m : summaries){
-            if(m.getOpponent().equals(opponent))
-                return m.getPointsEarned();
-        }
-        return -1;
-    }
-
     public void clearTiebreaks() {
-        tiebreaks.clear();
+        tiebreakScores.clear();
     }
 
-    public void setTiebreak(TiebreakType tiebreakType, int value) {
-        tiebreaks.put(tiebreakType, value);
+    void setTiebreak(TiebreakType tiebreakType, int value) {
+        tiebreakScores.put(tiebreakType, value);
     }
 
     public int getTiebreakScore(TiebreakType type) {
-        Integer a = tiebreaks.get(type);
-        if(a == null) return 0;
-        else return a;
+        return tiebreakScores.getOrDefault(type, 0);
     }
 
     public boolean isActive() {
@@ -98,5 +83,13 @@ public class Player {
 
     public void setActive(boolean active) {
         isActive = active;
+    }
+
+    public int getRank() {
+        return rank;
+    }
+
+    void setRank(int rank) {
+        this.rank = rank;
     }
 }

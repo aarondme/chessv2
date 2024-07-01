@@ -4,7 +4,6 @@ import me.aarondmello.csv.CsvReader;
 import me.aarondmello.csv.CsvWriter;
 import me.aarondmello.datatypes.Game;
 import me.aarondmello.datatypes.Player;
-import me.aarondmello.datatypes.Round;
 import me.aarondmello.datatypes.Tournament;
 import org.junit.jupiter.api.Test;
 
@@ -16,6 +15,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedList;
 
 import static me.aarondmello.WriterTester.filesCompareByLine;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -39,8 +39,7 @@ public class RoundCsvTest {
     }
 
     private Tournament initializeBasicTournament(){
-        Tournament t = new Tournament();
-        t.setName("myTournament");
+        Tournament t = new Tournament("myTournament", 5, true);
         Player[] divisionAPlayers = new Player[]{new Player("A", "a"),
                 new Player("B", "b"),
                 new Player("C", "c"),
@@ -53,14 +52,13 @@ public class RoundCsvTest {
         div.put("A", new ArrayList<>(Arrays.asList(divisionAPlayers)));
         div.put("B", new ArrayList<>(Arrays.asList(divisionBPlayers)));
         t.addPlayers(div);
-        t.setTotalRounds(5);
         t.initialize(false);
-        Round rA = new Round();
-        rA.addGame(new Game(divisionAPlayers[0], divisionAPlayers[1]));
-        rA.addGame(new Game(divisionAPlayers[2], divisionAPlayers[3]));
-        Round rB = new Round();
-        rB.addGame(new Game(divisionBPlayers[0], divisionBPlayers[1]));
-        rB.addGame(new Game(divisionBPlayers[2], divisionBPlayers[3]));
+        LinkedList<Game> rA = new LinkedList<>();
+        rA.add(new Game(divisionAPlayers[0], divisionAPlayers[1]));
+        rA.add(new Game(divisionAPlayers[2], divisionAPlayers[3]));
+        LinkedList<Game> rB = new LinkedList<>();
+        rB.add(new Game(divisionBPlayers[0], divisionBPlayers[1]));
+        rB.add(new Game(divisionBPlayers[2], divisionBPlayers[3]));
         t.getDivisionWithName("A").setCurrentRound(rA);
         t.getDivisionWithName("B").setCurrentRound(rB);
         return t;

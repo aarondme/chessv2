@@ -8,6 +8,7 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.LinkedList;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -111,9 +112,9 @@ public class ResumeTournamentTest {
         Player p1 = new Player("p1", "org");
         Player p2 =  new Player("p2", "org");
 
-        Round r = new Round();
+        LinkedList<Game> r = new LinkedList<>();
         Game g = new Game(p1, p2);
-        r.addGame(g);
+        r.add(g);
         g.setResult(GameResult.WHITE_WIN);
 
         Tournament v = TournamentBuilder.createTournament()
@@ -142,10 +143,10 @@ public class ResumeTournamentTest {
         Player p2 = new Player("p2", "org");
         p2.setID(2);
 
-        Round r = new Round();
+        LinkedList<Game> r = new LinkedList<>();
         Game g = new Game(p1, p2);
         g.setResult(GameResult.WHITE_WIN);
-        r.addGame(g);
+        r.add(g);
         Tournament v = TournamentBuilder.createTournament()
                 .withName("tournament")
                 .withNRounds(3)
@@ -169,9 +170,9 @@ public class ResumeTournamentTest {
         Player p1 = new Player("p1", "org");
         Player p2 =  new Player("p2", "org");
 
-        Round r = new Round();
+        LinkedList<Game> r = new LinkedList<>();
         Game g = new Game(p1, p2);
-        r.addGame(g);
+        r.add(g);
         g.setResult(GameResult.WHITE_WIN);
 
         Tournament v = TournamentBuilder.createTournament()
